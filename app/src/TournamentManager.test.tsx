@@ -3,7 +3,8 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import TournamentManager from './TournamentManager'
-import { loadTournaments } from './tournament-storage'
+import { loadTournaments, readTournament, saveTournament } from './tournament-storage'
+import { serializeBackup } from './tournament-backup'
 import { hashCode } from './access'
 import { draftFor, validateDraft } from './tournament'
 
@@ -158,5 +159,90 @@ describe('Turniere vorbereiten', () => {
     render(<TournamentManager />)
     expect(screen.getByRole('alert')).toHaveTextContent('nicht geladen')
     expect(screen.getByRole('button', { name: 'Turnier anlegen' })).toBeDisabled()
+  })
+
+  it('importiert eine Datei verlustfrei und verlangt anschliessend den Turniercode', async () => {
+    const user = userEvent.setup()
+    const id = await seed('Büro Cup 🏆')
+    const backup = serializeBackup(readTournament(id))
+    localStorage.clear()
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'JSON-Sicherung importieren' }))
+    await user.upload(screen.getByLabelText('JSON-Sicherungsdatei'), new File([backup], 'cup.json', { type: 'application/json' }))
+    expect(await screen.findByText('Büro Cup 🏆')).toBeVisible()
+    expect(loadTournaments()).toEqual([])
+    await user.click(screen.getByRole('button', { name: 'Turnier importieren' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('Turnier importiert')
+    expect(screen.queryByText('Ort von Büro Cup 🏆')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Büro Cup 🏆 öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    expect(await screen.findByText('Ort von Büro Cup 🏆')).toBeVisible()
+  })
+
+  it('verlangt bestehendes Passwort und Bestaetigung, bricht folgenlos ab und ersetzt erst danach', async () => {
+    const user = userEvent.setup()
+    const id = await seed()
+    const current = readTournament(id)
+    const incoming = {
+      ...current, codeHash: await hashCode('imported-code'),
+      settings: { ...current.settings, name: 'Sicherungsstand' },
+    }
+    const file = new File([serializeBackup(incoming)], 'cup.json', { type: 'application/json' })
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'JSON-Sicherung importieren' }))
+    await user.upload(screen.getByLabelText('JSON-Sicherungsdatei'), file)
+    expect(await screen.findByRole('button', { name: 'Turnier ersetzen' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Abbrechen' }))
+    expect(readTournament(id)).toEqual(current)
+    await user.click(screen.getByRole('button', { name: 'JSON-Sicherung importieren' }))
+    await user.upload(screen.getByLabelText('JSON-Sicherungsdatei'), file)
+    await user.click(await screen.findByLabelText('Ich möchte den lokalen Stand unwiderruflich ersetzen.'))
+    await user.type(screen.getByLabelText('Bestehender Turniercode'), 'imported-code')
+    await user.click(screen.getByRole('button', { name: 'Turnier ersetzen' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('nicht korrekt')
+    expect(readTournament(id)).toEqual(current)
+    await user.clear(screen.getByLabelText('Bestehender Turniercode'))
+    await user.type(screen.getByLabelText('Bestehender Turniercode'), 'fixture-cup')
+    await user.click(screen.getByRole('button', { name: 'Turnier ersetzen' }))
+    await screen.findByRole('status')
+    expect(readTournament(id)).toEqual({ ...incoming, revision: 2 })
+    await user.click(screen.getByRole('button', { name: 'Sicherungsstand öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'imported-code{Enter}')
+    expect(await screen.findByRole('heading', { name: 'Sicherungsstand' })).toBeVisible()
+  })
+
+  it('zeigt Import- und Speicherfehler ohne Datenverlust und erlaubt erneuten Import', async () => {
+    const user = userEvent.setup()
+    const id = await seed()
+    const current = readTournament(id)
+    const incoming = { ...current, id: 'additional', settings: { ...current.settings, name: 'Zusätzlich' } }
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'JSON-Sicherung importieren' }))
+    const input = screen.getByLabelText('JSON-Sicherungsdatei')
+    await user.upload(input, new File(['{'], 'broken.json', { type: 'application/json' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('kein gültiges JSON')
+    expect(readTournament(id)).toEqual(current)
+    await user.upload(input, new File([serializeBackup(incoming)], 'good.json', { type: 'application/json' }))
+    await screen.findByText('Zusätzlich')
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => { throw new DOMException('Full', 'QuotaExceededError') })
+    await user.click(screen.getByRole('button', { name: 'Turnier importieren' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('nicht gespeichert')
+    expect(loadTournaments()).toEqual([current])
+    await user.click(screen.getByRole('button', { name: 'Turnier importieren' }))
+    await screen.findByRole('status')
+    expect(loadTournaments()).toHaveLength(2)
+  })
+
+  it('exportiert keinen veralteten Stand aus einem weiteren Tab', async () => {
+    const user = userEvent.setup()
+    const id = await seed()
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    await screen.findByRole('heading', { name: 'Office Cup' })
+    const current = readTournament(id)
+    await saveTournament({ ...current, revision: 2 }, 1)
+    await user.click(screen.getByRole('button', { name: 'JSON-Sicherung herunterladen' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('zwischenzeitlich geändert')
   })
 })

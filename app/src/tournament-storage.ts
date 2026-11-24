@@ -45,8 +45,17 @@ export function readTournament(id: string): Tournament {
   }
 }
 
-export function saveTournament(tournament: Tournament, expectedRevision: number | null): void {
+export async function saveTournament(tournament: Tournament, expectedRevision: number | null): Promise<void> {
   if (!isTournament(tournament)) throw new Error('Ungültige Turnierdaten können nicht gespeichert werden.')
+  if (!navigator.locks) {
+    throw new Error('Dieser Browser unterstützt keine sicheren parallelen Speicherzugriffe. Bitte einen aktuellen Browser über HTTPS oder localhost verwenden. Es wurde nichts gespeichert.')
+  }
+  await navigator.locks.request(`${prefix}${tournament.id}`, () => {
+    writeTournament(tournament, expectedRevision)
+  })
+}
+
+function writeTournament(tournament: Tournament, expectedRevision: number | null): void {
   let raw: string | null
   try {
     raw = window.localStorage.getItem(`${prefix}${tournament.id}`)
@@ -56,10 +65,19 @@ export function saveTournament(tournament: Tournament, expectedRevision: number 
   if (expectedRevision === null ? raw !== null : raw === null || storedTournament(raw, tournament.id).revision !== expectedRevision) {
     throw new Error('Das Turnier wurde zwischenzeitlich geändert. Bitte den aktuellen Stand über die Turnierauswahl neu öffnen.')
   }
+  if (expectedRevision !== null && tournament.revision !== expectedRevision + 1) {
+    throw new Error('Ungültige Speicherrevision. Bitte das Turnier über die Turnierauswahl neu öffnen.')
+  }
   try {
     window.localStorage.setItem(`${prefix}${tournament.id}`, JSON.stringify(tournament))
   } catch (cause) {
     throw new Error('Das Turnier konnte nicht gespeichert werden. Der Browserspeicher ist gesperrt oder voll. Deine Eingaben bleiben erhalten; bitte erneut versuchen.', { cause })
   }
+
 }
 
+export function assertCurrentTournament(tournament: Tournament): void {
+  if (readTournament(tournament.id).revision !== tournament.revision) {
+    throw new Error('Das Turnier wurde zwischenzeitlich geändert. Bitte den aktuellen Stand über die Turnierauswahl neu öffnen.')
+  }
+}

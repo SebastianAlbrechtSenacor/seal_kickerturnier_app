@@ -34,7 +34,9 @@ die Frontend-Sperre umgehbar; eine Aussage zum Entfallen einer
 Impressumspflicht ist damit nicht verbunden.
 [Story 1.2](./spec/story-1_2-DONE.md) ist umgesetzt, getestet und nach
 erfolgreichen Entwickler-Praxispruefungen abgenommen.
-Stories 1.3 bis 1.10 sind noch nicht implementiert.
+[Story 1.3](./spec/story-1_3-DONE.md) ist umgesetzt, getestet und nach
+erfolgreichen Entwickler-Praxispruefungen am 24.11.2026 abgenommen.
+Stories 1.4 bis 1.10 sind noch nicht implementiert.
 
 ## Turniere vorbereiten
 
@@ -72,13 +74,42 @@ entsperrte Sitzung. Die uebrigen Turnierdaten sind nicht verschluesselt.
 Bei fehlgeschlagenem Speichern zeigt die App einen Fehler und behaelt die
 Eingaben sowie den letzten erfolgreich gespeicherten Stand. Gesperrter
 Lesespeicher oder beschaedigte Daten werden nicht als leere Turnierliste
-ausgegeben. Bereits geaenderte Staende werden beim Speichern erkannt;
-bitte vorerst nur einen Tab zur Bearbeitung verwenden.
+ausgegeben. Schreibzugriffe pro Turnier werden ueber Web Locks serialisiert;
+veraltete Bearbeitungen werden mit Konfliktmeldung abgewiesen, auch wenn
+zwischenzeitlich eine alte Sicherung importiert wurde. Bei einem Konflikt
+den aktuellen Stand ueber die Turnierauswahl neu oeffnen. Es gibt keine
+automatische Live-Aktualisierung oder Zusammenfuehrung zwischen Tabs.
+Ein aktueller Browser mit Web-Locks-Unterstuetzung ueber HTTPS oder localhost
+ist zum Speichern und Importieren erforderlich; ohne Unterstuetzung erscheint
+eine Fehlermeldung statt eines ungeschuetzten Schreibzugriffs.
 
 Die Daten liegen **nur in diesem Browserprofil auf diesem Geraet**,
 nicht bei GitHub. Kein Privatmodus; geloeschte Browserdaten koennen zum
-Datenverlust fuehren. JSON-Sicherung/-Import kommt erst in Story 1.3.
+Datenverlust fuehren. Regelmaessig JSON-Sicherungen herunterladen.
 Spielende und Turnierstart sind ebenfalls noch nicht verfuegbar.
+
+### JSON-Sicherung und Wiederherstellung
+
+- Im geoeffneten Turnier **JSON-Sicherung herunterladen** waehlen.
+  Die UTF-8-Datei enthaelt ID, Einstellungen, Phase und den Pruefwert des
+  Turniercodes, aber weder Mastercode noch Klartext-Codes oder entsperrte Sitzung.
+  Die Daten sind nicht verschluesselt; Sicherungen nicht oeffentlich teilen.
+- In der Turnierauswahl **JSON-Sicherung importieren** waehlen und die
+  Datei auswaehlen. Die Vorschau zeigt Name und Datum. Erst
+  **Turnier importieren** speichert das neue Turnier; **Abbrechen** aendert nichts.
+- Existiert dieselbe ID bereits, sind der **bestehende** Turniercode und
+  die ausdrueckliche Ersetzungsbestaetigung erforderlich. **Turnier ersetzen**
+  ersetzt den gesamten Stand, ohne ihn mit dem lokalen Stand zu vermischen.
+  Anschliessend gilt der Code aus der Sicherung. Zum Oeffnen wird er erneut
+  abgefragt. Die lokale Revision steigt dabei zur Konflikterkennung.
+- Beschaedigte Dateien, unbekannte Versionen/Felder und widerspruechliche
+  Einstellungen werden mit Importfehler abgewiesen. Vorhandene Turniere
+  bleiben ebenso bei Lese-/Speicherfehlern unveraendert.
+- Uebertragung in einen anderen Browser oder auf ein anderes Geraet erfolgt
+  durch Kopieren und Importieren der Datei, nicht automatisch.
+  Sicherungen enthalten die zum jeweiligen Entwicklungsstand vorhandenen Daten.
+  Spielende, Partien, Timer und weitere Phasen werden erst mit den Folgestories
+  in das Format aufgenommen und geprueft. CSV wird nicht unterstuetzt.
 
 ## Lokal starten
 
@@ -163,10 +194,9 @@ Zugangsmaske nicht verschluesselt.
 - Wechselnde Zweierteams, individuelle Punkte und Rangliste.
 - K.-o.-Phase der besten acht Personen mit festen Teams und
   getrennten Abschlusswertungen.
-- JSON-Import/-Export fuer Sicherung und Uebertragung der bereits lokal
-  gespeicherten Turniere, kein CSV.
-  Kein Backend und keine automatische Synchronisation zwischen Geraeten.
-  Geloeschte Browserdaten koennen ohne Sicherung zum Datenverlust fuehren.
+
+Kein Backend und keine automatische Synchronisation zwischen Geraeten.
+Geloeschte Browserdaten koennen ohne Sicherung zum Datenverlust fuehren.
 
 Technische Grenzen und recherchierte Quellen stehen im
 [Epic](./spec/epic-1.md#technische-recherche-stand-24112026).

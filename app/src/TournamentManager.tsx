@@ -2,14 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { hashCode } from './access'
 import TournamentForm from './TournamentForm'
+import TournamentImport from './TournamentImport'
+import { downloadBackup } from './tournament-backup'
 import { formatBerlinTime, planTimes } from './tournament'
 import type { Tournament, TournamentSettings } from './tournament'
-import { loadTournaments, readTournament, saveTournament } from './tournament-storage'
+import { assertCurrentTournament, loadTournaments, readTournament, saveTournament } from './tournament-storage'
 import './TournamentManager.css'
 
 type View =
   | { kind: 'list' }
   | { kind: 'create' }
+  | { kind: 'import' }
   | { kind: 'unlock'; tournament: Tournament }
   | { kind: 'details'; tournament: Tournament }
   | { kind: 'edit'; tournament: Tournament }
@@ -31,6 +34,7 @@ export default function TournamentManager() {
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [checking, setChecking] = useState(false)
+  const [notice, setNotice] = useState('')
   const heading = useRef<HTMLHeadingElement>(null)
   const codeInput = useRef<HTMLInputElement>(null)
 
@@ -45,6 +49,7 @@ export default function TournamentManager() {
   function backToList() {
     setCode('')
     setError('')
+    setNotice('')
     setView({ kind: 'list' })
     setList(readList())
   }
@@ -65,6 +70,7 @@ export default function TournamentManager() {
         setCode('')
         return
       }
+      assertCurrentTournament(tournament)
       setCode('')
       setView({ kind: 'details', tournament })
     } catch (error) {
@@ -90,13 +96,24 @@ export default function TournamentManager() {
       settings,
       codeHash,
     }
-    saveTournament(tournament, existing?.revision ?? null)
+    await saveTournament(tournament, existing?.revision ?? null)
     setView({ kind: 'details', tournament })
   }
 
-  const expanded = view.kind === 'create' || view.kind === 'edit' || view.kind === 'details'
+  function exportBackup(tournament: Tournament) {
+    setError('')
+    try {
+      assertCurrentTournament(tournament)
+      downloadBackup(tournament)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Die JSON-Sicherung konnte nicht heruntergeladen werden.')
+    }
+  }
+
+  const expanded = view.kind === 'create' || view.kind === 'edit' || view.kind === 'details' || view.kind === 'import'
   const title = view.kind === 'list' ? 'Deine Turniere.' :
     view.kind === 'create' ? 'Neues Turnier' :
+    view.kind === 'import' ? 'JSON-Sicherung importieren' :
     view.kind === 'edit' ? 'Turnier bearbeiten' :
     view.kind === 'unlock' ? 'Turnier öffnen' : view.tournament.settings.name
 
@@ -110,7 +127,8 @@ export default function TournamentManager() {
           <>
             <p className="card-description">Turnier vorbereiten oder mit eurem Turniercode wieder öffnen.</p>
             <p className="storage-note">Nur in diesem Browser gespeichert. Nicht im Privatmodus verwenden.
-              JSON-Sicherung und Geräteübertragung folgen in Story 1.3.</p>
+              Regelmäßig eine JSON-Sicherung herunterladen und sicher aufbewahren.</p>
+            {notice && <p role="status">{notice}</p>}
             {list.error ? (
               <div role="alert" className="error-message">
                 <p>{list.error}</p>
@@ -139,9 +157,19 @@ export default function TournamentManager() {
                 <p>Lege euer erstes Turnier an.</p>
               </div>
             )}
-            <button className="action-button" type="button" disabled={Boolean(list.error)}
-              onClick={() => setView({ kind: 'create' })}>Turnier anlegen</button>
+            <div className="form-actions">
+              <button className="action-button" type="button" disabled={Boolean(list.error)}
+                onClick={() => setView({ kind: 'create' })}>Turnier anlegen</button>
+              <button className="secondary-button" type="button" disabled={Boolean(list.error)}
+                onClick={() => setView({ kind: 'import' })}>JSON-Sicherung importieren</button>
+            </div>
           </>
+        )}
+        {view.kind === 'import' && (
+          <TournamentImport onCancel={backToList} onImported={() => {
+            backToList()
+            setNotice('Turnier importiert. Zum Öffnen bitte den Turniercode aus der Sicherung eingeben.')
+          }} />
         )}
         {view.kind === 'unlock' && (
           <form className="tournament-unlock" onSubmit={open} noValidate aria-busy={checking}>
@@ -179,9 +207,12 @@ export default function TournamentManager() {
               <div><dt>Geplante K.-o.-Phase</dt><dd>{view.tournament.settings.knockoutMinutes} Minuten</dd></div>
             </dl>
             <Schedule tournament={view.tournament} />
+            {error && <p className="error-message" role="alert">{error}</p>}
             <div className="form-actions">
               <button className="action-button" type="button"
                 onClick={() => setView({ kind: 'edit', tournament: view.tournament })}>Einstellungen bearbeiten</button>
+              <button className="secondary-button" type="button"
+                onClick={() => exportBackup(view.tournament)}>JSON-Sicherung herunterladen</button>
               <button className="secondary-button" type="button" onClick={backToList}>Zur Turnierauswahl</button>
             </div>
           </>
