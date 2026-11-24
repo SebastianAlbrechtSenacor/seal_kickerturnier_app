@@ -11,17 +11,29 @@ Die [Spezifikation mit zehn ATDD-Stories](./spec/epic-1.md) ist seit dem
 
 Story 1.1 setzt das React-/TypeScript-/Vite-Grundgeruest um:
 
-- Zugangsmaske mit Master-Zugangscode und sichtbaren Eingabefehlern.
+- Neutrale Zugangsmaske mit Master-Zugangscode und sichtbaren Eingabefehlern;
+  ohne Office-Branding, Grafik oder Turnierinformationen.
 - Entsperrte Turnieransicht als Vorbereitung fuer Story 1.2.
   Turniere anlegen und oeffnen ist noch nicht verfuegbar.
 - Explizites Sperren; nach Neuladen ist der Zugang ebenfalls wieder gesperrt.
 - Responsive Gestaltung in Petrol/Tuerkis, Orange/Gelb und Weiss nach den
   [Werbeplakaten](./spec/epic-1.md#dauerhafte-designreferenzen), mit Maus-,
-  Touch- und Tastaturbedienung sowie reduzierter Bewegung.
+  Touch- und Tastaturbedienung sowie reduzierter Bewegung. Diese gestaltete
+  Oberflaeche erscheint erst nach erfolgreicher Mastercode-Eingabe und wird
+  beim Sperren wieder entfernt.
 - Tests, Typpruefung und Linting sowie GitHub-Pages-Deployment-Workflow.
 
-Die Abnahme von Story 1.1 einschliesslich echtem Pages-Aufruf und visueller
-Freigabe steht noch aus. Die folgenden Stories sind noch nicht implementiert.
+Der Entwickler hat die urspruenglichen Akzeptanzszenarien A-D einschliesslich
+echtem Pages-Aufruf als bestanden gemeldet. Vor Abnahme wurde eine Erweiterung
+gewuenscht: Zunaechst nur eine neutrale Zugangsmaske, die gestaltete
+Oberflaeche erst nach Codeeingabe. Diese
+[Erweiterung](./spec/story-1_1-DONE.md) ist ebenfalls freigegeben und umgesetzt.
+Die erneuten Entwicklertests C und D sind bestanden; Story 1.1 wurde am
+24.11.2026 ausdruecklich abgenommen.
+Auch damit bleiben Dateien oeffentlich abrufbar und
+die Frontend-Sperre umgehbar; eine Aussage zum Entfallen einer
+Impressumspflicht ist damit nicht verbunden.
+Die folgenden Stories sind noch nicht implementiert.
 
 ## Lokal starten
 

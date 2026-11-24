@@ -50,6 +50,43 @@ function App() {
     setError('')
   }
 
+  if (!unlocked) {
+    return (
+      <main className="access-gate">
+        <form className="access-form" onSubmit={unlock} noValidate aria-busy={checking} aria-labelledby="access-title">
+          <h1 className="access-title" id="access-title">Zugang</h1>
+          <label htmlFor="master-code">Master-Zugangscode</label>
+          <input
+            id="master-code"
+            name="master-code"
+            ref={codeInput}
+            type="password"
+            autoComplete="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            value={code}
+            disabled={!configured || checking}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? 'access-error' : !configured ? 'access-configuration' : undefined}
+            onChange={(event) => {
+              setCode(event.target.value)
+              setError('')
+            }}
+          />
+          {error && <p className="error-message" id="access-error" role="alert">{error}</p>}
+          {!configured && (
+            <p className="error-message" id="access-configuration" role="alert">
+              Der Master-Zugang ist noch nicht eingerichtet. Bitte die organisierende Person um Konfiguration bitten.
+            </p>
+          )}
+          <button disabled={!configured || checking} type="submit">
+            {checking ? 'Code wird geprüft ...' : 'Entsperren'}
+          </button>
+        </form>
+      </main>
+    )
+  }
+
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -86,66 +123,17 @@ function App() {
 
         <section className="entry-card" aria-labelledby="entry-title">
           <div className="card-stripe" aria-hidden="true" />
-          {unlocked ? (
-            <div className="card-content" key="selection">
-              <p className="card-eyebrow">DU BIST DRIN</p>
-              <h2 id="entry-title" ref={selectionHeading} tabIndex={-1}>Deine Turniere.</h2>
-              <p className="card-description">Hier beginnt euer nächstes Match.</p>
-              <div className="empty-state">
-                <span className="empty-symbol" aria-hidden="true">🏆</span>
-                <h3>Die Arena ist bereit.</h3>
-                <p>Turniere anlegen und wieder öffnen ist im nächsten Entwicklungsschritt verfügbar.</p>
-              </div>
-              <button className="secondary-button" onClick={lock} type="button">Anwendung sperren</button>
+          <div className="card-content">
+            <p className="card-eyebrow">DU BIST DRIN</p>
+            <h2 id="entry-title" ref={selectionHeading} tabIndex={-1}>Deine Turniere.</h2>
+            <p className="card-description">Hier beginnt euer nächstes Match.</p>
+            <div className="empty-state">
+              <span className="empty-symbol" aria-hidden="true">🏆</span>
+              <h3>Die Arena ist bereit.</h3>
+              <p>Turniere anlegen und wieder öffnen ist im nächsten Entwicklungsschritt verfügbar.</p>
             </div>
-          ) : (
-            <div className="card-content" key="access">
-              <p className="card-eyebrow">NUR NOCH EIN EINWURF</p>
-              <h2 id="entry-title">Bereit zum<br />Anstoß?</h2>
-              <p className="card-description">
-                Euer Turnier. Euer Zugang.<br />
-                Gib den Master-Zugangscode ein und sei dabei.
-              </p>
-              <form onSubmit={unlock} noValidate aria-busy={checking}>
-                <label htmlFor="master-code">Master-Zugangscode</label>
-                <input
-                  id="master-code"
-                  name="master-code"
-                  ref={codeInput}
-                  type="password"
-                  autoComplete="off"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  value={code}
-                  disabled={!configured || checking}
-                  aria-invalid={Boolean(error)}
-                  aria-describedby={error ? 'access-error' : 'access-note'}
-                  onChange={(event) => {
-                    setCode(event.target.value)
-                    setError('')
-                  }}
-                  placeholder="Dein Code zum Spielfeld"
-                />
-                {error && <p className="error-message" id="access-error" role="alert">{error}</p>}
-                {!configured && (
-                  <p className="error-message" role="alert">
-                    Der Master-Zugang ist noch nicht eingerichtet. Bitte die organisierende Person um Konfiguration bitten.
-                  </p>
-                )}
-                <button className="primary-button" disabled={!configured || checking} type="submit">
-                  {checking ? 'Code wird geprüft ...' : 'Ab aufs Spielfeld'}
-                  <span aria-hidden="true">↗</span>
-                </button>
-              </form>
-              <p className="access-note" id="access-note">
-                Code vergessen? Frag die Person, die das Turnier organisiert.
-              </p>
-              <div className="welcome-note">
-                <span aria-hidden="true">✦</span>
-                <p>Profi oder erstes Mal am Tisch?<br /><strong>Hauptsache, du bist dabei.</strong></p>
-              </div>
-            </div>
-          )}
+            <button className="secondary-button" onClick={lock} type="button">Anwendung sperren</button>
+          </div>
         </section>
       </main>
 

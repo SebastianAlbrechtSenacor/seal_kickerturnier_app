@@ -1,7 +1,8 @@
 # Epic 1: Kickerturnier am Office-Kickertisch
 
-Status: Spezifikation freigegeben am 24.11.2026. Story 1.1 umgesetzt,
-Entwicklertests und Abnahme ausstehend; noch keine Story abgenommen.
+Status: Spezifikation freigegeben am 24.11.2026. Story 1.1 einschliesslich
+neutraler Zugangsmaske umgesetzt, getestet und am 24.11.2026 abgenommen.
+Stories 1.2 bis 1.10 sind noch nicht implementiert; das Epic bleibt offen.
 
 ## Ziel
 
@@ -55,6 +56,14 @@ Plaetze 1 bis 4 aus. Die Bedienung funktioniert mit Maus und Touch.
   getrennt die vier K.-o.-Teams in ihrer endgueltigen Platzierung.
 
 ## Gestaltung
+
+Freigegebene Erweiterung fuer Story 1.1: Vor erfolgreicher Mastercode-Eingabe
+erscheint nur eine neutrale Zugangsmaske; die nachfolgend beschriebene
+gestaltete Oberflaeche wird erst danach gerendert. Sperren und Neuladen
+fuehren zur neutralen Maske zurueck. Dies bleibt eine umgehbare
+Frontend-Zugangshuerde mit oeffentlich abrufbaren Dateien, ohne Aussage
+zum Entfallen einer Impressumspflicht. Diese Erweiterung ist freigegeben,
+umgesetzt und mit Story 1.1 abgenommen.
 
 Die geteilten Werbeplakate dienen als Stilreferenz: Petrol/Tuerkis, Orange/Gelb,
 Weiss, dunkle kontrastreiche Flaechen, markante sportliche Ueberschriften und
@@ -170,7 +179,7 @@ verlaengern.
 Jede Story wird einzeln umgesetzt, getestet und zur Abnahme vorgelegt.
 Erst nach Rueckmeldung und ausstehenden Entwicklertests folgt die naechste.
 
-1. [Pages-Grundgeruest und Masterzugang](./story-1_1.md)
+1. [Pages-Grundgeruest und Masterzugang: abgenommen](./story-1_1-DONE.md)
 2. [Turniere anlegen, speichern und oeffnen](./story-1_2.md)
 3. [JSON-Sicherung und Wiederherstellung](./story-1_3.md)
 4. [Spielende und Avatare verwalten](./story-1_4.md)

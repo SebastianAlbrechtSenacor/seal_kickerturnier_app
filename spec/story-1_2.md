@@ -2,7 +2,7 @@
 
 Status: Freigegeben am 24.11.2026, noch nicht implementiert.
 Epic: [Epic 1](./epic-1.md)
-Abhaengigkeiten: [Story 1.1](./story-1_1.md).
+Abhaengigkeiten: [Story 1.1](./story-1_1-DONE.md).
 
 Als organisierende Person moechte ich mehrere getrennte Turniere vorbereiten
 und mit ihrem jeweiligen Turniercode wieder oeffnen.
