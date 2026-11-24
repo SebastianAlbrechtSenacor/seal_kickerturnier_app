@@ -1,6 +1,6 @@
 # Story 1.2: Turniere anlegen, speichern und oeffnen
 
-Status: Entwurf, nicht freigegeben.
+Status: Freigegeben am 24.11.2026, noch nicht implementiert.
 Epic: [Epic 1](./epic-1.md)
 Abhaengigkeiten: [Story 1.1](./story-1_1.md).
 

@@ -1,6 +1,6 @@
 # Story 1.6: Vorrundenpartie besetzen
 
-Status: Entwurf, nicht freigegeben.
+Status: Freigegeben am 24.11.2026, noch nicht implementiert.
 Epic: [Epic 1](./epic-1.md)
 Abhaengigkeiten: [Story 1.5](./story-1_5.md).
 

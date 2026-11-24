@@ -1,6 +1,7 @@
 # Epic 1: Kickerturnier am Office-Kickertisch
 
-Status: Entwurf zur Freigabe. Keine Story ist implementiert oder abgenommen.
+Status: Spezifikation freigegeben am 24.11.2026. Story 1.1 umgesetzt,
+Entwicklertests und Abnahme ausstehend; noch keine Story abgenommen.
 
 ## Ziel
 
@@ -70,10 +71,10 @@ der dort sichtbaren personenbezogenen Chatdaten.
 Die Veranstaltungsdaten und Uhrzeiten auf den Plakaten sind keine festen
 Anwendungswerte. Datum, Startzeit und Planungsdauern kommen aus dem Turnier.
 
-## Ergaenzende Festlegungen zur Freigabe
+## Ergaenzende freigegebene Festlegungen
 
-Die folgenden Detailregeln konkretisieren den Umfang zur Pruefung.
-Die Freigabe der ausformulierten Stories steht weiterhin aus.
+Die folgenden Detailregeln und die ausformulierten Stories wurden am
+24.11.2026 ausdruecklich zur Umsetzung freigegeben.
 
 1. Name, Datum/Uhrzeit, Spielort und Zugangscode sind Pflichtfelder;
    Beschreibung ist optional. Namen duerfen Leerzeichen enthalten, aber

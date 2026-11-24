@@ -1,6 +1,6 @@
 # Story 1.9: K.-o.-Phase spielen
 
-Status: Entwurf, nicht freigegeben.
+Status: Freigegeben am 24.11.2026, noch nicht implementiert.
 Epic: [Epic 1](./epic-1.md)
 Abhaengigkeiten: [Story 1.8](./story-1_8.md).
 

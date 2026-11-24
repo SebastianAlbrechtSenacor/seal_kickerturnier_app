@@ -1,6 +1,6 @@
 # Story 1.7: Partie, Countdown und Unterbrechungen
 
-Status: Entwurf, nicht freigegeben.
+Status: Freigegeben am 24.11.2026, noch nicht implementiert.
 Epic: [Epic 1](./epic-1.md)
 Abhaengigkeiten: [Story 1.6](./story-1_6.md).
 

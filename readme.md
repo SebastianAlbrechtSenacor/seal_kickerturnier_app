@@ -1,37 +1,118 @@
 # Kickerturnier-App
 
-Die Kickerturnier-App ist als einfache Webanwendung zur Erfassung von Spielergebnissen geplant. Gespielt wird am echten Kickertisch; die Teilnehmenden tragen ihre Ergebnisse selbst am Laptop neben dem Tisch ein.
-
-Die Bedienung soll unkompliziert sein und mit schickem Design und unterhaltsamen Animationen Spaß machen.
+Eine Webanwendung fuer das Kickerturnier im Eschborner Office. Gespielt wird
+am echten Kickertisch; die Teilnehmenden bedienen den Laptop daneben selbst.
 
 ## Projektstand
 
-Die App ist noch nicht implementiert. Die Spezifikation entsteht in `spec\`, der Anwendungscode in `app\`. Der Entwicklungsablauf steht in [agents.md](./agents.md).
+Die [Spezifikation mit zehn ATDD-Stories](./spec/epic-1.md) ist seit dem
+24.11.2026 zur Umsetzung freigegeben. Der Ablauf steht in
+[agents.md](./agents.md): Jede Story wird einzeln umgesetzt und abgenommen.
 
-## Geplanter erster Funktionsumfang
+Story 1.1 setzt das React-/TypeScript-/Vite-Grundgeruest um:
 
-Der [Spezifikationsentwurf mit zehn ATDD-Stories](./spec/epic-1.md) liegt zur
-Freigabe vor. Er beschreibt die Vorrunde mit wechselnden Zweierteams und
-individuellen Punkten, die anschliessende K.-o.-Phase der besten acht Personen
-und die getrennten Abschlusswertungen.
+- Zugangsmaske mit Master-Zugangscode und sichtbaren Eingabefehlern.
+- Entsperrte Turnieransicht als Vorbereitung fuer Story 1.2.
+  Turniere anlegen und oeffnen ist noch nicht verfuegbar.
+- Explizites Sperren; nach Neuladen ist der Zugang ebenfalls wieder gesperrt.
+- Responsive Gestaltung in Petrol/Tuerkis, Orange/Gelb und Weiss nach den
+  [Werbeplakaten](./spec/epic-1.md#dauerhafte-designreferenzen), mit Maus-,
+  Touch- und Tastaturbedienung sowie reduzierter Bewegung.
+- Tests, Typpruefung und Linting sowie GitHub-Pages-Deployment-Workflow.
 
-Geplant sind React, TypeScript und Vite sowie statisches Hosting auf GitHub
-Pages. Turniere werden auf einem gemeinsamen Laptop automatisch im Browser
-gespeichert, nicht auf GitHub. JSON-Sicherungen dienen zur Wiederherstellung
-und Uebertragung; CSV-Import/-Export ist nicht vorgesehen. Es gibt keine automatische
-Synchronisation zwischen Geraeten; geloeschte Browserdaten koennen ohne
-Sicherung zum Datenverlust fuehren.
+Die Abnahme von Story 1.1 einschliesslich echtem Pages-Aufruf und visueller
+Freigabe steht noch aus. Die folgenden Stories sind noch nicht implementiert.
 
-Die Partiedauer ist konfigurierbar, standardmaessig 10 Minuten.
-Unabhaengig davon dienen zwei konfigurierbare Phasendauern zur Zeitplanung:
-120 Minuten Vorrunde und 60 Minuten K.-o.-Phase als Standard. Angezeigte
-Phasen-/Endzeiten sind nur eine Planung; Start und Phasenwechsel bleiben manuell.
+## Lokal starten
 
-Die [beiden Werbeplakate](./spec/epic-1.md#dauerhafte-designreferenzen)
-sind als dauerhafte Referenzen fuer Farben und Gestaltungsstil abgelegt.
+Voraussetzung: Node.js 24 LTS einschliesslich npm.
+Im Terminal im Repository-Verzeichnis:
 
-Master- und Turnier-Zugangscodes sind ausschliesslich umgehbare
+```powershell
+Set-Location app
+npm ci
+npm run configure-access
+npm run dev
+```
+
+`configure-access` fragt interaktiv nach einem ausschliesslich fuer diese App
+verwendeten Master-Zugangscode. Die Eingabe ist im Terminal sichtbar.
+Gespeichert wird nur dessen SHA-256-Pruefwert in der Git-ignorierten
+Datei `app\.env.local`, nicht der Klartext. Das Skript gibt ausserdem den
+Pruefwert fuer die GitHub-Konfiguration aus. Code nicht als Kommandoargument
+oder in Quelltextdateien hinterlegen. Nach Aenderung den Dev-Server neu starten.
+
+Die App ist standardmaessig unter
+`http://localhost:5173/seal_kickerturnier_app/` erreichbar; bei belegtem Port
+zeigt Vite einen anderen Port an. Ohne gueltigen Pruefwert bleibt der Zugang
+gesperrt. Der Produktions-Build bricht bei fehlender Konfiguration ab.
+Es gibt keinen voreingestellten Master-Zugangscode.
+
+## Pruefen und bauen
+
+Im Verzeichnis `app`:
+
+```powershell
+npm test
+npm run lint
+npm run build
+npm run preview
+```
+
+Der Build prueft auch die TypeScript-Typen von Anwendung, Tests und
+Vite-Konfiguration. Der Testcode verwendet ausschliesslich synthetische
+Testeingaben und benoetigt keinen echten Zugangscode.
+Die Vorschau liegt standardmaessig unter
+`http://localhost:4173/seal_kickerturnier_app/`.
+
+## GitHub Pages einrichten
+
+1. Lokal `npm run configure-access` ausfuehren und den ausgegebenen
+   SHA-256-Pruefwert kopieren, nicht den eingegebenen Code.
+2. Im GitHub-Repository unter **Settings > Secrets and variables > Actions >
+   Variables** die Repositoryvariable `MASTER_CODE_HASH` mit diesem Wert
+   anlegen. Der Hash ist keine geheime Server-Zugangsinformation.
+3. Unter **Settings > Pages > Build and deployment > Source** die Quelle
+   **GitHub Actions** waehlen.
+4. Aenderungen nach `main` pushen oder den Workflow **Validate and deploy
+   Pages** manuell starten.
+5. Nach erfolgreichem Deployment
+   `https://sebastianalbrechtsenacor.github.io/seal_kickerturnier_app/`
+   aufrufen. Massgeblich ist die im Deployment ausgegebene Pages-URL.
+
+Der [Workflow](./.github/workflows/deploy.yml) fuehrt Installation aus dem
+Lockfile, Tests, Linting und Build aus. Nur ein erfolgreicher Build von
+`main` wird veroeffentlicht; Pull Requests werden nur geprueft.
+Ein neuer Pruefwert in der Repositoryvariable wird erst mit einem neuen
+Build wirksam. Der Projekt-Basispfad ist in der
+[Vite-Konfiguration](./app/vite.config.ts) festgelegt; bei Umbenennung
+des Repositorys muss er angepasst werden.
+
+## Grenzen des Zugangs
+
+Master- und spaetere Turnier-Zugangscodes sind ausschliesslich umgehbare
 Frontend-Zugangshuerden, kein verlaesslicher Schutz einer nichtoeffentlichen
-Anwendung. Echte oder anderweitig verwendete Passwoerter duerfen dafuer
-nicht verwendet werden. Technische Grenzen und Quellen stehen im
+Anwendung. Pruefwert und Prueflogik werden an den Browser ausgeliefert;
+auch ein Hash ermoeglicht keine sichere Zugriffskontrolle.
+Keine echten, vertraulichen oder anderweitig verwendeten Passwoerter nutzen.
+Es wird kein Code an einen Anmeldeserver gesendet. Die Daten sind durch die
+Zugangsmaske nicht verschluesselt.
+
+## Geplanter weiterer Funktionsumfang
+
+- Mehrere Turniere mit Spielenden und eindeutigen Emoji-Avataren.
+- Konfigurierbare Partiedauer (Standard 10 Minuten), Siegpunkte (3) und
+  Niederlagenpunkte (1). Keine Unentschieden; bei Gleichstand nach Zeit
+  entscheidet das naechste Tor.
+- Unabhaengige Zeitplanung: 120 Minuten Vorrunde und 60 Minuten K.-o.-Phase
+  als aenderbare Standardwerte. Start und Phasenwechsel bleiben manuell.
+- Wechselnde Zweierteams, individuelle Punkte und Rangliste.
+- K.-o.-Phase der besten acht Personen mit festen Teams und
+  getrennten Abschlusswertungen.
+- Automatische lokale Browserspeicherung auf einem gemeinsamen Laptop.
+  JSON-Import/-Export fuer Sicherung und Uebertragung, kein CSV.
+  Kein Backend und keine automatische Synchronisation zwischen Geraeten.
+  Geloeschte Browserdaten koennen ohne Sicherung zum Datenverlust fuehren.
+
+Technische Grenzen und recherchierte Quellen stehen im
 [Epic](./spec/epic-1.md#technische-recherche-stand-24112026).
