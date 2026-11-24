@@ -13,8 +13,7 @@ Story 1.1 setzt das React-/TypeScript-/Vite-Grundgeruest um:
 
 - Neutrale Zugangsmaske mit Master-Zugangscode und sichtbaren Eingabefehlern;
   ohne Office-Branding, Grafik oder Turnierinformationen.
-- Entsperrte Turnieransicht als Vorbereitung fuer Story 1.2.
-  Turniere anlegen und oeffnen ist noch nicht verfuegbar.
+- Entsperrte Turnierauswahl als Einstieg in die Turnierverwaltung.
 - Explizites Sperren; nach Neuladen ist der Zugang ebenfalls wieder gesperrt.
 - Responsive Gestaltung in Petrol/Tuerkis, Orange/Gelb und Weiss nach den
   [Werbeplakaten](./spec/epic-1.md#dauerhafte-designreferenzen), mit Maus-,
@@ -33,7 +32,53 @@ Die erneuten Entwicklertests C und D sind bestanden; Story 1.1 wurde am
 Auch damit bleiben Dateien oeffentlich abrufbar und
 die Frontend-Sperre umgehbar; eine Aussage zum Entfallen einer
 Impressumspflicht ist damit nicht verbunden.
-Die folgenden Stories sind noch nicht implementiert.
+[Story 1.2](./spec/story-1_2-DONE.md) ist umgesetzt, getestet und nach
+erfolgreichen Entwickler-Praxispruefungen abgenommen.
+Stories 1.3 bis 1.10 sind noch nicht implementiert.
+
+## Turniere vorbereiten
+
+1. Anwendung mit dem Master-Zugangscode entsperren.
+2. **Turnier anlegen** waehlen. Name, Datum/Startzeit, Spielort und einen
+   eigenen Turnier-Zugangscode eingeben. Beschreibung ist optional.
+3. Dauer je Partie (Standard 10 Minuten), Punkte je Sieg/Niederlage (3/1)
+   und geplante Phasendauern (Vorrunde 120, K.-o. 60 Minuten) festlegen.
+   Dauern muessen positive ganze Minutenzahlen sein, Punkte ganze Zahlen
+   ab null mit Siegpunkten groesser Niederlagenpunkten.
+4. Die Vorschau zeigt geplanten K.-o.-Beginn und Turnierende.
+   Sie ist unabhaengig von der Partiedauer und startet keine Phase automatisch.
+5. **Turnier speichern** oeffnet das neu angelegte Turnier sofort.
+   **Einstellungen bearbeiten** erlaubt Aenderungen in der Vorbereitung.
+   Ein leeres Turniercode-Feld behaelt beim Bearbeiten den bisherigen Code;
+   eine Eingabe ersetzt ihn.
+6. **Zur Turnierauswahl** schliesst den Turnierzugang. Die Liste zeigt nur
+   Name und Datum. Erneutes Oeffnen erfordert den passenden Turniercode.
+7. **Anwendung sperren** oder Neuladen sperrt auch den Masterzugang.
+   Gespeicherte Turniere bleiben im selben Browserprofil erhalten.
+
+Datum und Uhrzeit gelten immer fuer `Europe/Berlin`, auch auf einem
+anders eingestellten Rechner. Nicht existierende Uhrzeiten bei der
+Fruehjahrs-Zeitumstellung sind ungueltig; bei einer doppelt vorkommenden
+Herbst-Uhrzeit wird das fruehere Vorkommen verwendet. Phasendauern werden
+als tatsaechlich vergangene Minuten gerechnet, auch ueber Tageswechsel hinweg.
+
+### Speicherung und Fehler
+
+Jedes Turnier wird als zusammenhaengender, versionierter JSON-Stand mit
+eigener ID im lokalen Browserspeicher gespeichert. Fuer den Turniercode
+wird nur ein SHA-256-Pruefwert abgelegt, keine Klartext-Eingabe und keine
+entsperrte Sitzung. Die uebrigen Turnierdaten sind nicht verschluesselt.
+
+Bei fehlgeschlagenem Speichern zeigt die App einen Fehler und behaelt die
+Eingaben sowie den letzten erfolgreich gespeicherten Stand. Gesperrter
+Lesespeicher oder beschaedigte Daten werden nicht als leere Turnierliste
+ausgegeben. Bereits geaenderte Staende werden beim Speichern erkannt;
+bitte vorerst nur einen Tab zur Bearbeitung verwenden.
+
+Die Daten liegen **nur in diesem Browserprofil auf diesem Geraet**,
+nicht bei GitHub. Kein Privatmodus; geloeschte Browserdaten koennen zum
+Datenverlust fuehren. JSON-Sicherung/-Import kommt erst in Story 1.3.
+Spielende und Turnierstart sind ebenfalls noch nicht verfuegbar.
 
 ## Lokal starten
 
@@ -102,7 +147,7 @@ des Repositorys muss er angepasst werden.
 
 ## Grenzen des Zugangs
 
-Master- und spaetere Turnier-Zugangscodes sind ausschliesslich umgehbare
+Master- und Turnier-Zugangscodes sind ausschliesslich umgehbare
 Frontend-Zugangshuerden, kein verlaesslicher Schutz einer nichtoeffentlichen
 Anwendung. Pruefwert und Prueflogik werden an den Browser ausgeliefert;
 auch ein Hash ermoeglicht keine sichere Zugriffskontrolle.
@@ -112,17 +157,14 @@ Zugangsmaske nicht verschluesselt.
 
 ## Geplanter weiterer Funktionsumfang
 
-- Mehrere Turniere mit Spielenden und eindeutigen Emoji-Avataren.
-- Konfigurierbare Partiedauer (Standard 10 Minuten), Siegpunkte (3) und
-  Niederlagenpunkte (1). Keine Unentschieden; bei Gleichstand nach Zeit
-  entscheidet das naechste Tor.
-- Unabhaengige Zeitplanung: 120 Minuten Vorrunde und 60 Minuten K.-o.-Phase
-  als aenderbare Standardwerte. Start und Phasenwechsel bleiben manuell.
+- Spielende mit eindeutigen Emoji-Avataren in den vorbereiteten Turnieren.
+- Partien mit der konfigurierten Dauer und Punktewertung.
+  Keine Unentschieden; bei Gleichstand nach Zeit entscheidet das naechste Tor.
 - Wechselnde Zweierteams, individuelle Punkte und Rangliste.
 - K.-o.-Phase der besten acht Personen mit festen Teams und
   getrennten Abschlusswertungen.
-- Automatische lokale Browserspeicherung auf einem gemeinsamen Laptop.
-  JSON-Import/-Export fuer Sicherung und Uebertragung, kein CSV.
+- JSON-Import/-Export fuer Sicherung und Uebertragung der bereits lokal
+  gespeicherten Turniere, kein CSV.
   Kein Backend und keine automatische Synchronisation zwischen Geraeten.
   Geloeschte Browserdaten koennen ohne Sicherung zum Datenverlust fuehren.
 

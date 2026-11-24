@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { hasMasterCode, verifyMasterCode } from './access'
+import TournamentManager from './TournamentManager'
 import './App.css'
 
 function App() {
@@ -9,13 +10,11 @@ function App() {
   const [error, setError] = useState('')
   const [checking, setChecking] = useState(false)
   const codeInput = useRef<HTMLInputElement>(null)
-  const selectionHeading = useRef<HTMLHeadingElement>(null)
   const configured = hasMasterCode()
 
   useEffect(() => {
     if (checking) return
-    if (unlocked) selectionHeading.current?.focus()
-    else codeInput.current?.focus()
+    if (!unlocked) codeInput.current?.focus()
   }, [checking, unlocked])
 
   async function unlock(event: FormEvent<HTMLFormElement>) {
@@ -94,7 +93,10 @@ function App() {
           <span className="brand-icon" aria-hidden="true">K.</span>
           <span>OFFICE<span className="wordmark-accent">KICKER</span></span>
         </a>
-        <span className="location"><span aria-hidden="true" /> ESCHBORN EDITION</span>
+        <div className="header-actions">
+          <span className="location"><span aria-hidden="true" /> ESCHBORN EDITION</span>
+          <button className="header-lock" onClick={lock} type="button">Anwendung sperren</button>
+        </div>
       </header>
 
       <main className="arena">
@@ -121,20 +123,7 @@ function App() {
           </ul>
         </section>
 
-        <section className="entry-card" aria-labelledby="entry-title">
-          <div className="card-stripe" aria-hidden="true" />
-          <div className="card-content">
-            <p className="card-eyebrow">DU BIST DRIN</p>
-            <h2 id="entry-title" ref={selectionHeading} tabIndex={-1}>Deine Turniere.</h2>
-            <p className="card-description">Hier beginnt euer nächstes Match.</p>
-            <div className="empty-state">
-              <span className="empty-symbol" aria-hidden="true">🏆</span>
-              <h3>Die Arena ist bereit.</h3>
-              <p>Turniere anlegen und wieder öffnen ist im nächsten Entwicklungsschritt verfügbar.</p>
-            </div>
-            <button className="secondary-button" onClick={lock} type="button">Anwendung sperren</button>
-          </div>
-        </section>
+        <TournamentManager />
       </main>
 
       <footer className="site-footer">

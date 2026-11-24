@@ -2,7 +2,7 @@
 
 Status: Freigegeben am 24.11.2026, noch nicht implementiert.
 Epic: [Epic 1](./epic-1.md)
-Abhaengigkeiten: [Story 1.2](./story-1_2.md).
+Abhaengigkeiten: [Story 1.2](./story-1_2-DONE.md).
 
 Als organisierende Person moechte ich ein Turnier vollstaendig als JSON sichern
 und auf denselben oder einen anderen Browser uebertragen.

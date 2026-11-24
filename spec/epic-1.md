@@ -2,7 +2,9 @@
 
 Status: Spezifikation freigegeben am 24.11.2026. Story 1.1 einschliesslich
 neutraler Zugangsmaske umgesetzt, getestet und am 24.11.2026 abgenommen.
-Stories 1.2 bis 1.10 sind noch nicht implementiert; das Epic bleibt offen.
+Story 1.2 ist umgesetzt, getestet und vom Entwickler abgenommen.
+Stories 1.3 bis 1.10 sind noch nicht implementiert;
+das Epic bleibt offen.
 
 ## Ziel
 
@@ -180,7 +182,7 @@ Jede Story wird einzeln umgesetzt, getestet und zur Abnahme vorgelegt.
 Erst nach Rueckmeldung und ausstehenden Entwicklertests folgt die naechste.
 
 1. [Pages-Grundgeruest und Masterzugang: abgenommen](./story-1_1-DONE.md)
-2. [Turniere anlegen, speichern und oeffnen](./story-1_2.md)
+2. [Turniere anlegen, speichern und oeffnen: abgenommen](./story-1_2-DONE.md)
 3. [JSON-Sicherung und Wiederherstellung](./story-1_3.md)
 4. [Spielende und Avatare verwalten](./story-1_4.md)
 5. [Vorrunde starten und Tabelle anzeigen](./story-1_5.md)
