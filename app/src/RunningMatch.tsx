@@ -14,13 +14,14 @@ interface Props {
   onAudioError: (message: string) => void
   onWhistle: () => Promise<boolean>
   onAbort: () => Promise<void>
+  onSave: (white: string, black: string) => Promise<void>
   onCheckCurrent: () => void
   onBack: () => void
   onExport: () => void
 }
 
 export default function RunningMatch({ tournament, whistle, audioBusy, onTestAudio, onAudioError, onWhistle,
-  onAbort, onCheckCurrent, onBack, onExport }: Props) {
+  onAbort, onSave, onCheckCurrent, onBack, onExport }: Props) {
   const match = tournament.activeMatch
   const [now, setNow] = useState(Date.now)
   const [entry, setEntry] = useState(false)
@@ -28,9 +29,10 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
   const [white, setWhite] = useState('')
   const [black, setBlack] = useState('')
   const [confirmAbort, setConfirmAbort] = useState(false)
-  const [aborting, setAborting] = useState(false)
+  const [pending, setPending] = useState<'save' | 'abort' | null>(null)
+  const busy = pending !== null
   const [error, setError] = useState('')
-  const abortPending = useRef(false)
+  const actionPending = useRef(false)
   const mounted = useRef(false)
   const armed = useRef(now < Date.parse(match.endsAt))
   const attempted = useRef(false)
@@ -81,18 +83,20 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
     }
   }
 
-  async function abort() {
-    if (abortPending.current) return
-    abortPending.current = true
-    setAborting(true)
+  async function commit(action: 'save' | 'abort') {
+    if (actionPending.current) return
+    actionPending.current = true
+    setPending(action)
     setError('')
     try {
-      await onAbort()
+      if (action === 'save') await onSave(white, black)
+      else await onAbort()
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Die Partie konnte nicht abgebrochen werden.')
+      setError(error instanceof Error ? error.message :
+        action === 'save' ? 'Das Ergebnis konnte nicht gespeichert werden.' : 'Die Partie konnte nicht abgebrochen werden.')
     } finally {
-      abortPending.current = false
-      setAborting(false)
+      actionPending.current = false
+      setPending(null)
     }
   }
 
@@ -107,14 +111,14 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
     <>
       <p className="card-description">Gespeicherte offene Partie. Die Aufstellung ist gesperrt; Verlassen oder Sperren stoppt die Zeit nicht.</p>
       <div className="match-layout">
-        <StandingsTable compact players={tournament.players ?? []} />
+        <StandingsTable compact tournament={tournament} />
         <section className="lineup-panel" aria-label="Laufende Partie">
           <div className={`match-clock${expired ? ' is-expired' : ''}`}>
             <span>RESTZEIT</span>
             <div role="timer" aria-label="Restzeit" aria-live="off">{formatCountdown(seconds)}</div>
           </div>
           {expired && <p role="status" className="expiry-message">Zeit abgelaufen! Bei Gleichstand entscheidet das nächste Tor. Noch kein Ergebnis gespeichert.</p>}
-          <button className="secondary-button audio-test" type="button" disabled={audioBusy}
+          <button className="secondary-button audio-test" type="button" disabled={audioBusy || busy}
             onClick={onTestAudio}>{audioBusy ? 'Audio wird aktiviert ...' : 'Ton aktivieren / testen'}</button>
           <p className="form-note">{whistle.ready() ? 'Audio aktiviert. Geräte-Lautstärke mit dem Testpfiff prüfen.' :
             'Ton nicht aktiviert. Der sichtbare Ablaufhinweis bleibt immer verfügbar.'}</p>
@@ -124,9 +128,9 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
               <h3 ref={abortHeading} tabIndex={-1}>Partie wirklich abbrechen?</h3>
               <p>Ohne Ergebnis und ohne Punkte beenden. Die nächste Aufstellung beginnt leer.</p>
               <div className="form-actions">
-                <button className="action-button" type="button" disabled={aborting} onClick={() => void abort()}>
-                  {aborting ? 'Wird abgebrochen ...' : 'Partie verbindlich abbrechen'}</button>
-                <button className="secondary-button" type="button" disabled={aborting}
+                <button className="action-button" type="button" disabled={busy} onClick={() => void commit('abort')}>
+                  {pending === 'abort' ? 'Wird abgebrochen ...' : 'Partie verbindlich abbrechen'}</button>
+                <button className="secondary-button" type="button" disabled={busy}
                   onClick={() => { setConfirmAbort(false); setError('') }}>Weiter spielen</button>
               </div>
             </section>
@@ -135,9 +139,10 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
               <h3 ref={entryHeading} tabIndex={-1}>Ergebnis prüfen</h3>
               <p><strong>Weiß {white} : {black} Schwarz</strong></p>
               <p>Weiß: {team('white')}</p><p>Schwarz: {team('black')}</p>
-              <p role="status">Noch nicht gespeichert oder gewertet; folgt in Story 1.8.</p>
-              <button className="action-button" type="button" disabled>Ergebnis verbindlich speichern – folgt in Story 1.8</button>
-              <button className="secondary-button" type="button" onClick={() => setPreview(false)}>Ergebnis ändern</button>
+              <p role="status">Noch nicht gespeichert. Nach der Bestätigung sind Ergebnis und Wertung unveränderlich.</p>
+              <button className="action-button" type="button" disabled={busy} onClick={() => void commit('save')}>
+                {pending === 'save' ? 'Wird gespeichert ...' : 'Ergebnis verbindlich speichern'}</button>
+              <button className="secondary-button" type="button" disabled={busy} onClick={() => setPreview(false)}>Ergebnis ändern</button>
             </section>
           ) : entry ? (
             <form className="match-result" aria-label="Ergebniseingabe" noValidate onSubmit={(event) => {
@@ -164,15 +169,15 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
             </div>
           )}
           {error && <p className="error-message" role="alert">{error}</p>}
-          {!confirmAbort && <button className="secondary-button match-abort" type="button"
+          {!confirmAbort && <button className="secondary-button match-abort" type="button" disabled={busy}
             onClick={() => { setConfirmAbort(true); setError('') }}>Partie abbrechen</button>}
         </section>
       </div>
       <MatchInfo tournament={tournament}>
-        <p>Ergebnisse werden erst mit Story 1.8 gespeichert und gewertet. Bis dahin erlaubt nur bestätigter Abbruch eine neue Partie.</p>
+        <p>Nur ausdrücklich gespeicherte Ergebnisse zählen. Ein bestätigter Abbruch beendet die Partie ohne Wertung.</p>
         <div className="form-actions">
-          <button className="secondary-button" type="button" disabled={aborting} onClick={onExport}>JSON-Sicherung herunterladen</button>
-          <button className="secondary-button" type="button" disabled={aborting} onClick={onBack}>Zur Turnierübersicht</button>
+          <button className="secondary-button" type="button" disabled={busy} onClick={onExport}>JSON-Sicherung herunterladen</button>
+          <button className="secondary-button" type="button" disabled={busy} onClick={onBack}>Zur Turnierübersicht</button>
         </div>
       </MatchInfo>
     </>

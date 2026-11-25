@@ -1,7 +1,8 @@
 import { isPlayerList } from './players'
 import type { Player } from './players'
-import { isOpenMatch } from './matches'
-import type { OpenMatch } from './matches'
+import { isCompletedMatches, isOpenMatch } from './matches'
+import type { CompletedMatch, OpenMatch } from './matches'
+import { calculateStandings } from './standings'
 
 export interface TournamentSettings {
   name: string
@@ -16,7 +17,7 @@ export interface TournamentSettings {
 }
 
 export interface Tournament {
-  version: 1 | 2 | 3
+  version: 1 | 2 | 3 | 4
   id: string
   revision: number
   phase: 'preparation' | 'preliminary'
@@ -24,6 +25,7 @@ export interface Tournament {
   codeHash: string
   players?: Player[]
   activeMatch?: OpenMatch | null
+  completedMatches?: CompletedMatch[]
 }
 
 export interface TournamentDraft {
@@ -153,18 +155,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function isTournament(value: unknown): value is Tournament {
-  if (!isRecord(value) || (value.version !== 1 && value.version !== 2 && value.version !== 3) || typeof value.id !== 'string' || !value.id ||
+  if (!isRecord(value) || typeof value.version !== 'number' || ![1, 2, 3, 4].includes(value.version) || typeof value.id !== 'string' || !value.id ||
       !Number.isSafeInteger(value.revision) || Number(value.revision) < 1 ||
       (value.phase !== 'preparation' && value.phase !== 'preliminary') || typeof value.codeHash !== 'string' ||
       !/^[a-f0-9]{64}$/.test(value.codeHash) || !isRecord(value.settings)) return false
   if ((value.version >= 2 || 'players' in value) && !isPlayerList(value.players)) return false
   if (value.phase === 'preliminary' &&
       (value.version < 2 || !isPlayerList(value.players) || value.players.length < 4)) return false
-  if (value.version !== 3 && 'activeMatch' in value) return false
-  if (value.version === 3 && (!('activeMatch' in value) ||
-      (value.activeMatch !== null && (value.phase !== 'preliminary' || !isPlayerList(value.players) ||
-       typeof value.settings.matchMinutes !== 'number' ||
-       !isOpenMatch(value.activeMatch, value.players, value.settings.matchMinutes))))) return false
   const settings = value.settings
   if (typeof settings.name !== 'string' || typeof settings.location !== 'string' ||
       typeof settings.description !== 'string' || typeof settings.startsAt !== 'string' ||
@@ -181,7 +178,18 @@ export function isTournament(value: unknown): value is Tournament {
     knockoutMinutes: String(settings.knockoutMinutes),
     winPoints: String(settings.winPoints), lossPoints: String(settings.lossPoints), code: '',
   }, true)
-  return !result.errors
+  if (!result.settings) return false
+  if (value.version < 3) return !('activeMatch' in value) && !('completedMatches' in value)
+  if (!isPlayerList(value.players) || !('activeMatch' in value) ||
+      (value.activeMatch !== null && !isOpenMatch(value.activeMatch, value.players, result.settings.matchMinutes)) ||
+      (value.phase !== 'preliminary' && value.activeMatch !== null)) return false
+  if (value.version === 3) return !('completedMatches' in value)
+  const activeMatch = value.activeMatch
+  if (!isCompletedMatches(value.completedMatches, value.players, result.settings.matchMinutes) ||
+      (value.phase !== 'preliminary' && value.completedMatches.length > 0) ||
+      (activeMatch !== null && value.completedMatches.some((match) => match.id === activeMatch.id))) return false
+  return calculateStandings(value.players, value.completedMatches, result.settings).every(({ player: _player, ...stats }) =>
+    Object.values(stats).every(Number.isSafeInteger))
 }
 
 export function assertPreparation(tournament: Tournament): void {
@@ -196,5 +204,5 @@ export function startPreliminary(tournament: Tournament): Tournament {
   if ((tournament.players?.length ?? 0) < 4) {
     throw new Error('Für den Turnierstart sind mindestens vier Spielende erforderlich.')
   }
-  return { ...tournament, version: tournament.version === 3 ? 3 : 2, phase: 'preliminary', revision: tournament.revision + 1 }
+  return { ...tournament, version: tournament.version >= 3 ? tournament.version : 2, phase: 'preliminary', revision: tournament.revision + 1 }
 }

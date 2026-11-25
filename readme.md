@@ -46,7 +46,10 @@ Praxispruefungen ausdruecklich abgenommen.
 [Story 1.7](./spec/story-1_7-DONE.md) ist umgesetzt, automatisiert sowie im
 Browser getestet und nach allen drei bestandenen Entwickler-Praxispruefungen
 am 25.11.2026 ausdruecklich abgenommen.
-Stories 1.8 bis 1.10 sind noch nicht implementiert.
+[Story 1.8](./spec/story-1_8-DONE.md) ist einschliesslich Ergebnisverlauf und
+kompakter Turnieruebersicht umgesetzt, getestet und nach beiden bestandenen
+Entwickler-Praxispruefungen am 25.11.2026 ausdruecklich abgenommen.
+Stories 1.9 und 1.10 sind noch nicht implementiert.
 
 ## Turniere vorbereiten
 
@@ -132,8 +135,8 @@ Nach Turnierstart ist die Spielendenliste gesperrt.
    zurueck. **Vorrunde verbindlich starten** speichert den Phasenwechsel.
 3. Die Vorrundentabelle zeigt alle Personen mit Avatar, eindeutigem Rang,
    Spielen, Siegen, Niederlagen, Toren, Gegentoren, Tordifferenz und Punkten.
-   Alle Statistiken beginnen bei null. Da die Ergebniswertung erst mit
-   Story 1.8 folgt, bleiben sie in diesem Entwicklungsstand bei null.
+   Alle Statistiken beginnen bei null und werden aus den erfolgreich
+   gespeicherten Ergebnissen individuell berechnet.
 4. Sortiert wird nach Punkten, Siegen, Tordifferenz und erzielten Toren
    absteigend, anschliessend nach deutschem Spielernamen aufsteigend.
    Auf schmalen Bildschirmen laesst sich die Tabelle seitlich scrollen,
@@ -210,23 +213,51 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    keinen Gleichstand und vor Zeitablauf genau ein Team mit 10 Toren.
    Nach Zeitablauf ist beispielsweise auch 7:5 gueltig, selbst wenn die
    Eingabe vorher geoeffnet wurde.
-5. Die Pruefung zeigt beide Teams und den Endstand ausdruecklich als
-   **noch nicht gespeichert oder gewertet**. Verbindliches Speichern ist
-   bis Story 1.8 deaktiviert. Zurueckgehen erlaubt Korrekturen; Neuladen
-   oder Sperren verwerfen nur den Toreentwurf, nicht die offene Partie.
+5. Die Pruefung zeigt beide Teams, den Endstand und den Hinweis, dass
+   Ergebnis und Wertung nach Bestaetigung unveraenderlich sind.
+   **Ergebnis aendern** behaelt den Entwurf zur Korrektur bei.
+   **Ergebnis verbindlich speichern** beendet die Partie und wertet sie
+   genau einmal. Erst nach erfolgreichem Speichern wird sofort die
+   Vorbereitung der naechsten Partie mit vier leeren Positionen angezeigt.
+   Neuladen oder Sperren vor Bestaetigung verwerfen nur den Toreentwurf,
+   nicht die offene Partie.
 6. **Partie abbrechen** erfordert eine Bestaetigung. Verwerfen behaelt die
    Partie samt urspruenglichem Endzeitpunkt; Bestaetigen beendet sie ohne
    Ergebnis und Punkte und oeffnet eine leere neue Aufstellung.
-   Bis Story 1.8 ist nur so eine weitere Partie moeglich.
-   Ein Schreibfehler laesst die gespeicherte Partie offen und zeigt einen Fehler.
+   Ein Schreibfehler beim Abbruch oder beim Ergebnisspeichern laesst die
+   gespeicherte Partie offen und zeigt einen Fehler; der Entwurf bleibt erhalten.
    Auch ueber die Turnieruebersicht kann keine zweite Partie parallel starten.
+
+### Individuelle Wertung und Ergebnisverlauf
+
+- Beide Personen des Siegerteams erhalten die konfigurierten Siegpunkte,
+  beide des Verliererteams die Niederlagenpunkte. Spiele, Siege, Niederlagen,
+  Teamtore und Gegentore zaehlen jeweils fuer jede beteiligte Person.
+  Wechselnde Teampartner aendern daran nichts; Unbeteiligte bleiben unveraendert.
+  Tabellen in Uebersicht, Vorbereitung und laufender Partie verwenden
+  denselben berechneten Stand und dieselben Rangentscheidungen.
+- Unter der kompakten Tabelle links in der Partievorbereitung stehen
+  hoechstens die **letzten drei Ergebnisse**. In der Turnieruebersicht
+  folgen **alle Spielergebnisse** direkt unter der vollstaendigen Tabelle.
+  Zuletzt gespeicherte Partien stehen zuerst, mit Endstand, Teams samt
+  Namen/Avataren und Abschlusszeit in Eschborner Ortszeit.
+- Ohne Ergebnisse erscheint ein Leerhinweis. Offene oder abgebrochene
+  Partien erscheinen nicht im Verlauf und bringen keine Punkte.
+- In der gestarteten Turnieruebersicht stehen die Turnierinformationen
+  kompakt unten. **Weitere Turnierinfos** klappt Beschreibung, geplante
+  Phasendauern und Zeitplanung auf. Vor Vorrundenstart bleibt die
+  bisherige ausfuehrliche Vorbereitungsansicht erhalten.
+- Ergebnisse koennen weder einzeln korrigiert noch geloescht werden.
+  Das bewusste Ersetzen des ganzen Turniers durch eine Sicherung bleibt
+  davon getrennt moeglich, einschliesslich des gesamten Ergebnisverlaufs.
 
 ### JSON-Sicherung und Wiederherstellung
 
 - Im geoeffneten Turnier **JSON-Sicherung herunterladen** waehlen.
   Die UTF-8-Datei enthaelt ID, Einstellungen, Spielende mit IDs/Spitznamen/Avataren,
-  Phase, eine gegebenenfalls offene Partie mit Aufstellung und urspruenglichen
-  Zeitpunkten sowie den Pruefwert des
+  Phase, abgeschlossene Partien mit Aufstellungen, Toren und Zeitpunkten,
+  eine gegebenenfalls offene Partie mit urspruenglichen Zeitpunkten sowie
+  den Pruefwert des
   Turniercodes, aber weder Mastercode noch Klartext-Codes oder entsperrte Sitzung.
   Die Daten sind nicht verschluesselt; Sicherungen nicht oeffentlich teilen.
 - In der Turnierauswahl **JSON-Sicherung importieren** waehlen und die
@@ -239,6 +270,11 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
   abgefragt. Die lokale Revision steigt dabei zur Konflikterkennung.
   Hat das lokale Zielturnier eine offene Partie, ist Ersetzen gesperrt;
   diese muss vorher ausdruecklich abgebrochen werden.
+  Die Vorschau warnt ausdruecklich vor dem Ersetzen des gesamten
+  Ergebnisverlaufs und der daraus berechneten Wertung und zeigt die
+  Ergebnisanzahl der Sicherung und des lokalen Stands. Auch eine aeltere
+  Sicherung mit weniger oder keinen Ergebnissen ersetzt alles;
+  neuere lokale Ergebnisse gehen dabei bewusst verloren.
   Das gilt auch fuer eine gestartete Vorrunde: Eine aeltere
   Vorbereitungssicherung setzt nach Codepruefung und Ersetzungsbestaetigung
   bewusst den gesamten Stand zurueck. Dies ist keine normale Einstellungsaenderung.
@@ -252,20 +288,26 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
   Eine gesicherte offene Partie laeuft nach dem Import mit denselben
   Zeitpunkten weiter; bereits abgelaufene Zeit bleibt abgelaufen.
   Nicht gespeicherte Toreentwuerfe sind kein Bestandteil der Sicherung.
-  Ergebnisverlauf und weitere Phasen folgen in den naechsten Stories.
+  Ergebnisse und die daraus berechnete Wertung werden vollstaendig
+  wiederhergestellt. Weitere Turnierphasen folgen in den naechsten Stories.
   CSV wird nicht unterstuetzt.
 
 Alte Turniere und Sicherungen ohne Spielendenliste bleiben nutzbar und
 zeigen eine leere Liste. Neue Vorbereitungsdaten verwenden weiterhin
 Datenschema 2 mit ausdruecklicher Spielendenliste. Ab dem ersten Partiestart
 verwendet ein Turnier Schema 3 mit offener Partie oder ausdruecklichem
-Leerwert nach Abbruch; vorhandenes Schema 3 bleibt erhalten.
+Leerwert nach Abbruch. Mit dem ersten gespeicherten Ergebnis folgt
+Schema 4 mit ausdruecklichem Ergebnisverlauf; dieses Schema bleibt bei
+weiteren Starts und Abbruechen erhalten. Alte Schemata ohne Ergebnisse
+bleiben lesbar und koennen normal fortgesetzt werden.
 Die Sicherungshuellen-Version bleibt 1. Alte App-Versionen koennen die
 jeweils neueren Schemata nicht bearbeiten und daher keine unbekannten
 Daten versehentlich entfernen. Nach einem Deployment offene App-Tabs
 neu laden. Ungueltige oder doppelte Spielenden-IDs, Spitznamen und Avatare
-sowie widerspruechliche Aufstellungen und Partiezeitpunkte werden beim
-Laden/Importieren abgewiesen.
+sowie doppelte Partie-IDs, ungueltige Endstaende, widerspruechliche
+Aufstellungen und Partiezeitpunkte werden beim Laden/Importieren
+abgewiesen. Nicht mehr exakt darstellbare Punktesummen werden ebenfalls
+mit Fehler zurueckgewiesen, statt falsche Ranglisten zu speichern.
 
 ## Lokal starten
 

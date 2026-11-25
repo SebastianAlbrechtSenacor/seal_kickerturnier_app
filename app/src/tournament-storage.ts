@@ -106,6 +106,16 @@ function writeTournament(tournament: Tournament, expectedRevision: number | null
   if (operation === 'restore' && current?.activeMatch) {
     throw new Error('Dieses Turnier hat eine offene Partie. Bitte diese vor dem Ersetzen ausdrücklich abbrechen.')
   }
+  if (operation === 'update' && current) {
+    const previous = current.completedMatches ?? []
+    const next = tournament.completedMatches ?? []
+    if (JSON.stringify(next.slice(0, previous.length)) !== JSON.stringify(previous) ||
+        next.length > previous.length + 1 ||
+        (next.length > previous.length &&
+          (!current.activeMatch || tournament.activeMatch !== null || next.at(-1)?.id !== current.activeMatch.id))) {
+      throw new Error('Gespeicherte Ergebnisse sind unveränderlich. Bitte das Turnier erneut öffnen.')
+    }
+  }
   if (operation === 'update' && current?.phase === 'preliminary' &&
       (tournament.phase !== 'preliminary' || tournament.codeHash !== current.codeHash ||
        JSON.stringify(tournament.settings) !== JSON.stringify(current.settings) ||

@@ -4,7 +4,7 @@ import type { Tournament } from './tournament'
 import { saveTournament } from './tournament-storage'
 
 const format = 'seal-kickerturnier-backup'
-const tournamentKeys = ['version', 'id', 'revision', 'phase', 'settings', 'codeHash', 'players', 'activeMatch']
+const tournamentKeys = ['version', 'id', 'revision', 'phase', 'settings', 'codeHash', 'players', 'activeMatch', 'completedMatches']
 const settingsKeys = [
   'name', 'startsAt', 'location', 'description', 'matchMinutes',
   'preliminaryMinutes', 'knockoutMinutes', 'winPoints', 'lossPoints',

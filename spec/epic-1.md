@@ -10,7 +10,9 @@ Story 1.6 ist einschliesslich der UI-Rueckmeldung umgesetzt, getestet
 und nach erfolgreichen erneuten Praxispruefungen ausdruecklich abgenommen.
 Story 1.7 ist umgesetzt, automatisiert und im Browser getestet und nach
 allen drei bestandenen Entwickler-Praxispruefungen am 25.11.2026 abgenommen.
-Stories 1.8 bis 1.10 sind noch nicht implementiert;
+Story 1.8 ist einschliesslich Ergebnisverlauf und kompakter Turnieruebersicht
+umgesetzt, getestet und nach beiden bestandenen Entwickler-Praxispruefungen
+am 25.11.2026 abgenommen. Stories 1.9 und 1.10 sind noch nicht implementiert;
 das Epic bleibt offen.
 
 ## Ziel
@@ -59,6 +61,11 @@ Plaetze 1 bis 4 aus. Die Bedienung funktioniert mit Maus und Touch.
 - Grosser Countdown und Schiedsrichterpfiff bei Zeitablauf.
 - Ergebnisvorschau und ausdrueckliche Bestaetigung vor Speicherung; danach
   keine Korrektur oder Loeschung gespeicherter Ergebnisse.
+- Bedienkonkretisierung fuer Story 1.8 vom 25.11.2026: Nach Speicherung
+  direkt zur leeren naechsten Aufstellung; darunter links die letzten drei
+  Ergebnisse. In der Turnieruebersicht stehen alle Ergebnisse unter der
+  vollstaendigen Tabelle, Turnierinformationen folgen platzsparend.
+  Die ergaenzten ATDD-Szenarien wurden ausdruecklich freigegeben.
 - Abbruch einer laufenden Partie nach Bestaetigung ohne Wertung.
 - Rangfolge: Gesamtpunkte, Siege, Tordifferenz, erzielte Tore, Spielername.
 - Manueller, bestaetigter und unumkehrbarer K.-o.-Start ab acht Personen,
@@ -124,6 +131,8 @@ Die folgenden Detailregeln und die ausformulierten Stories wurden am
 7. Beim Import einer bereits vorhandenen Turnier-ID ist eine ausdrueckliche
    Ersetzungsbestaetigung erforderlich. Mit offener Partie/Ergebniseingabe
    im Zielturnier ist Ersetzen gesperrt. Kein Zusammenfuehren von Staenden.
+   Das bewusste Ersetzen darf auch einen vorhandenen Ergebnisverlauf
+   zuruecksetzen; die Importvorschau muss ausdruecklich davor warnen.
 8. Ein Tab pro Turnier bearbeitet den Stand; weitere Tabs duerfen nicht
    unbemerkt konkurrierend schreiben. Kein geraeteuebergreifender Livebetrieb.
 9. Gespeicherte Resultate sind final. Ein Turnier oder gespeicherte Partien
@@ -201,7 +210,7 @@ Erst nach Rueckmeldung und ausstehenden Entwicklertests folgt die naechste.
 5. [Vorrunde starten und Tabelle anzeigen: abgenommen](./story-1_5-DONE.md)
 6. [Vorrundenpartie besetzen: abgenommen](./story-1_6-DONE.md)
 7. [Partie, Countdown und Unterbrechungen: abgenommen](./story-1_7-DONE.md)
-8. [Ergebnis bestaetigen und Punkte auswerten](./story-1_8.md)
+8. [Ergebnis bestaetigen und Punkte auswerten: abgenommen](./story-1_8-DONE.md)
 9. [K.-o.-Phase spielen](./story-1_9.md)
 10. [Turnierabschluss anzeigen](./story-1_10.md)
 

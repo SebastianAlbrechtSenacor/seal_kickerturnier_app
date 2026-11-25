@@ -1,17 +1,18 @@
 import type { Player } from './players'
 import type { ReactNode } from 'react'
-import { initialStandings } from './standings'
+import { calculateStandings } from './standings'
+import type { Tournament } from './tournament'
 
 interface Props {
-  players: Player[]
+  tournament: Tournament
   onPrepare?: () => void
   renderPlayer?: (player: Player) => ReactNode
   compact?: boolean
   prepareLabel?: string
 }
 
-export default function StandingsTable({ players, onPrepare, renderPlayer, compact = false, prepareLabel = 'Partie vorbereiten' }: Props) {
-  const standings = initialStandings(players)
+export default function StandingsTable({ tournament, onPrepare, renderPlayer, compact = false, prepareLabel = 'Partie vorbereiten' }: Props) {
+  const standings = calculateStandings(tournament.players ?? [], tournament.completedMatches ?? [], tournament.settings)
   return (
     <section className="standings" aria-labelledby="standings-heading">
       <h3 id="standings-heading">Vorrundentabelle</h3>

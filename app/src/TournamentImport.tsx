@@ -75,12 +75,16 @@ export default function TournamentImport({ onImported, onCancel }: Props) {
               <>
                 <p>Die ID ist bereits vorhanden: <strong>{preview.existing.settings.name}</strong>.
                   Der lokale Stand wird vollständig ersetzt. Anschließend gilt der Turniercode aus der Sicherung.</p>
+                <p className="replacement-warning">Achtung: Auch der gesamte lokale Ergebnisverlauf und die daraus berechnete Wertung
+                  werden ersetzt. Die Sicherung enthält {preview.incoming.completedMatches?.length ?? 0} abgeschlossene
+                  Partien, der lokale Stand {preview.existing.completedMatches?.length ?? 0}.
+                  Neuere Ergebnisse können dabei verloren gehen. Es wird nichts zusammengeführt.</p>
                 <label htmlFor="replacement-code">Bestehender Turniercode</label>
                 <input id="replacement-code" type="password" autoComplete="off" autoCapitalize="none"
                   spellCheck={false} value={code} onChange={(event) => setCode(event.target.value)} />
                 <label className="replacement-confirmation">
                   <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
-                  <span>Ich möchte den lokalen Stand unwiderruflich ersetzen.</span>
+                  <span>Ich möchte den lokalen Stand einschließlich Ergebnisverlauf und Wertung unwiderruflich ersetzen.</span>
                 </label>
               </>
             ) : <p>Wird als zusätzliches Turnier gespeichert. Zum Öffnen ist der Turniercode aus der Sicherung erforderlich.</p>}

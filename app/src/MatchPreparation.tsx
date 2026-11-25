@@ -4,6 +4,7 @@ import type { Player } from './players'
 import { assignPlayer, emptyLineup, isPosition, lineupError, positions } from './lineup'
 import type { Lineup, Position } from './lineup'
 import StandingsTable from './StandingsTable'
+import MatchHistory from './MatchHistory'
 import type { Tournament } from './tournament'
 import { LineupPitch, MatchInfo } from './MatchPresentation'
 
@@ -151,7 +152,8 @@ export default function MatchPreparation({ tournament, onStart, onBack }: Props)
         Alternativ: Position anklicken oder antippen, dann eine freie Person auswählen.
       </p>
       <div className="match-layout">
-        <StandingsTable compact players={players} renderPlayer={(player) => {
+        <div>
+        <StandingsTable compact tournament={tournament} renderPlayer={(player) => {
           const used = positions.find((position) => lineup[position.id] === player.id)
           return (
             <button type="button" className="lineup-player" disabled={Boolean(used) || starting}
@@ -169,6 +171,8 @@ export default function MatchPreparation({ tournament, onStart, onBack }: Props)
             </button>
           )
         }} />
+        <MatchHistory tournament={tournament} recent />
+        </div>
         <section className="lineup-panel" aria-label="Partieaufstellung">
               <h3>Dein Tisch. Deine Aufstellung.</h3>
               <p id="lineup-progress">{missing ? `Noch ${missing} von 4 Positionen frei.` : 'Alle vier Positionen sind belegt. Auswahl bleibt bearbeitbar.'}</p>

@@ -5,7 +5,8 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import RunningMatch from './RunningMatch'
 import TournamentManager from './TournamentManager'
-import { startMatch } from './matches'
+import MatchPreparation from './MatchPreparation'
+import { finishMatch, startMatch } from './matches'
 import type { Tournament } from './tournament'
 import { readTournament, saveTournament } from './tournament-storage'
 import { avatars } from './players'
@@ -33,10 +34,19 @@ function running(overrides: Partial<ComponentProps<typeof RunningMatch>> = {}) {
   const props = {
     tournament: startMatch(fixture(), lineup, now), whistle: audio, audioBusy: false,
     onTestAudio: vi.fn(), onAudioError: vi.fn(), onWhistle: vi.fn(async () => true),
-    onAbort: vi.fn(async () => {}), onCheckCurrent: vi.fn(), onBack: vi.fn(), onExport: vi.fn(),
+    onAbort: vi.fn(async () => {}), onSave: vi.fn(async () => {}), onCheckCurrent: vi.fn(), onBack: vi.fn(), onExport: vi.fn(),
     ...overrides,
   }
   return { ...render(<RunningMatch {...props} />), ...props }
+}
+
+function withResults(count: number) {
+  let tournament = fixture()
+  for (let index = 0; index < count; index++) {
+    const started = startMatch(tournament, lineup, now + index * 120_000)
+    tournament = finishMatch(started, started.activeMatch.id, '10', String(index), now + index * 120_000 + 1000)
+  }
+  return tournament
 }
 
 beforeEach(() => {
@@ -103,7 +113,8 @@ describe('Laufende Partie', () => {
     await act(async () => { fireEvent.focus(window) })
     await user.click(screen.getByRole('button', { name: 'Ergebnis prüfen' }))
     expect(screen.getByRole('region', { name: 'Ergebnisprüfung' })).toHaveTextContent('Weiß 7 : 5 Schwarz')
-    expect(screen.getByRole('button', { name: 'Ergebnis verbindlich speichern – folgt in Story 1.8' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Ergebnis verbindlich speichern' })).toBeEnabled()
+    expect(screen.getByRole('region', { name: 'Ergebnisprüfung' })).toHaveTextContent('unveränderlich')
     await user.click(screen.getByRole('button', { name: 'Ergebnis ändern' }))
     expect(screen.getByLabelText('Tore Weiß')).toHaveValue(7)
     await user.click(screen.getByRole('button', { name: 'Zur Partie' }))
@@ -154,6 +165,138 @@ describe('Laufende Partie', () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(60_000) })
     expect(props.onAudioError).toHaveBeenCalledWith('Speicher gesperrt')
     expect(audio.play).not.toHaveBeenCalled()
+  })
+})
+
+describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
+  it('behaelt den Entwurf bei Schreibfehlern, sperrt Doppelsubmit und laedt erst nach Speicherung die leere naechste Aufstellung', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(now + 60_000)
+    const user = userEvent.setup()
+    const started = startMatch(fixture(), lineup, now)
+    await saveTournament(started, null)
+    const { unmount } = render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    await user.click(await screen.findByRole('button', { name: 'Ergebnis eingeben' }))
+    await user.type(screen.getByLabelText('Tore Weiß'), '7')
+    await user.type(screen.getByLabelText('Tore Schwarz'), '5')
+    await user.click(screen.getByRole('button', { name: 'Ergebnis prüfen' }))
+    expect(screen.getByRole('region', { name: 'Ergebnisprüfung' })).toHaveTextContent('unveränderlich')
+    await user.click(screen.getByRole('button', { name: 'Ergebnis ändern' }))
+    expect(screen.getByLabelText('Tore Weiß')).toHaveValue(7)
+    expect(readTournament(started.id)).toEqual(started)
+    await user.click(screen.getByRole('button', { name: 'Ergebnis prüfen' }))
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => { throw new DOMException('Full', 'QuotaExceededError') })
+    await user.click(screen.getByRole('button', { name: 'Ergebnis verbindlich speichern' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('nicht gespeichert')
+    expect(readTournament(started.id)).toEqual(started)
+    await user.click(screen.getByRole('button', { name: 'Ergebnis ändern' }))
+    expect(screen.getByLabelText('Tore Schwarz')).toHaveValue(5)
+    await user.click(screen.getByRole('button', { name: 'Ergebnis prüfen' }))
+    let release: (() => void) | undefined
+    const hold = navigator.locks.request(`seal-kickerturnier:tournament:${started.id}`, () =>
+      new Promise<void>((resolve) => { release = resolve }))
+    await Promise.resolve()
+    await user.dblClick(screen.getByRole('button', { name: 'Ergebnis verbindlich speichern' }))
+    expect(screen.getByRole('button', { name: 'Wird gespeichert ...' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Ergebnis ändern' })).toBeDisabled()
+    expect(readTournament(started.id)).toEqual(started)
+    const releaseLock = release
+    if (!releaseLock) throw new Error('Testsperre fehlt.')
+    await act(async () => { releaseLock(); await hold })
+    expect(await screen.findByRole('region', { name: 'Partieaufstellung' })).toBeVisible()
+    expect(screen.queryByRole('timer')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Spiel starten' })).toBeDisabled()
+    for (const position of ['Weiß Angriff', 'Weiß Verteidigung', 'Schwarz Angriff', 'Schwarz Verteidigung']) {
+      expect(screen.getByRole('button', { name: `${position}: frei` })).toBeVisible()
+    }
+    const saved = readTournament(started.id)
+    expect(saved.completedMatches).toHaveLength(1)
+    expect(saved.completedMatches?.[0]).toMatchObject({ id: started.activeMatch.id, whiteGoals: 7, blackGoals: 5 })
+    const compactRows = within(screen.getByRole('table')).getAllByRole('row')
+    expect(compactRows[1]).toHaveTextContent('Alex')
+    expect(within(compactRows[1]).getAllByRole('cell').at(-1)).toHaveTextContent('3')
+    expect(compactRows[3]).toHaveTextContent('Chris')
+    expect(within(compactRows[3]).getAllByRole('cell').at(-1)).toHaveTextContent('1')
+    expect(within(screen.getByRole('region', { name: 'Letzte 3 Ergebnisse' })).getAllByRole('listitem')).toHaveLength(1)
+    unmount()
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    expect(await screen.findByRole('region', { name: 'Spielergebnisse' })).toHaveTextContent('Weiß 7 : 5 Schwarz')
+    const rows = within(screen.getByRole('table')).getAllByRole('row')
+    expect(within(rows[1]).getAllByRole('cell').map((cell) => cell.textContent)).toEqual(['1', '1', '1', '0', '7', '5', '2', '3'])
+    expect(readTournament(started.id)).toEqual(saved)
+    expect(screen.queryByRole('button', { name: 'Ergebnis ändern' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Partie vorbereiten' }))
+    for (const [position, player] of [['Weiß Angriff', 'Alex'], ['Weiß Verteidigung', 'Bea'], ['Schwarz Angriff', 'Chris'], ['Schwarz Verteidigung', 'Dana']]) {
+      await user.click(screen.getByRole('button', { name: `${position}: frei` }))
+      await user.click(screen.getByRole('button', { name: `${player} auswählen` }))
+    }
+    await user.click(screen.getByRole('button', { name: 'Spiel starten' }))
+    expect(await screen.findByRole('timer')).toHaveTextContent('01:00')
+    const liveRows = within(screen.getByRole('table')).getAllByRole('row')
+    expect(within(liveRows[1]).getAllByRole('cell').at(-1)).toHaveTextContent('3')
+    expect(readTournament(started.id).completedMatches).toEqual(saved.completedMatches)
+    expect(audio.play).not.toHaveBeenCalled()
+  })
+
+  it('zeigt alle Ergebnisse in der Uebersicht, nur die letzten drei unter der Auswahltabelle und Turnierinfos aufklappbar', async () => {
+    const user = userEvent.setup()
+    await saveTournament(withResults(4), null)
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    const all = within(await screen.findByRole('region', { name: 'Spielergebnisse' })).getAllByRole('listitem')
+    expect(all).toHaveLength(4)
+    expect(all.map((item) => within(item).getByText(/Weiß 10 :/).textContent)).toEqual([
+      'Weiß 10 : 3 Schwarz', 'Weiß 10 : 2 Schwarz', 'Weiß 10 : 1 Schwarz', 'Weiß 10 : 0 Schwarz',
+    ])
+    expect(screen.getByRole('complementary', { name: 'Zeitplanung' })).not.toBeVisible()
+    await user.click(screen.getByText('Weitere Turnierinfos'))
+    expect(screen.getByRole('complementary', { name: 'Zeitplanung' })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Partie vorbereiten' }))
+    const recent = within(screen.getByRole('region', { name: 'Letzte 3 Ergebnisse' })).getAllByRole('listitem')
+    expect(recent).toHaveLength(3)
+    expect(recent[0]).toHaveTextContent('Weiß 10 : 3 Schwarz')
+    expect(recent[2]).toHaveTextContent('Weiß 10 : 1 Schwarz')
+    expect(screen.queryByText('Weiß 10 : 0 Schwarz')).not.toBeInTheDocument()
+    expect(within(screen.getByRole('table')).getAllByRole('columnheader')).toHaveLength(3)
+  })
+
+  it.each([0, 2])('zeigt bei %s Ergebnissen keine kuenstlichen Partien', (count) => {
+    render(<MatchPreparation tournament={withResults(count)} onStart={vi.fn()} onBack={vi.fn()} />)
+    const history = within(screen.getByRole('region', { name: 'Letzte 3 Ergebnisse' }))
+    expect(history.queryAllByRole('listitem')).toHaveLength(count)
+    if (count === 0) expect(history.getByText('Noch keine abgeschlossene Partie.')).toBeVisible()
+  })
+
+  it('beendet bei bestaetigten 10 Toren die Partie vorzeitig ohne spaeteren Endpfiff', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(now + 1000)
+    const user = userEvent.setup()
+    const started = startMatch(fixture(), lineup, now)
+    await saveTournament(started, null)
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    await user.click(await screen.findByRole('button', { name: '10 Tore erreicht' }))
+    await user.type(screen.getByLabelText('Tore Weiß'), '10')
+    await user.type(screen.getByLabelText('Tore Schwarz'), '9')
+    await user.click(screen.getByRole('button', { name: 'Ergebnis prüfen' }))
+    await user.click(screen.getByRole('button', { name: 'Ergebnis verbindlich speichern' }))
+    expect(await screen.findByRole('region', { name: 'Partieaufstellung' })).toBeVisible()
+    const saved = readTournament(started.id)
+    expect(saved.completedMatches?.[0]).toMatchObject({
+      finishedAt: new Date(now + 1000).toISOString(), endsAt: started.activeMatch.endsAt,
+      whiteGoals: 10, blackGoals: 9,
+    })
+    vi.setSystemTime(now + 120_000)
+    await act(async () => { fireEvent.focus(window) })
+    expect(screen.queryByRole('timer')).not.toBeInTheDocument()
+    expect(audio.play).not.toHaveBeenCalled()
+    expect(readTournament(started.id)).toEqual(saved)
   })
 })
 

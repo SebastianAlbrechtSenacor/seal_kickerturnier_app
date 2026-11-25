@@ -7,7 +7,9 @@ import PlayerManager from './PlayerManager'
 import StandingsTable from './StandingsTable'
 import MatchPreparation from './MatchPreparation'
 import RunningMatch from './RunningMatch'
-import { abortMatch, startMatch } from './matches'
+import MatchHistory from './MatchHistory'
+import { MatchInfo } from './MatchPresentation'
+import { abortMatch, finishMatch, startMatch } from './matches'
 import type { ActiveTournament } from './matches'
 import type { Lineup } from './lineup'
 import { createWhistle } from './whistle'
@@ -120,8 +122,9 @@ export default function TournamentManager() {
       throw new Error('Der Turniercode konnte nicht verarbeitet werden. Bitte einen aktuellen Browser über HTTPS oder localhost nutzen.')
     }
     const tournament: Tournament = {
-      version: existing?.version === 3 ? 3 : 2,
-      ...(existing?.version === 3 ? { activeMatch: null } : {}),
+      version: existing && existing.version >= 3 ? existing.version : 2,
+      ...(existing && existing.version >= 3 ? { activeMatch: null } : {}),
+      ...(existing?.version === 4 ? { completedMatches: [] } : {}),
       id: existing?.id ?? crypto.randomUUID(),
       revision: (existing?.revision ?? 0) + 1,
       phase: 'preparation',
@@ -136,7 +139,7 @@ export default function TournamentManager() {
   async function savePlayers(players: Player[]) {
     if (view.kind !== 'players') throw new Error('Bitte das Turnier erneut öffnen.')
     assertPreparation(view.tournament)
-    const tournament: Tournament = { ...view.tournament, version: view.tournament.version === 3 ? 3 : 2, players, revision: view.tournament.revision + 1 }
+    const tournament: Tournament = { ...view.tournament, version: view.tournament.version >= 3 ? view.tournament.version : 2, players, revision: view.tournament.revision + 1 }
     await saveTournament(tournament, view.tournament.revision)
     setView({ kind: 'players', tournament })
   }
@@ -207,6 +210,15 @@ export default function TournamentManager() {
     if (view.kind !== 'live') throw new Error('Bitte das Turnier erneut öffnen.')
     const tournament = await updateTournament(view.tournament, abortMatch)
     setError('')
+    setView({ kind: 'match', tournament })
+  }
+
+  async function saveResult(white: string, black: string) {
+    if (view.kind !== 'live') throw new Error('Bitte das Turnier erneut öffnen.')
+    const tournament = await updateTournament(view.tournament,
+      (current) => finishMatch(current, view.tournament.activeMatch.id, white, black))
+    setError('')
+    setAudioError('')
     setView({ kind: 'match', tournament })
   }
 
@@ -323,7 +335,7 @@ export default function TournamentManager() {
           whistle={whistle} audioBusy={audioBusy} onTestAudio={() => void activateAudio(true)}
           onAudioError={setAudioError} onWhistle={() => notifyExpiry(view.tournament)}
           onCheckCurrent={() => assertCurrentTournament(view.tournament)}
-          onAbort={endMatch} onExport={() => exportBackup(view.tournament)}
+          onAbort={endMatch} onSave={saveResult} onExport={() => exportBackup(view.tournament)}
           onBack={() => { setError(''); setView({ kind: 'details', tournament: view.tournament }) }} />}
         {view.kind === 'start' && (
           <div className="start-confirmation">
@@ -347,19 +359,18 @@ export default function TournamentManager() {
               'Einstellungen und Spielende können vor dem Turnierstart geändert werden.' :
               'Die Vorrunde läuft. Einstellungen, Turniercode und Spielende sind gesperrt.'}</p>
             <p>{view.tournament.players?.length ?? 0} Spielende angemeldet.</p>
-            {view.tournament.phase === 'preliminary' && <StandingsTable players={view.tournament.players ?? []}
-              onPrepare={() => prepareMatch(view.tournament)}
-              prepareLabel={view.tournament.activeMatch ? 'Offene Partie anzeigen' : 'Partie vorbereiten'} />}
-            <dl className="tournament-details">
-              <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(view.tournament.settings.startsAt)}</dd></div>
-              <div><dt>Spielort</dt><dd>{view.tournament.settings.location}</dd></div>
-              <div className="full-width"><dt>Beschreibung</dt><dd className="description">{view.tournament.settings.description || 'Keine Beschreibung angegeben.'}</dd></div>
-              <div><dt>Dauer je Partie</dt><dd>{view.tournament.settings.matchMinutes} Minuten</dd></div>
-              <div><dt>Punkte</dt><dd>Sieg: {view.tournament.settings.winPoints} · Niederlage: {view.tournament.settings.lossPoints}</dd></div>
-              <div><dt>Geplante Vorrunde</dt><dd>{view.tournament.settings.preliminaryMinutes} Minuten</dd></div>
-              <div><dt>Geplante K.-o.-Phase</dt><dd>{view.tournament.settings.knockoutMinutes} Minuten</dd></div>
-            </dl>
-            <Schedule tournament={view.tournament} />
+            {view.tournament.phase === 'preliminary' ? <>
+              <StandingsTable tournament={view.tournament}
+                onPrepare={() => prepareMatch(view.tournament)}
+                prepareLabel={view.tournament.activeMatch ? 'Offene Partie anzeigen' : 'Partie vorbereiten'} />
+              <MatchHistory tournament={view.tournament} />
+              <MatchInfo tournament={view.tournament}>
+                <details>
+                  <summary>Weitere Turnierinfos</summary>
+                  <TournamentInformation tournament={view.tournament} />
+                </details>
+              </MatchInfo>
+            </> : <TournamentInformation tournament={view.tournament} />}
             {error && <p className="error-message" role="alert">{error}</p>}
             {view.tournament.phase === 'preparation' && (view.tournament.players?.length ?? 0) < 4 && (
               <p className="form-note" id="start-requirement">Für den Turnierstart sind mindestens vier Spielende erforderlich.</p>
@@ -384,6 +395,23 @@ export default function TournamentManager() {
         )}
       </div>
     </section>
+  )
+}
+
+function TournamentInformation({ tournament }: { tournament: Tournament }) {
+  return (
+    <>
+      <dl className="tournament-details">
+        <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(tournament.settings.startsAt)}</dd></div>
+        <div><dt>Spielort</dt><dd>{tournament.settings.location}</dd></div>
+        <div className="full-width"><dt>Beschreibung</dt><dd className="description">{tournament.settings.description || 'Keine Beschreibung angegeben.'}</dd></div>
+        <div><dt>Dauer je Partie</dt><dd>{tournament.settings.matchMinutes} Minuten</dd></div>
+        <div><dt>Punkte</dt><dd>Sieg: {tournament.settings.winPoints} · Niederlage: {tournament.settings.lossPoints}</dd></div>
+        <div><dt>Geplante Vorrunde</dt><dd>{tournament.settings.preliminaryMinutes} Minuten</dd></div>
+        <div><dt>Geplante K.-o.-Phase</dt><dd>{tournament.settings.knockoutMinutes} Minuten</dd></div>
+      </dl>
+      <Schedule tournament={tournament} />
+    </>
   )
 }
 
