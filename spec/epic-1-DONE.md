@@ -18,7 +18,10 @@ Die gewuenschte UI-Anpassung ist ebenfalls freigegeben, umgesetzt und
 getestet: links nur der K.-o.-Spielplan, Vorrundentabelle ausschliesslich im
 unteren Archiv. Auch die erneute Layoutpruefung P3 ist bestanden;
 Story 1.9 wurde am 25.11.2026 ausdruecklich abgenommen.
-Story 1.10 ist noch nicht implementiert; das Epic bleibt offen.
+Story 1.10 ist mit der freigegebenen Siegerehrung umgesetzt, automatisiert
+und im Browser getestet. Beide Entwickler-Praxispruefungen sind bestanden;
+die Story wurde am 25.11.2026 ausdruecklich abgenommen.
+Damit sind alle zehn Stories abgenommen und Epic 1 ist abgeschlossen.
 
 ## Ziel
 
@@ -89,6 +92,12 @@ Plaetze 1 bis 4 aus. Die Bedienung funktioniert mit Maus und Touch.
   in Story 1.10.
 - Abschluss zeigt den eingefrorenen Vorrundenstand aller Personen und
   getrennt die vier K.-o.-Teams in ihrer endgueltigen Platzierung.
+- Ausdruecklich freigegebene Bedienkonkretisierung fuer Story 1.10 vom 25.11.2026:
+  Plaetze 1 bis 3 als Podest, Platz 4 direkt darunter; die vollstaendige
+  Vorrunde bleibt darunter aufklappbar. Eine maximal zweisekuendige,
+  nicht blockierende Feieranimation erscheint nur direkt nach erfolgreich
+  gespeichertem Finale, nicht nach erneutem Oeffnen, Neuladen oder Import.
+  Reduzierte Bewegung deaktiviert die Animation; zusaetzliche Sounds entfallen.
 
 ## Gestaltung
 
@@ -225,7 +234,7 @@ Erst nach Rueckmeldung und ausstehenden Entwicklertests folgt die naechste.
 7. [Partie, Countdown und Unterbrechungen: abgenommen](./story-1_7-DONE.md)
 8. [Ergebnis bestaetigen und Punkte auswerten: abgenommen](./story-1_8-DONE.md)
 9. [K.-o.-Phase spielen](./story-1_9-DONE.md)
-10. [Turnierabschluss anzeigen](./story-1_10.md)
+10. [Turnierabschluss anzeigen](./story-1_10-DONE.md)
 
 Das JSON-Sicherungsformat aus Story 3 wird bei Einfuehrung neuer Daten in den
 Folgestories konsistent erweitert und gezielt nachgetestet.

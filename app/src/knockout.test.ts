@@ -1,6 +1,6 @@
 import { createHash, webcrypto } from 'node:crypto'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
-import { finishKnockoutMatch, knockoutFixtures, knockoutLineup, knockoutStartError, nextKnockoutFixture, startKnockout, startKnockoutMatch } from './knockout'
+import { finishKnockoutMatch, knockoutFixtures, knockoutLineup, knockoutPlacements, knockoutStartError, nextKnockoutFixture, startKnockout, startKnockoutMatch } from './knockout'
 import { abortMatch, finishMatch, startMatch } from './matches'
 import { isTournament } from './tournament'
 import type { Tournament } from './tournament'
@@ -25,6 +25,23 @@ beforeEach(() => { localStorage.clear(); vi.stubGlobal('crypto', webcrypto) })
 afterEach(() => { vi.useRealTimers() })
 
 describe('K.-o.-Phase', () => {
+  it.each([[true, true], [true, false], [false, true], [false, false]])(
+    'leitet alle vier Plaetze aus Finale und Platzierungsspiel ab (%s, %s)', (finalFirst, bronzeFirst) => {
+      let tournament = startKnockout(fixture())
+      for (let index = 0; index < 4; index++) {
+        expect(() => knockoutPlacements(tournament.knockout!)).toThrow('noch nicht abgeschlossen')
+        const active = startKnockoutMatch(tournament, now)
+        const firstWins = index < 2 || (index === 2 ? bronzeFirst : finalFirst)
+        tournament = finishKnockoutMatch(active, active.activeMatch.id,
+          firstWins ? '10' : '9', firstWins ? '9' : '10', now)
+      }
+      const before = structuredClone(tournament)
+      expect(knockoutPlacements(tournament.knockout!).map((team) => team.id)).toEqual([
+        finalFirst ? 'A' : 'B', finalFirst ? 'B' : 'A', bronzeFirst ? 'D' : 'C', bronzeFirst ? 'C' : 'D',
+      ])
+      expect(tournament).toEqual(before)
+    })
+
   it('qualifiziert exakt die ersten acht ohne Mindestspielzahl und blockiert offene oder unzureichende Vorrunden', () => {
     const tournament = fixture()
     const started = startKnockout(tournament)

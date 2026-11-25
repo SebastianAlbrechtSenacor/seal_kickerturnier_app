@@ -2,7 +2,7 @@
 
 Status: Abgenommen. Alle drei Entwickler-Praxispruefungen als bestanden
 gemeldet; ausdrueckliche Abnahme erteilt.
-Epic: [Epic 1](./epic-1.md)
+Epic: [Epic 1](./epic-1-DONE.md)
 Abhaengigkeiten: [Story 1.1](./story-1_1-DONE.md).
 
 Als organisierende Person moechte ich mehrere getrennte Turniere vorbereiten

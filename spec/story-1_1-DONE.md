@@ -3,7 +3,7 @@
 Status: Abgenommen am 24.11.2026, einschliesslich Erweiterung zur neutralen
 Zugangsmaske. Urspruengliche A-D sowie erneute Entwicklertests C und D
 als bestanden gemeldet; ausdrueckliche Abnahme erteilt.
-Epic: [Epic 1](./epic-1.md)
+Epic: [Epic 1](./epic-1-DONE.md)
 Abhaengigkeiten: keine.
 
 Als teilnehmende Person moechte ich die Anwendung ueber GitHub Pages aufrufen

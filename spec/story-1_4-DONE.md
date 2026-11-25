@@ -2,7 +2,7 @@
 
 Status: Abgenommen am 24.11.2026. Alle drei Entwickler-Praxispruefungen
 als bestanden gemeldet; ausdrueckliche Abnahme erteilt.
-Epic: [Epic 1](./epic-1.md)
+Epic: [Epic 1](./epic-1-DONE.md)
 Abhaengigkeiten: [Story 1.2](./story-1_2-DONE.md),
 [Story 1.3](./story-1_3-DONE.md).
 

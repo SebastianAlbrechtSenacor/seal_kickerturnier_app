@@ -6,7 +6,7 @@ Die nachstehende Bedien- und Zwischenstandspezifikation wurde am
 Automatisierte Pruefungen, Browserpruefungen und alle drei Entwickler-
 Praxispruefungen sind bestanden. Die Story wurde am 25.11.2026
 ausdruecklich abgenommen.
-Epic: [Epic 1](./epic-1.md)
+Epic: [Epic 1](./epic-1-DONE.md)
 Abhaengigkeiten: [Story 1.6](./story-1_6-DONE.md).
 
 Als spielende Person moechte ich die Restzeit gross sehen und nach Zeitablauf

@@ -4,7 +4,7 @@ Status: Umgesetzt, getestet und vom Entwickler ausdruecklich abgenommen,
 einschliesslich der UI-Anpassungen und der erneuten Praxispruefungen F-H.
 Urspruengliche Spezifikation freigegeben am 24.11.2026,
 Bedienkonkretisierung am 25.11.2026.
-Epic: [Epic 1](./epic-1.md)
+Epic: [Epic 1](./epic-1-DONE.md)
 Abhaengigkeiten: [Story 1.5](./story-1_5-DONE.md).
 
 Als teilnehmende Person moechte ich vier Spielende den vier Positionen am

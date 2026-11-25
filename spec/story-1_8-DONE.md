@@ -6,7 +6,7 @@ wurden am 25.11.2026 ausdruecklich zur Umsetzung freigegeben.
 Die Story ist umgesetzt und automatisiert sowie im Browser getestet.
 Beide Entwickler-Praxispruefungen sind bestanden; die Story wurde
 am 25.11.2026 ausdruecklich abgenommen.
-Epic: [Epic 1](./epic-1.md)
+Epic: [Epic 1](./epic-1-DONE.md)
 Abhaengigkeiten: [Story 1.7](./story-1_7-DONE.md).
 
 Als teilnehmende Person moechte ich ein eindeutiges Endergebnis bestaetigen,

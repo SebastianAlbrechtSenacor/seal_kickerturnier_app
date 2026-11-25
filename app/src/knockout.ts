@@ -64,6 +64,15 @@ export function nextKnockoutFixture(state: KnockoutState): ReadyFixture | null {
   return { ...fixture, first: fixture.first, second: fixture.second }
 }
 
+export function knockoutPlacements(state: KnockoutState): KnockoutTeam[] {
+  if (state.results.length !== 4) throw new Error('Die K.-o.-Phase ist noch nicht abgeschlossen.')
+  const fixtures = knockoutFixtures(state)
+  return [fixtures[3], fixtures[2]].flatMap(({ first, second, result }) => {
+    if (!first || !second || !result) throw new Error('Die K.-o.-Abschlussergebnisse fehlen.')
+    return result.whiteGoals > result.blackGoals ? [first, second] : [second, first]
+  })
+}
+
 export function knockoutLineup(fixture: ReadyFixture): Lineup {
   return {
     whiteDefence: fixture.first.playerIds[0], whiteAttack: fixture.first.playerIds[1],

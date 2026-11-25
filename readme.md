@@ -5,7 +5,7 @@ am echten Kickertisch; die Teilnehmenden bedienen den Laptop daneben selbst.
 
 ## Projektstand
 
-Die [Spezifikation mit zehn ATDD-Stories](./spec/epic-1.md) ist seit dem
+Die [Spezifikation mit zehn ATDD-Stories](./spec/epic-1-DONE.md) ist seit dem
 24.11.2026 zur Umsetzung freigegeben. Der Ablauf steht in
 [agents.md](./agents.md): Jede Story wird einzeln umgesetzt und abgenommen.
 
@@ -16,7 +16,7 @@ Story 1.1 setzt das React-/TypeScript-/Vite-Grundgeruest um:
 - Entsperrte Turnierauswahl als Einstieg in die Turnierverwaltung.
 - Explizites Sperren; nach Neuladen ist der Zugang ebenfalls wieder gesperrt.
 - Responsive Gestaltung in Petrol/Tuerkis, Orange/Gelb und Weiss nach den
-  [Werbeplakaten](./spec/epic-1.md#dauerhafte-designreferenzen), mit Maus-,
+  [Werbeplakaten](./spec/epic-1-DONE.md#dauerhafte-designreferenzen), mit Maus-,
   Touch- und Tastaturbedienung sowie reduzierter Bewegung. Diese gestaltete
   Oberflaeche erscheint erst nach erfolgreicher Mastercode-Eingabe und wird
   beim Sperren wieder entfernt.
@@ -55,7 +55,11 @@ sind bestanden; die anschliessend gewuenschte Anpassung der linken
 K.-o.-Ansicht ist ebenfalls freigegeben, umgesetzt und getestet.
 Auch die erneute Layoutpruefung P3 ist bestanden; die Story wurde am
 25.11.2026 ausdruecklich abgenommen.
-Story 1.10 ist noch nicht implementiert.
+[Story 1.10](./spec/story-1_10-DONE.md) ist einschliesslich der freigegebenen
+Siegerehrung umgesetzt, automatisiert und im Browser getestet.
+Beide Entwickler-Praxispruefungen sind bestanden; die Story wurde am
+25.11.2026 ausdruecklich abgenommen. Damit ist Epic 1 mit allen zehn
+Stories abgeschlossen.
 
 ## Turniere vorbereiten
 
@@ -289,16 +293,45 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    Vorrundenergebnisse aufklappen, auch waehrend einer Partie.
    Auf schmalen Bildschirmen steht der Spielplan vor dem Tisch;
    die vollstaendige Tabelle bleibt innerhalb ihres Bereichs scrollbar.
-8. Nach dem Finale steht **K.-o.-Phase abgeschlossen** mit allen vier
-   Ergebnissen. Weitere Starts sind auch nach Neuladen oder Wiederherstellen
-   gesperrt. Export und Navigation bleiben moeglich. Der separate
-   Abschlussbildschirm mit Teamplatzierungen folgt erst in Story 1.10.
+8. Nach dem erfolgreich gespeicherten Finale erscheint automatisch die
+   **Siegerehrung** mit den vier Teamplatzierungen. Weitere Starts sind
+   auch nach Neuladen oder Wiederherstellen gesperrt.
+   Export und Navigation bleiben moeglich.
 
 Der normale Phasenwechsel ist unumkehrbar. Davon getrennt bleibt das bewusst
 bestaetigte Ersetzen des ganzen Turniers durch eine Sicherung moeglich.
 Bei Schreibfehlern bleiben Phase, offene Partie beziehungsweise Ergebnisentwurf
 und der zuletzt gespeicherte Spielplan erhalten. Veraltete Tabs werden mit
 Konfliktmeldung abgewiesen, statt einen neueren Stand zu ueberschreiben.
+
+### Turnierabschluss und Siegerehrung
+
+- **Turnier abgeschlossen** zeigt die K.-o.-Plaetze 1 bis 3 als Podest:
+  Finalsieger auf Platz 1, Finalverlierer auf Platz 2, Sieger des Spiels
+  um Platz 3 auf Platz 3. Dessen Verlierer steht als Platz 4 direkt darunter.
+  Jedes Team zeigt beide Namen und Avatare.
+- Bei breiter Darstellung steht Platz 1 hervorgehoben in der Mitte,
+  Platz 2 links und Platz 3 rechts. Bis 1000 Pixel Breite stehen die
+  vier Teams in Rangfolge untereinander.
+- **Vorrundenstand und Ergebnisse** ist zunaechst eingeklappt und zeigt
+  bei Bedarf die vollstaendige eingefrorene Einzelwertung aller Personen
+  sowie den gesamten Vorrundenverlauf. Diese Wertung ist von den Teamplaetzen
+  getrennt und wird durch K.-o.-Ergebnisse nicht veraendert.
+  **K.-o.-Spielplan und Ergebnisse** klappt die vier K.-o.-Begegnungen auf.
+- Nur direkt nach dem erfolgreich gespeicherten Finale laeuft einmal
+  eine kurze Konfettianimation von hoechstens zwei Sekunden. Archivaktionen,
+  Export und Navigation funktionieren waehrenddessen sofort.
+  Bei reduzierter Bewegung entfaellt die Animation; zusaetzliche Sounds
+  gibt es nicht. Ein Speicherfehler zeigt noch keinen Abschluss.
+- Neuladen, Import und erneutes Oeffnen zeigen dieselbe Siegerehrung
+  ohne erneute Animation. Auch bereits vorher abgeschlossene
+  Schema-5-Turniere funktionieren ohne Datenmigration oder erneutes
+  Speichern. Es werden keine zusaetzlichen Punkte vergeben.
+- **Zur Turnieruebersicht** zeigt die unveraenderlichen Turnierinformationen;
+  **Turnierabschluss anzeigen** fuehrt zur Siegerehrung zurueck.
+  Die JSON-Sicherung bleibt verfuegbar. Ein bewusst bestaetigtes
+  Wiederherstellen einer anderen Sicherung bleibt vom gesperrten
+  Spielbetrieb getrennt moeglich.
 
 ### JSON-Sicherung und Wiederherstellung
 
@@ -439,14 +472,10 @@ Keine echten, vertraulichen oder anderweitig verwendeten Passwoerter nutzen.
 Es wird kein Code an einen Anmeldeserver gesendet. Die Daten sind durch die
 Zugangsmaske nicht verschluesselt.
 
-## Geplanter weiterer Funktionsumfang
-
-- Separater feierlicher Abschlussbildschirm mit eingefrorener
-  Vorrundentabelle und den vier K.-o.-Teams in ihrer endgueltigen Platzierung
-  (Story 1.10).
+## Bekannte Grenzen
 
 Kein Backend und keine automatische Synchronisation zwischen Geraeten.
 Geloeschte Browserdaten koennen ohne Sicherung zum Datenverlust fuehren.
 
 Technische Grenzen und recherchierte Quellen stehen im
-[Epic](./spec/epic-1.md#technische-recherche-stand-24112026).
+[Epic](./spec/epic-1-DONE.md#technische-recherche-stand-24112026).

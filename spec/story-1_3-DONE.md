@@ -3,7 +3,7 @@
 Status: Abgenommen am 24.11.2026. Alle drei Entwickler-Praxispruefungen
 als bestanden gemeldet; ausdrueckliche Abnahme erteilt.
 Konkretisierung einschliesslich Szenario E am 24.11.2026 ausdruecklich freigegeben.
-Epic: [Epic 1](./epic-1.md)
+Epic: [Epic 1](./epic-1-DONE.md)
 Abhaengigkeiten: [Story 1.2](./story-1_2-DONE.md).
 
 Als organisierende Person moechte ich ein Turnier vollstaendig als JSON sichern

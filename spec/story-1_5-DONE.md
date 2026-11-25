@@ -2,7 +2,7 @@
 
 Status: Abgenommen am 25.11.2026. Alle drei Entwickler-Praxispruefungen
 als bestanden gemeldet; ausdrueckliche Abnahme erteilt.
-Epic: [Epic 1](./epic-1.md)
+Epic: [Epic 1](./epic-1-DONE.md)
 Abhaengigkeiten: [Story 1.4](./story-1_4-DONE.md).
 
 Als teilnehmende Person moechte ich nach Turnierstart die individuelle
