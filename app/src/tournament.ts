@@ -1,5 +1,7 @@
 import { isPlayerList } from './players'
 import type { Player } from './players'
+import { isOpenMatch } from './matches'
+import type { OpenMatch } from './matches'
 
 export interface TournamentSettings {
   name: string
@@ -14,13 +16,14 @@ export interface TournamentSettings {
 }
 
 export interface Tournament {
-  version: 1 | 2
+  version: 1 | 2 | 3
   id: string
   revision: number
   phase: 'preparation' | 'preliminary'
   settings: TournamentSettings
   codeHash: string
   players?: Player[]
+  activeMatch?: OpenMatch | null
 }
 
 export interface TournamentDraft {
@@ -150,13 +153,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function isTournament(value: unknown): value is Tournament {
-  if (!isRecord(value) || (value.version !== 1 && value.version !== 2) || typeof value.id !== 'string' || !value.id ||
+  if (!isRecord(value) || (value.version !== 1 && value.version !== 2 && value.version !== 3) || typeof value.id !== 'string' || !value.id ||
       !Number.isSafeInteger(value.revision) || Number(value.revision) < 1 ||
       (value.phase !== 'preparation' && value.phase !== 'preliminary') || typeof value.codeHash !== 'string' ||
       !/^[a-f0-9]{64}$/.test(value.codeHash) || !isRecord(value.settings)) return false
-  if ((value.version === 2 || 'players' in value) && !isPlayerList(value.players)) return false
+  if ((value.version >= 2 || 'players' in value) && !isPlayerList(value.players)) return false
   if (value.phase === 'preliminary' &&
-      (value.version !== 2 || !isPlayerList(value.players) || value.players.length < 4)) return false
+      (value.version < 2 || !isPlayerList(value.players) || value.players.length < 4)) return false
+  if (value.version !== 3 && 'activeMatch' in value) return false
+  if (value.version === 3 && (!('activeMatch' in value) ||
+      (value.activeMatch !== null && (value.phase !== 'preliminary' || !isPlayerList(value.players) ||
+       typeof value.settings.matchMinutes !== 'number' ||
+       !isOpenMatch(value.activeMatch, value.players, value.settings.matchMinutes))))) return false
   const settings = value.settings
   if (typeof settings.name !== 'string' || typeof settings.location !== 'string' ||
       typeof settings.description !== 'string' || typeof settings.startsAt !== 'string' ||
@@ -188,5 +196,5 @@ export function startPreliminary(tournament: Tournament): Tournament {
   if ((tournament.players?.length ?? 0) < 4) {
     throw new Error('Für den Turnierstart sind mindestens vier Spielende erforderlich.')
   }
-  return { ...tournament, version: 2, phase: 'preliminary', revision: tournament.revision + 1 }
+  return { ...tournament, version: tournament.version === 3 ? 3 : 2, phase: 'preliminary', revision: tournament.revision + 1 }
 }

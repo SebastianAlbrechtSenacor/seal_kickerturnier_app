@@ -6,11 +6,16 @@ import TournamentImport from './TournamentImport'
 import PlayerManager from './PlayerManager'
 import StandingsTable from './StandingsTable'
 import MatchPreparation from './MatchPreparation'
+import RunningMatch from './RunningMatch'
+import { abortMatch, startMatch } from './matches'
+import type { ActiveTournament } from './matches'
+import type { Lineup } from './lineup'
+import { createWhistle } from './whistle'
 import type { Player } from './players'
 import { downloadBackup } from './tournament-backup'
 import { assertPreparation, formatBerlinTime, planTimes, startPreliminary } from './tournament'
 import type { Tournament, TournamentSettings } from './tournament'
-import { assertCurrentTournament, loadTournaments, readTournament, saveTournament } from './tournament-storage'
+import { assertCurrentTournament, claimWhistle, loadTournaments, readTournament, saveTournament, updateTournament } from './tournament-storage'
 import './TournamentManager.css'
 
 type View =
@@ -23,6 +28,7 @@ type View =
   | { kind: 'players'; tournament: Tournament }
   | { kind: 'start'; tournament: Tournament }
   | { kind: 'match'; tournament: Tournament }
+  | { kind: 'live'; tournament: ActiveTournament }
 
 function readList(): { tournaments: Tournament[]; error: string } {
   try {
@@ -45,10 +51,24 @@ export default function TournamentManager() {
   const [starting, setStarting] = useState(false)
   const heading = useRef<HTMLHeadingElement>(null)
   const codeInput = useRef<HTMLInputElement>(null)
+  const [whistle] = useState(createWhistle)
+  const [audioError, setAudioError] = useState('')
+  const [audioBusy, setAudioBusy] = useState(false)
+  const audioPending = useRef(false)
+  const mounted = useRef(false)
+  const headingTarget = view.kind === 'live' ? view.tournament.activeMatch.id : view
+
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+      void whistle.close().catch((error: unknown) => console.error('Audio konnte nicht geschlossen werden.', error))
+    }
+  }, [whistle])
 
   useEffect(() => {
     heading.current?.focus()
-  }, [view])
+  }, [headingTarget])
 
   useEffect(() => {
     if (error && !checking) codeInput.current?.focus()
@@ -80,7 +100,9 @@ export default function TournamentManager() {
       }
       assertCurrentTournament(tournament)
       setCode('')
-      setView({ kind: 'details', tournament })
+      setView(tournament.activeMatch ?
+        { kind: 'live', tournament: { ...tournament, activeMatch: tournament.activeMatch } } :
+        { kind: 'details', tournament })
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Das Turnier konnte nicht geöffnet werden.')
     } finally {
@@ -98,7 +120,8 @@ export default function TournamentManager() {
       throw new Error('Der Turniercode konnte nicht verarbeitet werden. Bitte einen aktuellen Browser über HTTPS oder localhost nutzen.')
     }
     const tournament: Tournament = {
-      version: 2,
+      version: existing?.version === 3 ? 3 : 2,
+      ...(existing?.version === 3 ? { activeMatch: null } : {}),
       id: existing?.id ?? crypto.randomUUID(),
       revision: (existing?.revision ?? 0) + 1,
       phase: 'preparation',
@@ -113,7 +136,7 @@ export default function TournamentManager() {
   async function savePlayers(players: Player[]) {
     if (view.kind !== 'players') throw new Error('Bitte das Turnier erneut öffnen.')
     assertPreparation(view.tournament)
-    const tournament: Tournament = { ...view.tournament, version: 2, players, revision: view.tournament.revision + 1 }
+    const tournament: Tournament = { ...view.tournament, version: view.tournament.version === 3 ? 3 : 2, players, revision: view.tournament.revision + 1 }
     await saveTournament(tournament, view.tournament.revision)
     setView({ kind: 'players', tournament })
   }
@@ -148,10 +171,53 @@ export default function TournamentManager() {
     try {
       assertCurrentTournament(tournament)
       if (tournament.phase !== 'preliminary') throw new Error('Partien können nur in der Vorrunde vorbereitet werden.')
-      setView({ kind: 'match', tournament })
+      setView(tournament.activeMatch ?
+        { kind: 'live', tournament: { ...tournament, activeMatch: tournament.activeMatch } } :
+        { kind: 'match', tournament })
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Die Partievorbereitung konnte nicht geöffnet werden.')
     }
+  }
+
+  async function activateAudio(test = false) {
+    if (audioPending.current) return
+    audioPending.current = true
+    setAudioBusy(true)
+    setAudioError('')
+    try {
+      await whistle.activate()
+      if (test && mounted.current) whistle.play()
+    } catch (error) {
+      if (mounted.current) setAudioError(error instanceof Error ? error.message : 'Audio konnte nicht aktiviert werden.')
+    } finally {
+      audioPending.current = false
+      if (mounted.current) setAudioBusy(false)
+    }
+  }
+
+  async function beginMatch(lineup: Lineup) {
+    if (view.kind !== 'match') throw new Error('Bitte das Turnier erneut öffnen.')
+    setError('')
+    void activateAudio()
+    const tournament = await updateTournament(view.tournament, (current) => startMatch(current, lineup))
+    setView({ kind: 'live', tournament })
+  }
+
+  async function endMatch() {
+    if (view.kind !== 'live') throw new Error('Bitte das Turnier erneut öffnen.')
+    const tournament = await updateTournament(view.tournament, abortMatch)
+    setError('')
+    setView({ kind: 'match', tournament })
+  }
+
+  async function notifyExpiry(tournament: ActiveTournament) {
+    const result = await claimWhistle(tournament.id, tournament.activeMatch.id)
+    setView((current) => current.kind === 'live' &&
+      current.tournament.id === result.tournament.id &&
+      current.tournament.activeMatch.id === result.tournament.activeMatch.id &&
+      current.tournament.revision <= result.tournament.revision ?
+      { kind: 'live', tournament: result.tournament } : current)
+    return result.claimed
   }
 
   const expanded = view.kind !== 'list' && view.kind !== 'unlock'
@@ -162,15 +228,18 @@ export default function TournamentManager() {
     view.kind === 'players' ? 'Spielende verwalten' :
     view.kind === 'start' ? 'Vorrunde starten?' :
     view.kind === 'match' ? 'Partie vorbereiten' :
+    view.kind === 'live' ? 'Vorrundenpartie' :
     view.kind === 'unlock' ? 'Turnier öffnen' : view.tournament.settings.name
 
   return (
-    <section className={`entry-card${expanded ? ' tournament-workspace' : ''}${view.kind === 'match' ? ' match-workspace' : ''}`} aria-labelledby="entry-title">
+    <section className={`entry-card${expanded ? ' tournament-workspace' : ''}${view.kind === 'match' || view.kind === 'live' ? ' match-workspace' : ''}`} aria-labelledby="entry-title">
       <div className="card-stripe" aria-hidden="true" />
       <div className="card-content">
         <p className="card-eyebrow">{view.kind === 'details' ?
           view.tournament.phase === 'preliminary' ? 'VORRUNDE' : 'VORBEREITUNG' : 'EUER NÄCHSTES MATCH'}</p>
         <h2 id="entry-title" ref={heading} tabIndex={-1}>{title}</h2>
+        {view.kind === 'live' && error && <p className="error-message" role="alert">{error}</p>}
+        {(view.kind === 'match' || view.kind === 'live') && audioError && <p className="error-message" role="alert">{audioError}</p>}
         {view.kind === 'list' && (
           <>
             <p className="card-description">Turnier vorbereiten oder mit eurem Turniercode wieder öffnen.</p>
@@ -247,9 +316,15 @@ export default function TournamentManager() {
         )}
         {view.kind === 'match' && (
           <MatchPreparation tournament={view.tournament}
-            onCheckCurrent={() => assertCurrentTournament(view.tournament)}
+            onStart={beginMatch}
             onBack={() => setView({ kind: 'details', tournament: view.tournament })} />
         )}
+        {view.kind === 'live' && <RunningMatch key={view.tournament.activeMatch.id} tournament={view.tournament}
+          whistle={whistle} audioBusy={audioBusy} onTestAudio={() => void activateAudio(true)}
+          onAudioError={setAudioError} onWhistle={() => notifyExpiry(view.tournament)}
+          onCheckCurrent={() => assertCurrentTournament(view.tournament)}
+          onAbort={endMatch} onExport={() => exportBackup(view.tournament)}
+          onBack={() => { setError(''); setView({ kind: 'details', tournament: view.tournament }) }} />}
         {view.kind === 'start' && (
           <div className="start-confirmation">
             <p className="card-description">{view.tournament.settings.name} · {view.tournament.players?.length ?? 0} Spielende</p>
@@ -273,7 +348,8 @@ export default function TournamentManager() {
               'Die Vorrunde läuft. Einstellungen, Turniercode und Spielende sind gesperrt.'}</p>
             <p>{view.tournament.players?.length ?? 0} Spielende angemeldet.</p>
             {view.tournament.phase === 'preliminary' && <StandingsTable players={view.tournament.players ?? []}
-              onPrepare={() => prepareMatch(view.tournament)} />}
+              onPrepare={() => prepareMatch(view.tournament)}
+              prepareLabel={view.tournament.activeMatch ? 'Offene Partie anzeigen' : 'Partie vorbereiten'} />}
             <dl className="tournament-details">
               <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(view.tournament.settings.startsAt)}</dd></div>
               <div><dt>Spielort</dt><dd>{view.tournament.settings.location}</dd></div>

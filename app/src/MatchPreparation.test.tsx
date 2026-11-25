@@ -33,7 +33,7 @@ beforeEach(() => {
 
 describe('Partieaufstellung', () => {
   it('zeigt nur Rang, Spielende und Punkte und ordnet die Positionen in Tisch-Lesereihenfolge an', () => {
-    render(<MatchPreparation tournament={fixture()} onCheckCurrent={vi.fn()} onBack={vi.fn()} />)
+    render(<MatchPreparation tournament={fixture()} onStart={vi.fn()} onBack={vi.fn()} />)
     const table = screen.getByRole('table')
     expect(within(table).getAllByRole('columnheader').map((header) => header.textContent)).toEqual([
       'Rang', 'Spielende', 'Punkte',
@@ -47,12 +47,12 @@ describe('Partieaufstellung', () => {
     ])
   })
 
-  it('belegt per Klick und Tastatur, ersetzt und entfernt ohne Einfrieren und startet nur die ausdrueckliche Pruefung', async () => {
+  it('belegt per Klick und Tastatur, ersetzt und entfernt ohne Einfrieren und uebergibt die Aufstellung direkt zum Start', async () => {
     const user = userEvent.setup()
     const tournament = fixture()
     const original = structuredClone(tournament)
     const check = vi.fn()
-    render(<MatchPreparation tournament={tournament} onCheckCurrent={check} onBack={vi.fn()} />)
+    render(<MatchPreparation tournament={tournament} onStart={check} onBack={vi.fn()} />)
     expect(screen.getByRole('button', { name: 'Spiel starten' })).toBeDisabled()
     await user.click(screen.getByRole('button', { name: 'Alex auswählen' }))
     expect(screen.getByRole('alert')).toHaveTextContent('zuerst eine Position')
@@ -78,11 +78,11 @@ describe('Partieaufstellung', () => {
     await user.click(screen.getByRole('button', { name: 'Alex auswählen' }))
     await user.click(screen.getByRole('button', { name: 'Spiel starten' }))
     expect(check).toHaveBeenCalledOnce()
-    expect(screen.getByRole('heading', { name: 'Aufstellung prüfen' })).toHaveFocus()
-    expect(screen.getByRole('status')).toHaveTextContent('Noch keine Partie gestartet')
-    expect(screen.getByRole('button', { name: 'Spiel verbindlich starten – folgt in Story 1.7' })).toBeDisabled()
+    expect(check).toHaveBeenCalledWith({
+      whiteAttack: 'player-0', whiteDefence: 'player-1', blackAttack: 'player-2', blackDefence: 'player-3',
+    })
+    expect(screen.queryByRole('heading', { name: 'Aufstellung prüfen' })).not.toBeInTheDocument()
     expect(tournament).toEqual(original)
-    await user.click(screen.getByRole('button', { name: 'Zur Aufstellung' }))
     expect(screen.getByRole('button', { name: 'Weiß Angriff: Alex' })).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Aufstellung leeren' }))
     expect(screen.getByRole('button', { name: 'Spiel starten' })).toBeDisabled()
@@ -92,7 +92,7 @@ describe('Partieaufstellung', () => {
   })
 
   it.each(['mouse', 'touch'])('ordnet per Pointer-Drag mit %s zu und laesst ungueltiges Ablegen unveraendert', (pointerType) => {
-    render(<MatchPreparation tournament={fixture()} onCheckCurrent={vi.fn()} onBack={vi.fn()} />)
+    render(<MatchPreparation tournament={fixture()} onStart={vi.fn()} onBack={vi.fn()} />)
     const source = screen.getByRole('button', { name: 'Alex auswählen' })
     const target = screen.getByRole('button', { name: 'Schwarz Verteidigung: frei' })
     const point = { pointerId: 1, pointerType, button: 0, isPrimary: true }
@@ -120,9 +120,9 @@ describe('Partieaufstellung', () => {
     expect(screen.getByRole('button', { name: 'Weiß Angriff: Bea' })).toBeVisible()
   })
 
-  it('ersetzt auch beim Ziehen nur die Zielposition und weist einen veralteten Stand vor der Pruefung ab', async () => {
+  it('ersetzt auch beim Ziehen nur die Zielposition und behaelt den Entwurf bei Startfehlern', async () => {
     const user = userEvent.setup()
-    render(<MatchPreparation tournament={fixture()} onCheckCurrent={() => { throw new Error('Stand geändert. Bitte neu öffnen.') }} onBack={vi.fn()} />)
+    render(<MatchPreparation tournament={fixture()} onStart={() => { throw new Error('Stand geändert. Bitte neu öffnen.') }} onBack={vi.fn()} />)
     for (const { label, nickname } of assignments) {
       await user.click(screen.getByRole('button', { name: `${label}: frei` }))
       await user.click(screen.getByRole('button', { name: `${nickname} auswählen` }))

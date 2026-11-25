@@ -8,7 +8,9 @@ Story 1.4 ist umgesetzt, getestet und am 24.11.2026 abgenommen.
 Story 1.5 ist umgesetzt, getestet und am 25.11.2026 abgenommen.
 Story 1.6 ist einschliesslich der UI-Rueckmeldung umgesetzt, getestet
 und nach erfolgreichen erneuten Praxispruefungen ausdruecklich abgenommen.
-Stories 1.7 bis 1.10 sind noch nicht implementiert;
+Story 1.7 ist umgesetzt, automatisiert und im Browser getestet und nach
+allen drei bestandenen Entwickler-Praxispruefungen am 25.11.2026 abgenommen.
+Stories 1.8 bis 1.10 sind noch nicht implementiert;
 das Epic bleibt offen.
 
 ## Ziel
@@ -198,7 +200,7 @@ Erst nach Rueckmeldung und ausstehenden Entwicklertests folgt die naechste.
 4. [Spielende und Avatare verwalten: abgenommen](./story-1_4-DONE.md)
 5. [Vorrunde starten und Tabelle anzeigen: abgenommen](./story-1_5-DONE.md)
 6. [Vorrundenpartie besetzen: abgenommen](./story-1_6-DONE.md)
-7. [Partie, Countdown und Unterbrechungen](./story-1_7.md)
+7. [Partie, Countdown und Unterbrechungen: abgenommen](./story-1_7-DONE.md)
 8. [Ergebnis bestaetigen und Punkte auswerten](./story-1_8.md)
 9. [K.-o.-Phase spielen](./story-1_9.md)
 10. [Turnierabschluss anzeigen](./story-1_10.md)

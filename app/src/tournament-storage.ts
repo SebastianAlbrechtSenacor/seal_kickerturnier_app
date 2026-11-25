@@ -1,5 +1,6 @@
 import { isTournament } from './tournament'
 import type { Tournament } from './tournament'
+import type { ActiveTournament } from './matches'
 
 const prefix = 'seal-kickerturnier:tournament:'
 
@@ -51,15 +52,44 @@ export async function saveTournament(
   operation: 'update' | 'restore' = 'update',
 ): Promise<void> {
   if (!isTournament(tournament)) throw new Error('Ungültige Turnierdaten können nicht gespeichert werden.')
-  if (!navigator.locks) {
-    throw new Error('Dieser Browser unterstützt keine sicheren parallelen Speicherzugriffe. Bitte einen aktuellen Browser über HTTPS oder localhost verwenden. Es wurde nichts gespeichert.')
-  }
-  await navigator.locks.request(`${prefix}${tournament.id}`, () => {
+  await withTournamentLock(tournament.id, () => {
     writeTournament(tournament, expectedRevision, operation)
   })
 }
 
+function withTournamentLock<T>(id: string, action: () => T): Promise<T> {
+  if (!navigator.locks) {
+    return Promise.reject(new Error('Dieser Browser unterstützt keine sicheren parallelen Speicherzugriffe. Bitte einen aktuellen Browser über HTTPS oder localhost verwenden. Es wurde nichts gespeichert.'))
+  }
+  return navigator.locks.request(`${prefix}${id}`, action)
+}
+
+export function updateTournament<T extends Tournament>(tournament: Tournament, update: (current: Tournament) => T): Promise<T> {
+  return withTournamentLock(tournament.id, () => {
+    assertCurrentTournament(tournament)
+    const next = update(tournament)
+    writeTournament(next, tournament.revision, 'update')
+    return next
+  })
+}
+
+export function claimWhistle(id: string, matchId: string): Promise<{ tournament: ActiveTournament; claimed: boolean }> {
+  return withTournamentLock(id, () => {
+    const tournament = readTournament(id)
+    const match = tournament.activeMatch
+    if (!match || match.id !== matchId) throw new Error('Die Partie wurde zwischenzeitlich geändert. Bitte das Turnier erneut öffnen.')
+    if (Date.now() < Date.parse(match.endsAt)) throw new Error('Die Partie ist noch nicht abgelaufen.')
+    if (match.whistleAttempted) return { tournament: { ...tournament, activeMatch: match }, claimed: false }
+    const next: ActiveTournament = {
+      ...tournament, revision: tournament.revision + 1, activeMatch: { ...match, whistleAttempted: true },
+    }
+    writeTournament(next, tournament.revision, 'update')
+    return { tournament: next, claimed: true }
+  })
+}
+
 function writeTournament(tournament: Tournament, expectedRevision: number | null, operation: 'update' | 'restore'): void {
+  if (!isTournament(tournament)) throw new Error('Ungültige Turnierdaten können nicht gespeichert werden.')
   let raw: string | null
   try {
     raw = window.localStorage.getItem(`${prefix}${tournament.id}`)
@@ -72,6 +102,9 @@ function writeTournament(tournament: Tournament, expectedRevision: number | null
   }
   if (expectedRevision !== null && tournament.revision !== expectedRevision + 1) {
     throw new Error('Ungültige Speicherrevision. Bitte das Turnier über die Turnierauswahl neu öffnen.')
+  }
+  if (operation === 'restore' && current?.activeMatch) {
+    throw new Error('Dieses Turnier hat eine offene Partie. Bitte diese vor dem Ersetzen ausdrücklich abbrechen.')
   }
   if (operation === 'update' && current?.phase === 'preliminary' &&
       (tournament.phase !== 'preliminary' || tournament.codeHash !== current.codeHash ||

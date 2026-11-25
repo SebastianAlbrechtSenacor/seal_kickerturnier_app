@@ -1,0 +1,16 @@
+.position-select:disabled { opacity: 1; cursor: default; }
+.match-clock { text-align: center; padding: 18px 10px; margin-bottom: 16px; border-radius: 10px; background: #123b40; color: #ffba26; }
+.match-clock > span { font-size: 13px; font-weight: 700; letter-spacing: .16em; }
+.match-clock [role="timer"] { font-size: clamp(52px, 7vw, 104px); line-height: 1.15; font-weight: 900; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.match-clock.is-expired { background: #703b17; }
+.expiry-message { border: 2px solid #bc5800; padding: 14px; background: #fff0cf; color: #683300; font-weight: 700; }
+.lineup-panel .audio-test { margin: 0 0 10px; }
+.lineup-panel > .form-note { margin-bottom: 18px; }
+.match-result { margin-top: 24px; padding: 18px; border: 1px solid #b6cbc5; border-radius: 6px; overflow-wrap: anywhere; }
+.match-result > h3 { margin-bottom: 12px; }
+.match-result > p { line-height: 1.6; margin-bottom: 12px; }
+.match-result > .secondary-button { margin-top: 12px; }
+.score-inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.score-inputs label { min-width: 0; font-size: 14px; font-weight: 700; }
+.score-inputs input { width: 100%; min-width: 0; font-size: 28px; margin-top: 8px; }
+.lineup-panel .match-abort { margin-top: 20px; }

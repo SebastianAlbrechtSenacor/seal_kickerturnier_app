@@ -7,9 +7,10 @@ interface Props {
   onPrepare?: () => void
   renderPlayer?: (player: Player) => ReactNode
   compact?: boolean
+  prepareLabel?: string
 }
 
-export default function StandingsTable({ players, onPrepare, renderPlayer, compact = false }: Props) {
+export default function StandingsTable({ players, onPrepare, renderPlayer, compact = false, prepareLabel = 'Partie vorbereiten' }: Props) {
   const standings = initialStandings(players)
   return (
     <section className="standings" aria-labelledby="standings-heading">
@@ -47,7 +48,7 @@ export default function StandingsTable({ players, onPrepare, renderPlayer, compa
         </table>
       </div>
       <p className="form-note">Reihenfolge: Punkte, Siege, Tordifferenz, erzielte Tore, dann deutscher Spielername.</p>
-      {onPrepare && <button className="action-button" type="button" onClick={onPrepare}>Partie vorbereiten</button>}
+      {onPrepare && <button className="action-button" type="button" onClick={onPrepare}>{prepareLabel}</button>}
     </section>
   )
 }

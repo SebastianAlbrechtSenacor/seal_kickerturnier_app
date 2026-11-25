@@ -43,7 +43,10 @@ erfolgreichen Entwickler-Praxispruefungen am 25.11.2026 abgenommen.
 [Story 1.6](./spec/story-1_6-DONE.md) ist einschliesslich der UI-Rueckmeldung
 umgesetzt, getestet und nach erfolgreichen erneuten Entwickler-
 Praxispruefungen ausdruecklich abgenommen.
-Stories 1.7 bis 1.10 sind noch nicht implementiert.
+[Story 1.7](./spec/story-1_7-DONE.md) ist umgesetzt, automatisiert sowie im
+Browser getestet und nach allen drei bestandenen Entwickler-Praxispruefungen
+am 25.11.2026 ausdruecklich abgenommen.
+Stories 1.8 bis 1.10 sind noch nicht implementiert.
 
 ## Turniere vorbereiten
 
@@ -129,8 +132,8 @@ Nach Turnierstart ist die Spielendenliste gesperrt.
    zurueck. **Vorrunde verbindlich starten** speichert den Phasenwechsel.
 3. Die Vorrundentabelle zeigt alle Personen mit Avatar, eindeutigem Rang,
    Spielen, Siegen, Niederlagen, Toren, Gegentoren, Tordifferenz und Punkten.
-   Alle Statistiken beginnen bei null. Da Partien und Ergebniswertung erst
-   folgen, bleiben sie in diesem Entwicklungsstand bei null.
+   Alle Statistiken beginnen bei null. Da die Ergebniswertung erst mit
+   Story 1.8 folgt, bleiben sie in diesem Entwicklungsstand bei null.
 4. Sortiert wird nach Punkten, Siegen, Tordifferenz und erzielten Toren
    absteigend, anschliessend nach deutschem Spielernamen aufsteigend.
    Auf schmalen Bildschirmen laesst sich die Tabelle seitlich scrollen,
@@ -139,8 +142,8 @@ Nach Turnierstart ist die Spielendenliste gesperrt.
    nach Start unveraenderbar. Die Felder bleiben lesbar, Bearbeitungsaktionen
    entfallen. Neuladen und erneute Codeeingabe behalten Phase und Rangfolge bei.
    Veraltete Tabs koennen die gesperrte Vorbereitung nicht ueberschreiben.
-6. **Partie vorbereiten** oeffnet die Positionsauswahl. Ein verbindlicher
-   Partiestart und der Timer folgen erst mit Story 1.7.
+6. **Partie vorbereiten** oeffnet die Positionsauswahl. Bei bereits offener
+   Partie fuehrt **Offene Partie anzeigen** stattdessen zur laufenden Partie.
 
 Startzeit und geplante Phasenenden sind nur Planung. Weder der geplante
 Beginn noch 19 Uhr starten oder wechseln eine Phase automatisch.
@@ -174,20 +177,56 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    Ungueltiges oder abgebrochenes Ziehen laesst den Entwurf mit Hinweis bestehen.
 5. Erst mit vier verschiedenen Personen ist **Spiel starten** aktiv und
    hervorgehoben. Vier Belegungen allein sperren die Bearbeitung nicht.
-   Die Aktion oeffnet derzeit ausdruecklich nur **Aufstellung pruefen**:
-   Noch keine Partie laeuft, es werden keine Partiedaten gespeichert.
-   **Zur Aufstellung** behaelt den bearbeitbaren Entwurf bei.
+   **Spiel starten** speichert Aufstellung, Start- und Endzeit und startet
+   direkt die Partie. Erst nach erfolgreichem Speichern wird der Countdown
+   angezeigt; die Aufstellung ist dann gesperrt. Doppelklick startet keine
+   zweite Partie. Bei Speicherfehlern bleibt der Entwurf mit Fehlerhinweis bestehen.
 6. **Vorbereitung verlassen**, Neuladen oder **Anwendung sperren** verwerfen
    den Entwurf. Erneutes Vorbereiten beginnt leer; dieselben Personen duerfen
    erneut gewaehlt werden. Der Entwurf ist auch nicht Teil einer JSON-Sicherung.
-   Veraltete Turnierstaende werden beim Oeffnen und vor der Aufstellungspruefung
+   Veraltete Turnierstaende werden beim Oeffnen und vor dem Spielstart
    mit Konfliktmeldung abgewiesen.
+
+### Laufende Partie und Countdown
+
+1. Links bleibt die kompakte Tabelle, rechts stehen der grosse Countdown
+   und die gesperrte Aufstellung. Auf schmalen Bildschirmen stehen die
+   Bereiche untereinander. Die Restzeit folgt dem gespeicherten Endzeitpunkt:
+   Neuladen, Sperren, Tabwechsel oder Verlassen halten die Partie nicht an.
+   Nach erneutem Zugang wird dieselbe offene Partie angezeigt.
+2. Der Start aktiviert den Ton im Rahmen des Klicks. **Ton aktivieren / testen**
+   erlaubt einen Testpfiff, auch nach erneutem Oeffnen. Geraetelautstaerke
+   pruefen! Audiofehler erscheinen sichtbar und verhindern weder den
+   gespeicherten Start noch die spaetere Ergebniseingabe.
+3. Bei Zeitablauf steht der Timer auf `00:00`; ein deutlicher Hinweis und
+   **Ergebnis eingeben** erscheinen. Bei Gleichstand entscheidet das naechste
+   Tor. Die App versucht hoechstens einmal je gespeicherter Partie automatisch
+   zu pfeifen; ausdrueckliche Testpfiffe sind davon unabhaengig.
+   Ein Pfiff im Hintergrund oder Ruhezustand ist nicht garantiert.
+   Beim Wiederoeffnen einer bereits abgelaufenen Partie ertont kein
+   nachtraeglicher automatischer Pfiff.
+4. **10 Tore erreicht** oeffnet die Eingabe vorzeitig, ohne den Timer
+   anzuhalten. **Ergebnis pruefen** verlangt zwei ganze Zahlen von 0 bis 10,
+   keinen Gleichstand und vor Zeitablauf genau ein Team mit 10 Toren.
+   Nach Zeitablauf ist beispielsweise auch 7:5 gueltig, selbst wenn die
+   Eingabe vorher geoeffnet wurde.
+5. Die Pruefung zeigt beide Teams und den Endstand ausdruecklich als
+   **noch nicht gespeichert oder gewertet**. Verbindliches Speichern ist
+   bis Story 1.8 deaktiviert. Zurueckgehen erlaubt Korrekturen; Neuladen
+   oder Sperren verwerfen nur den Toreentwurf, nicht die offene Partie.
+6. **Partie abbrechen** erfordert eine Bestaetigung. Verwerfen behaelt die
+   Partie samt urspruenglichem Endzeitpunkt; Bestaetigen beendet sie ohne
+   Ergebnis und Punkte und oeffnet eine leere neue Aufstellung.
+   Bis Story 1.8 ist nur so eine weitere Partie moeglich.
+   Ein Schreibfehler laesst die gespeicherte Partie offen und zeigt einen Fehler.
+   Auch ueber die Turnieruebersicht kann keine zweite Partie parallel starten.
 
 ### JSON-Sicherung und Wiederherstellung
 
 - Im geoeffneten Turnier **JSON-Sicherung herunterladen** waehlen.
   Die UTF-8-Datei enthaelt ID, Einstellungen, Spielende mit IDs/Spitznamen/Avataren,
-  Phase und den Pruefwert des
+  Phase, eine gegebenenfalls offene Partie mit Aufstellung und urspruenglichen
+  Zeitpunkten sowie den Pruefwert des
   Turniercodes, aber weder Mastercode noch Klartext-Codes oder entsperrte Sitzung.
   Die Daten sind nicht verschluesselt; Sicherungen nicht oeffentlich teilen.
 - In der Turnierauswahl **JSON-Sicherung importieren** waehlen und die
@@ -198,6 +237,8 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
   ersetzt den gesamten Stand, ohne ihn mit dem lokalen Stand zu vermischen.
   Anschliessend gilt der Code aus der Sicherung. Zum Oeffnen wird er erneut
   abgefragt. Die lokale Revision steigt dabei zur Konflikterkennung.
+  Hat das lokale Zielturnier eine offene Partie, ist Ersetzen gesperrt;
+  diese muss vorher ausdruecklich abgebrochen werden.
   Das gilt auch fuer eine gestartete Vorrunde: Eine aeltere
   Vorbereitungssicherung setzt nach Codepruefung und Ersetzungsbestaetigung
   bewusst den gesamten Stand zurueck. Dies ist keine normale Einstellungsaenderung.
@@ -208,17 +249,23 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
   bleiben ebenso bei Lese-/Speicherfehlern unveraendert.
 - Uebertragung in einen anderen Browser oder auf ein anderes Geraet erfolgt
   durch Kopieren und Importieren der Datei, nicht automatisch.
-  Sicherungen enthalten die zum jeweiligen Entwicklungsstand vorhandenen Daten.
-  Partien, Timer und weitere Phasen werden erst mit den Folgestories
-  in das Format aufgenommen und geprueft. CSV wird nicht unterstuetzt.
+  Eine gesicherte offene Partie laeuft nach dem Import mit denselben
+  Zeitpunkten weiter; bereits abgelaufene Zeit bleibt abgelaufen.
+  Nicht gespeicherte Toreentwuerfe sind kein Bestandteil der Sicherung.
+  Ergebnisverlauf und weitere Phasen folgen in den naechsten Stories.
+  CSV wird nicht unterstuetzt.
 
 Alte Turniere und Sicherungen ohne Spielendenliste bleiben nutzbar und
-zeigen eine leere Liste. Neue Turniere und bearbeitete Staende verwenden
-Datenschema 2 mit ausdruecklicher Spielendenliste; die Sicherungshuellen-Version
-bleibt 1. Alte App-Versionen koennen Schema 2 nicht bearbeiten und daher
-keine neuen Spielendendaten versehentlich entfernen. Nach einem Deployment
-offene App-Tabs neu laden. Ungueltige oder doppelte Spielenden-IDs,
-Spitznamen und Avatare werden beim Laden/Importieren abgewiesen.
+zeigen eine leere Liste. Neue Vorbereitungsdaten verwenden weiterhin
+Datenschema 2 mit ausdruecklicher Spielendenliste. Ab dem ersten Partiestart
+verwendet ein Turnier Schema 3 mit offener Partie oder ausdruecklichem
+Leerwert nach Abbruch; vorhandenes Schema 3 bleibt erhalten.
+Die Sicherungshuellen-Version bleibt 1. Alte App-Versionen koennen die
+jeweils neueren Schemata nicht bearbeiten und daher keine unbekannten
+Daten versehentlich entfernen. Nach einem Deployment offene App-Tabs
+neu laden. Ungueltige oder doppelte Spielenden-IDs, Spitznamen und Avatare
+sowie widerspruechliche Aufstellungen und Partiezeitpunkte werden beim
+Laden/Importieren abgewiesen.
 
 ## Lokal starten
 
