@@ -114,4 +114,41 @@ describe('JSON-Sicherungen', () => {
     await expect(readBackupFile(new File(['{}'], 'unreadable.json'))).rejects.toThrow('Datei konnte nicht gelesen')
     expect(readTournament(original.id)).toEqual(original)
   })
+
+  it('sichert Spielenden-IDs, interne Leerzeichen, Umlaute und mehrteilige Avatare verlustfrei', async () => {
+    const original: Tournament = {
+      ...await fixture(),
+      version: 2,
+      players: [
+        { id: 'person-a', nickname: 'Jörg am  Kicker', avatar: '👩🏽‍💻' },
+        { id: 'person-b', nickname: 'Änne', avatar: '🐿️' },
+      ],
+    }
+    const restored = parseBackup(serializeBackup(original))
+    await restoreBackup(restored, null, '')
+    expect(readTournament(original.id)).toEqual(original)
+  })
+
+  it('weist ein neues Datenschema ohne Spielendenliste zurueck, statt eine leere Liste anzunehmen', async () => {
+    const incomplete = { ...await fixture(), version: 2 }
+    expect(() => parseBackup(JSON.stringify({
+      format: 'seal-kickerturnier-backup', version: 1, tournament: incomplete,
+    }))).toThrow('Importfehler')
+    expect(loadTournaments()).toEqual([])
+  })
+
+  it('weist doppelte IDs, Namen und Avatare beim Import ohne teilweises Schreiben ab', async () => {
+    const original = await fixture()
+    await saveTournament(original, null)
+    const first = { id: 'a', nickname: 'Alex', avatar: '🐶' }
+    for (const second of [
+      { id: 'a', nickname: 'Andere Person', avatar: '🐱' },
+      { id: 'b', nickname: 'ALEX', avatar: '🐱' },
+      { id: 'b', nickname: 'Andere Person', avatar: '🐶' },
+    ]) {
+      const backup = { format: 'seal-kickerturnier-backup', version: 1, tournament: { ...original, players: [first, second] } }
+      expect(() => parseBackup(JSON.stringify(backup))).toThrow('Importfehler')
+      expect(loadTournaments()).toEqual([original])
+    }
+  })
 })

@@ -36,7 +36,9 @@ Impressumspflicht ist damit nicht verbunden.
 erfolgreichen Entwickler-Praxispruefungen abgenommen.
 [Story 1.3](./spec/story-1_3-DONE.md) ist umgesetzt, getestet und nach
 erfolgreichen Entwickler-Praxispruefungen am 24.11.2026 abgenommen.
-Stories 1.4 bis 1.10 sind noch nicht implementiert.
+[Story 1.4](./spec/story-1_4-DONE.md) ist umgesetzt, getestet und nach
+erfolgreichen Entwickler-Praxispruefungen am 24.11.2026 abgenommen.
+Stories 1.5 bis 1.10 sind noch nicht implementiert.
 
 ## Turniere vorbereiten
 
@@ -86,12 +88,38 @@ eine Fehlermeldung statt eines ungeschuetzten Schreibzugriffs.
 Die Daten liegen **nur in diesem Browserprofil auf diesem Geraet**,
 nicht bei GitHub. Kein Privatmodus; geloeschte Browserdaten koennen zum
 Datenverlust fuehren. Regelmaessig JSON-Sicherungen herunterladen.
-Spielende und Turnierstart sind ebenfalls noch nicht verfuegbar.
+Der Turnierstart ist noch nicht verfuegbar.
+
+### Spielende und Avatare verwalten
+
+1. Im geoeffneten Turnier **Spielende verwalten** waehlen.
+2. **Person hinzufuegen** waehlen, Spitznamen eingeben und einen freien
+   Emoji-Avatar anklicken oder per Tastatur auswaehlen. **Person speichern**
+   legt die Person mit eigener, stabiler ID an.
+3. Die Palette enthaelt 64 Avatare; damit sind maximal 64 Personen je
+   Turnier moeglich. Belegte Avatare sind gesperrt. Sind alle belegt,
+   erscheint eine Begruendung und weitere Anmeldungen sind gesperrt.
+4. **Bearbeiten** aendert Spitznamen und Avatar, aber nicht die ID.
+   Der eigene Avatar bleibt dabei verfuegbar.
+   **Entfernen** fordert eine Bestaetigung; **Abbrechen** laesst die
+   Person unveraendert. Nach bestaetigtem Entfernen ist der Avatar wieder frei.
+5. **Zur Turnieruebersicht** fuehrt zu Einstellungen und JSON-Sicherung zurueck.
+   Aendern der Turniereinstellungen behaelt die Spielendenliste bei.
+
+Spitznamen und Avatare sind pro Turnier eindeutig; andere Turniere duerfen
+sie erneut verwenden. Der deutsche Namensvergleich ignoriert Gross-/
+Kleinschreibung, unterscheidet aber Umlaute vom Grundbuchstaben.
+Aeussere Leerzeichen werden entfernt, interne bleiben unveraendert.
+Leere oder doppelte Namen zeigen einen Feldhinweis.
+Fehlgeschlagene Speicherungen und Mehrtab-Konflikte veraendern die
+gespeicherte Liste nicht und behalten den Entwurf bei.
+Die Bearbeitungssperre nach Turnierstart folgt mit Story 1.5.
 
 ### JSON-Sicherung und Wiederherstellung
 
 - Im geoeffneten Turnier **JSON-Sicherung herunterladen** waehlen.
-  Die UTF-8-Datei enthaelt ID, Einstellungen, Phase und den Pruefwert des
+  Die UTF-8-Datei enthaelt ID, Einstellungen, Spielende mit IDs/Spitznamen/Avataren,
+  Phase und den Pruefwert des
   Turniercodes, aber weder Mastercode noch Klartext-Codes oder entsperrte Sitzung.
   Die Daten sind nicht verschluesselt; Sicherungen nicht oeffentlich teilen.
 - In der Turnierauswahl **JSON-Sicherung importieren** waehlen und die
@@ -108,8 +136,16 @@ Spielende und Turnierstart sind ebenfalls noch nicht verfuegbar.
 - Uebertragung in einen anderen Browser oder auf ein anderes Geraet erfolgt
   durch Kopieren und Importieren der Datei, nicht automatisch.
   Sicherungen enthalten die zum jeweiligen Entwicklungsstand vorhandenen Daten.
-  Spielende, Partien, Timer und weitere Phasen werden erst mit den Folgestories
+  Partien, Timer und weitere Phasen werden erst mit den Folgestories
   in das Format aufgenommen und geprueft. CSV wird nicht unterstuetzt.
+
+Alte Turniere und Sicherungen ohne Spielendenliste bleiben nutzbar und
+zeigen eine leere Liste. Neue Turniere und bearbeitete Staende verwenden
+Datenschema 2 mit ausdruecklicher Spielendenliste; die Sicherungshuellen-Version
+bleibt 1. Alte App-Versionen koennen Schema 2 nicht bearbeiten und daher
+keine neuen Spielendendaten versehentlich entfernen. Nach einem Deployment
+offene App-Tabs neu laden. Ungueltige oder doppelte Spielenden-IDs,
+Spitznamen und Avatare werden beim Laden/Importieren abgewiesen.
 
 ## Lokal starten
 
@@ -188,7 +224,6 @@ Zugangsmaske nicht verschluesselt.
 
 ## Geplanter weiterer Funktionsumfang
 
-- Spielende mit eindeutigen Emoji-Avataren in den vorbereiteten Turnieren.
 - Partien mit der konfigurierten Dauer und Punktewertung.
   Keine Unentschieden; bei Gleichstand nach Zeit entscheidet das naechste Tor.
 - Wechselnde Zweierteams, individuelle Punkte und Rangliste.

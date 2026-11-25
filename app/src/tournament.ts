@@ -1,3 +1,6 @@
+import { isPlayerList } from './players'
+import type { Player } from './players'
+
 export interface TournamentSettings {
   name: string
   startsAt: string
@@ -11,12 +14,13 @@ export interface TournamentSettings {
 }
 
 export interface Tournament {
-  version: 1
+  version: 1 | 2
   id: string
   revision: number
   phase: 'preparation'
   settings: TournamentSettings
   codeHash: string
+  players?: Player[]
 }
 
 export interface TournamentDraft {
@@ -146,10 +150,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function isTournament(value: unknown): value is Tournament {
-  if (!isRecord(value) || value.version !== 1 || typeof value.id !== 'string' || !value.id ||
+  if (!isRecord(value) || (value.version !== 1 && value.version !== 2) || typeof value.id !== 'string' || !value.id ||
       !Number.isSafeInteger(value.revision) || Number(value.revision) < 1 ||
       value.phase !== 'preparation' || typeof value.codeHash !== 'string' ||
       !/^[a-f0-9]{64}$/.test(value.codeHash) || !isRecord(value.settings)) return false
+  if ((value.version === 2 || 'players' in value) && !isPlayerList(value.players)) return false
   const settings = value.settings
   if (typeof settings.name !== 'string' || typeof settings.location !== 'string' ||
       typeof settings.description !== 'string' || typeof settings.startsAt !== 'string' ||

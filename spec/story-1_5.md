@@ -2,7 +2,7 @@
 
 Status: Freigegeben am 24.11.2026, noch nicht implementiert.
 Epic: [Epic 1](./epic-1.md)
-Abhaengigkeiten: [Story 1.4](./story-1_4.md).
+Abhaengigkeiten: [Story 1.4](./story-1_4-DONE.md).
 
 Als teilnehmende Person moechte ich nach Turnierstart die individuelle
 Wertung und die Aktion fuer eine neue Partie sehen.

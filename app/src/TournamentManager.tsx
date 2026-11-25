@@ -3,6 +3,8 @@ import type { FormEvent } from 'react'
 import { hashCode } from './access'
 import TournamentForm from './TournamentForm'
 import TournamentImport from './TournamentImport'
+import PlayerManager from './PlayerManager'
+import type { Player } from './players'
 import { downloadBackup } from './tournament-backup'
 import { formatBerlinTime, planTimes } from './tournament'
 import type { Tournament, TournamentSettings } from './tournament'
@@ -16,6 +18,7 @@ type View =
   | { kind: 'unlock'; tournament: Tournament }
   | { kind: 'details'; tournament: Tournament }
   | { kind: 'edit'; tournament: Tournament }
+  | { kind: 'players'; tournament: Tournament }
 
 function readList(): { tournaments: Tournament[]; error: string } {
   try {
@@ -89,15 +92,23 @@ export default function TournamentManager() {
       throw new Error('Der Turniercode konnte nicht verarbeitet werden. Bitte einen aktuellen Browser über HTTPS oder localhost nutzen.')
     }
     const tournament: Tournament = {
-      version: 1,
+      version: 2,
       id: existing?.id ?? crypto.randomUUID(),
       revision: (existing?.revision ?? 0) + 1,
       phase: 'preparation',
       settings,
       codeHash,
+      players: existing?.players ?? [],
     }
     await saveTournament(tournament, existing?.revision ?? null)
     setView({ kind: 'details', tournament })
+  }
+
+  async function savePlayers(players: Player[]) {
+    if (view.kind !== 'players') throw new Error('Bitte das Turnier erneut öffnen.')
+    const tournament: Tournament = { ...view.tournament, version: 2, players, revision: view.tournament.revision + 1 }
+    await saveTournament(tournament, view.tournament.revision)
+    setView({ kind: 'players', tournament })
   }
 
   function exportBackup(tournament: Tournament) {
@@ -110,11 +121,12 @@ export default function TournamentManager() {
     }
   }
 
-  const expanded = view.kind === 'create' || view.kind === 'edit' || view.kind === 'details' || view.kind === 'import'
+  const expanded = view.kind === 'create' || view.kind === 'edit' || view.kind === 'details' || view.kind === 'import' || view.kind === 'players'
   const title = view.kind === 'list' ? 'Deine Turniere.' :
     view.kind === 'create' ? 'Neues Turnier' :
     view.kind === 'import' ? 'JSON-Sicherung importieren' :
     view.kind === 'edit' ? 'Turnier bearbeiten' :
+    view.kind === 'players' ? 'Spielende verwalten' :
     view.kind === 'unlock' ? 'Turnier öffnen' : view.tournament.settings.name
 
   return (
@@ -193,10 +205,15 @@ export default function TournamentManager() {
             onCancel={() => view.kind === 'edit' ? setView({ kind: 'details', tournament: view.tournament }) : backToList()}
           />
         )}
+        {view.kind === 'players' && (
+          <PlayerManager players={view.tournament.players ?? []} onSave={savePlayers}
+            onBack={() => setView({ kind: 'details', tournament: view.tournament })} />
+        )}
         {view.kind === 'details' && (
           <>
             <p className="card-description">Einstellungen können vor dem Turnierstart geändert werden.
-              Spielende und Turnierstart folgen in späteren Stories.</p>
+              Der Turnierstart folgt in Story 1.5.</p>
+            <p>{view.tournament.players?.length ?? 0} Spielende angemeldet.</p>
             <dl className="tournament-details">
               <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(view.tournament.settings.startsAt)}</dd></div>
               <div><dt>Spielort</dt><dd>{view.tournament.settings.location}</dd></div>
@@ -209,6 +226,8 @@ export default function TournamentManager() {
             <Schedule tournament={view.tournament} />
             {error && <p className="error-message" role="alert">{error}</p>}
             <div className="form-actions">
+              <button className="action-button" type="button"
+                onClick={() => setView({ kind: 'players', tournament: view.tournament })}>Spielende verwalten</button>
               <button className="action-button" type="button"
                 onClick={() => setView({ kind: 'edit', tournament: view.tournament })}>Einstellungen bearbeiten</button>
               <button className="secondary-button" type="button"
