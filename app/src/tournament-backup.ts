@@ -1,5 +1,4 @@
-import { hashCode } from './access'
-import { isTournament } from './tournament'
+import { isTournament, withoutLegacyCode } from './tournament'
 import type { Tournament } from './tournament'
 import { saveTournament } from './tournament-storage'
 
@@ -23,7 +22,7 @@ export function serializeBackup(tournament: Tournament): string {
   if (!isSupportedTournament(tournament)) {
     throw new Error('Dieses Turnier hat ein ungültiges oder unbekanntes Format und kann nicht exportiert werden.')
   }
-  return JSON.stringify({ format, version: 1, tournament }, null, 2)
+  return JSON.stringify({ format, version: 1, tournament: withoutLegacyCode(tournament) }, null, 2)
 }
 
 export function parseBackup(text: string): Tournament {
@@ -40,19 +39,15 @@ export function parseBackup(text: string): Tournament {
       !('tournament' in value) || !isSupportedTournament(value.tournament)) {
     throw new Error('Importfehler: Unbekanntes Sicherungsformat, unbekannte Version oder ungültige Turnierdaten. Es wurde nichts verändert.')
   }
-  return value.tournament
+  return withoutLegacyCode(value.tournament)
 }
 
 export async function restoreBackup(
   incoming: Tournament,
   existing: Tournament | null,
-  code: string,
 ): Promise<void> {
   if (!isSupportedTournament(incoming) || (existing && existing.id !== incoming.id)) {
     throw new Error('Importfehler: Ungültige Turnierdaten. Es wurde nichts verändert.')
-  }
-  if (existing && await hashCode(code) !== existing.codeHash) {
-    throw new Error('Der bestehende Turniercode ist nicht korrekt. Es wurde nichts ersetzt.')
   }
   const tournament = {
     ...incoming,

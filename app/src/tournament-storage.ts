@@ -1,4 +1,4 @@
-import { isTournament } from './tournament'
+import { isTournament, withoutLegacyCode } from './tournament'
 import type { Tournament } from './tournament'
 import type { ActiveTournament } from './matches'
 
@@ -9,7 +9,7 @@ function storedTournament(raw: string, id: string): Tournament {
   if (!isTournament(data) || data.id !== id) {
     throw new Error('Die gespeicherten Turnierdaten haben ein ungültiges oder unbekanntes Format.')
   }
-  return data
+  return withoutLegacyCode(data)
 }
 
 export function loadTournaments(): Tournament[] {
@@ -129,13 +129,13 @@ function writeTournament(tournament: Tournament, expectedRevision: number | null
     }
   }
   if (operation === 'update' && current && current.phase !== 'preparation' &&
-      (tournament.phase === 'preparation' || (current.phase === 'knockout' && tournament.phase !== 'knockout') || tournament.codeHash !== current.codeHash ||
+      (tournament.phase === 'preparation' || (current.phase === 'knockout' && tournament.phase !== 'knockout') ||
        JSON.stringify(tournament.settings) !== JSON.stringify(current.settings) ||
        JSON.stringify(tournament.players) !== JSON.stringify(current.players))) {
-    throw new Error('Das Turnier wurde bereits gestartet. Einstellungen, Turniercode und Spielende sind gesperrt.')
+    throw new Error('Das Turnier wurde bereits gestartet. Einstellungen und Spielende sind gesperrt.')
   }
   try {
-    window.localStorage.setItem(`${prefix}${tournament.id}`, JSON.stringify(tournament))
+    window.localStorage.setItem(`${prefix}${tournament.id}`, JSON.stringify(withoutLegacyCode(tournament)))
   } catch (cause) {
     throw new Error('Das Turnier konnte nicht gespeichert werden. Der Browserspeicher ist gesperrt oder voll. Deine Eingaben bleiben erhalten; bitte erneut versuchen.', { cause })
   }

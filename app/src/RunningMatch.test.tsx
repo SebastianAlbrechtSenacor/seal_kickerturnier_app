@@ -1,4 +1,4 @@
-import { createHash, webcrypto } from 'node:crypto'
+import { webcrypto } from 'node:crypto'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { ComponentProps } from 'react'
 import userEvent from '@testing-library/user-event'
@@ -21,7 +21,6 @@ const lineup = { whiteAttack: 'p-0', whiteDefence: 'p-1', blackAttack: 'p-2', bl
 function fixture(): Tournament {
   return {
     version: 2, id: 'timer-cup', revision: 1, phase: 'preliminary',
-    codeHash: createHash('sha256').update('fixture-cup').digest('hex'),
     settings: {
       name: 'Timercup', location: 'Office', description: '', startsAt: new Date(now).toISOString(),
       matchMinutes: 1, preliminaryMinutes: 120, knockoutMinutes: 60, winPoints: 3, lossPoints: 1,
@@ -177,7 +176,6 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     await saveTournament(started, null)
     const { unmount } = render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Ergebnis eingeben' }))
     await user.type(screen.getByLabelText('Tore Weiß'), '7')
     await user.type(screen.getByLabelText('Tore Schwarz'), '5')
@@ -223,7 +221,6 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     unmount()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     expect(await screen.findByRole('region', { name: 'Spielergebnisse' })).toHaveTextContent('Weiß 7 : 5 Schwarz')
     const rows = within(screen.getByRole('table')).getAllByRole('row')
     expect(within(rows[1]).getAllByRole('cell').map((cell) => cell.textContent)).toEqual(['1', '1', '1', '0', '7', '5', '2', '3'])
@@ -247,7 +244,6 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     await saveTournament(withResults(4), null)
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     const all = within(await screen.findByRole('region', { name: 'Spielergebnisse' })).getAllByRole('listitem')
     expect(all).toHaveLength(4)
     expect(all.map((item) => within(item).getByText(/Weiß 10 :/).textContent)).toEqual([
@@ -280,7 +276,6 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     await saveTournament(started, null)
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: '10 Tore erreicht' }))
     await user.type(screen.getByLabelText('Tore Weiß'), '10')
     await user.type(screen.getByLabelText('Tore Schwarz'), '9')
@@ -307,7 +302,6 @@ describe('Spielstart in der Turnierverwaltung', () => {
     await saveTournament(tournament, null)
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Partie vorbereiten' }))
     for (const [label, name] of [
       ['Weiß Angriff', 'Alex'], ['Weiß Verteidigung', 'Bea'], ['Schwarz Angriff', 'Chris'], ['Schwarz Verteidigung', 'Dana'],
@@ -354,7 +348,6 @@ describe('Spielstart in der Turnierverwaltung', () => {
     vi.setSystemTime(now + 30_000)
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     expect(await screen.findByRole('timer')).toHaveTextContent('00:30')
     expect(screen.queryByRole('button', { name: 'Spiel starten' })).not.toBeInTheDocument()
     expect(readTournament(tournament.id).activeMatch?.endsAt).toBe(tournament.activeMatch.endsAt)

@@ -1,6 +1,8 @@
 # Story 2.6: Kickertisch stabil darstellen und Stangen ergänzen
 
 Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Lieferpaket 2 – Turnieransicht und Aufstellung (2.3–2.7): gemeinsame
+Browser-Regression und gemeinsames Deployment; eigene Abnahme.
 
 Als teilnehmende Person möchte ich Spielende auf einen stabilen Tisch
 ziehen und die Aufstellung auf Anhieb als Kickertisch erkennen.

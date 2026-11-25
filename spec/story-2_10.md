@@ -1,6 +1,8 @@
 # Story 2.10: Anwendung durch Design-Fachperson prüfen und verfeinern
 
 Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Lieferpaket 5 – Design-Feinschliff: separater Fachreview, visuelle
+Abnahme und separates Deployment.
 Startbedingung: Stories 2.1 bis 2.9 sind umgesetzt und abgenommen.
 
 Als organisierende Person möchte ich nach den funktionalen Änderungen

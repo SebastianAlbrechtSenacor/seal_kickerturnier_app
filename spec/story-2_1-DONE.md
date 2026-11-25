@@ -1,6 +1,8 @@
 # Story 2.1: Master-Zugang für die Browsersitzung merken
 
-Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Status: Am 25.11.2026 abgenommen. Epic: [Epic 2](./epic-2.md).
+Lieferpaket 1 – Zugang und Import: gemeinsamer Browser-Regressionstest
+und gemeinsames Deployment mit [Story 2.2](./story-2_2-DONE.md); eigene Abnahme.
 
 Als teilnehmende Person möchte ich den Master-Code nur einmal pro
 Browsersitzung eingeben, auch wenn ich die App neu lade oder in einem
@@ -23,3 +25,15 @@ weiteren Tab aufrufe.
   Der eingegebene Master-Code wird weder im Browserspeicher abgelegt noch
   mit einer Turniersicherung exportiert. Das Verhalten bei
   Sitzungswiederherstellung wird dokumentiert.
+
+## Validierung
+
+- 67 gezielte Tests in fünf Dateien bestanden; Linting, Typprüfung und
+  Produktions-Build erfolgreich. Geprüft sind unter anderem falsche
+  Eingaben, blockierte Cookies, fehlendes Sitzungscookie, unveränderter
+  Turnierspeicher und das bestehende JSON-Sicherungsformat.
+- Im Browser geprüft: Erstzugang, falscher und korrekter Code, Freigabe
+  nach Neuladen und in einem neuen Tab sowie kein Sperrbutton.
+- Entwickler-Praxisprüfungen bestanden: Der Browser-Neustart ohne
+  Sitzungswiederherstellung und ein separates Browserprofil zeigten
+  jeweils wieder die Master-Code-Abfrage.

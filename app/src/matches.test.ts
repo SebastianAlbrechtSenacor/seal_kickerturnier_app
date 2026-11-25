@@ -1,4 +1,4 @@
-import { createHash, webcrypto } from 'node:crypto'
+import { webcrypto } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { abortMatch, finishMatch, formatCountdown, remainingSeconds, resultError, startMatch } from './matches'
 import { calculateStandings } from './standings'
@@ -14,7 +14,6 @@ const now = Date.parse('2026-11-25T12:00:00.000Z')
 function fixture(): Tournament {
   return {
     version: 2, id: 'match-test', revision: 1, phase: 'preliminary',
-    codeHash: createHash('sha256').update('fixture-cup').digest('hex'),
     settings: {
       name: 'Matchtest', location: 'Office', description: '', startsAt: new Date(now).toISOString(),
       matchMinutes: 1, preliminaryMinutes: 120, knockoutMinutes: 60, winPoints: 3, lossPoints: 1,
@@ -109,12 +108,12 @@ describe('Gespeicherte offene Partie', () => {
     await saveTournament(tournament, null)
     const started = await updateTournament(tournament, (current) => startMatch(current, lineup, now))
     const incoming = parseBackup(serializeBackup(started))
-    await restoreBackup({ ...incoming, id: 'copied-match' }, null, '')
+    await restoreBackup({ ...incoming, id: 'copied-match' }, null)
     expect(readTournament('copied-match').activeMatch).toEqual(started.activeMatch)
-    await expect(restoreBackup(tournament, started, 'fixture-cup')).rejects.toThrow('offene Partie')
+    await expect(restoreBackup(tournament, started)).rejects.toThrow('offene Partie')
     expect(readTournament(tournament.id)).toEqual(started)
     const aborted = await updateTournament(started, abortMatch)
-    await restoreBackup(tournament, aborted, 'fixture-cup')
+    await restoreBackup(tournament, aborted)
     expect(readTournament(tournament.id).activeMatch).toBeUndefined()
   })
 
@@ -156,7 +155,7 @@ describe('Verbindliche Ergebnisse', () => {
     })
     const next = startMatch(completed, lineup, now + 180_000)
     const restored = parseBackup(serializeBackup(next))
-    await restoreBackup(restored, null, '')
+    await restoreBackup(restored, null)
     expect(readTournament(next.id)).toEqual(next)
     expect(calculateStandings(restored.players ?? [], restored.completedMatches ?? [], restored.settings)).toEqual(standings)
     vi.useFakeTimers({ toFake: ['Date'] })
@@ -167,7 +166,7 @@ describe('Verbindliche Ergebnisse', () => {
     expect(aborted).toMatchObject({ version: 4, completedMatches: completed.completedMatches, activeMatch: null })
     expect(original.completedMatches).toBeUndefined()
     expect(first.activeMatch).toBeTruthy()
-    await restoreBackup(original, aborted, 'fixture-cup')
+    await restoreBackup(original, aborted)
     expect(readTournament(original.id).completedMatches).toBeUndefined()
   })
 

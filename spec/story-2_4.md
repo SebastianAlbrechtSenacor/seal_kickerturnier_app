@@ -1,6 +1,8 @@
 # Story 2.4: Partievorbereitung als Standardansicht
 
 Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Lieferpaket 2 – Turnieransicht und Aufstellung (2.3–2.7): gemeinsame
+Browser-Regression und gemeinsames Deployment; eigene Abnahme.
 Layoutgrundlage: [Story 2.3](./story-2_3.md).
 
 Als teilnehmende Person möchte ich nach dem Turnierstart direkt zur

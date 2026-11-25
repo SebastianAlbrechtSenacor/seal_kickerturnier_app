@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
-import { hashCode } from './access'
 import TournamentForm from './TournamentForm'
 import TournamentImport from './TournamentImport'
 import PlayerManager from './PlayerManager'
@@ -27,7 +25,6 @@ type View =
   | { kind: 'list' }
   | { kind: 'create' }
   | { kind: 'import' }
-  | { kind: 'unlock'; tournament: Tournament }
   | { kind: 'details'; tournament: Tournament }
   | { kind: 'edit'; tournament: Tournament }
   | { kind: 'players'; tournament: Tournament }
@@ -51,13 +48,10 @@ function readList(): { tournaments: Tournament[]; error: string } {
 export default function TournamentManager() {
   const [list, setList] = useState(readList)
   const [view, setView] = useState<View>({ kind: 'list' })
-  const [code, setCode] = useState('')
   const [error, setError] = useState('')
-  const [checking, setChecking] = useState(false)
   const [notice, setNotice] = useState('')
   const [starting, setStarting] = useState(false)
   const heading = useRef<HTMLHeadingElement>(null)
-  const codeInput = useRef<HTMLInputElement>(null)
   const [whistle] = useState(createWhistle)
   const [audioError, setAudioError] = useState('')
   const [audioBusy, setAudioBusy] = useState(false)
@@ -79,55 +73,28 @@ export default function TournamentManager() {
     heading.current?.focus()
   }, [headingTarget])
 
-  useEffect(() => {
-    if (error && !checking) codeInput.current?.focus()
-  }, [error, checking])
-
   function backToList() {
-    setCode('')
     setError('')
     setNotice('')
     setView({ kind: 'list' })
     setList(readList())
   }
 
-  async function open(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (view.kind !== 'unlock' || checking) return
-    if (!code.trim()) {
-      setError('Bitte den Turnier-Zugangscode eingeben.')
-      return
-    }
-    setChecking(true)
+  function open(id: string) {
     setError('')
     try {
-      const tournament = readTournament(view.tournament.id)
-      if (await hashCode(code) !== tournament.codeHash) {
-        setError('Der Turniercode ist nicht korrekt.')
-        setCode('')
-        return
-      }
-      assertCurrentTournament(tournament)
-      setCode('')
+      const tournament = readTournament(id)
       setView(tournament.phase === 'knockout' ? { kind: 'knockout', tournament } : tournament.activeMatch ?
         { kind: 'live', tournament: { ...tournament, activeMatch: tournament.activeMatch } } :
         { kind: 'details', tournament })
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Das Turnier konnte nicht geöffnet werden.')
-    } finally {
-      setChecking(false)
     }
   }
 
-  async function save(settings: TournamentSettings, newCode: string) {
+  async function save(settings: TournamentSettings) {
     const existing = view.kind === 'edit' ? view.tournament : undefined
     if (existing) assertPreparation(existing)
-    let codeHash: string
-    try {
-      codeHash = newCode ? await hashCode(newCode) : existing?.codeHash ?? ''
-    } catch {
-      throw new Error('Der Turniercode konnte nicht verarbeitet werden. Bitte einen aktuellen Browser über HTTPS oder localhost nutzen.')
-    }
     const tournament: Tournament = {
       version: existing && existing.version >= 3 ? existing.version : 2,
       ...(existing && existing.version >= 3 ? { activeMatch: null } : {}),
@@ -137,7 +104,6 @@ export default function TournamentManager() {
       revision: (existing?.revision ?? 0) + 1,
       phase: 'preparation',
       settings,
-      codeHash,
       players: existing?.players ?? [],
     }
     await saveTournament(tournament, existing?.revision ?? null)
@@ -283,7 +249,7 @@ export default function TournamentManager() {
     return result.claimed
   }
 
-  const expanded = view.kind !== 'list' && view.kind !== 'unlock'
+  const expanded = view.kind !== 'list'
   const completed = 'tournament' in view && view.tournament.knockout?.results.length === 4
   const title = view.kind === 'list' ? 'Deine Turniere.' :
     view.kind === 'create' ? 'Neues Turnier' :
@@ -295,7 +261,7 @@ export default function TournamentManager() {
     view.kind === 'knockout' ? completed ? 'Turnier abgeschlossen' : 'K.-o.-Phase' :
     view.kind === 'match' ? 'Partie vorbereiten' :
     view.kind === 'live' ? 'Vorrundenpartie' :
-    view.kind === 'unlock' ? 'Turnier öffnen' : view.tournament.settings.name
+    view.tournament.settings.name
 
   return (
     <section className={`entry-card${expanded ? ' tournament-workspace' : ''}${view.kind === 'match' || view.kind === 'live' || view.kind === 'knockout' ? ' match-workspace' : ''}`} aria-labelledby="entry-title">
@@ -309,10 +275,11 @@ export default function TournamentManager() {
         {(view.kind === 'match' || view.kind === 'live' || view.kind === 'knockout') && audioError && <p className="error-message" role="alert">{audioError}</p>}
         {view.kind === 'list' && (
           <>
-            <p className="card-description">Turnier vorbereiten oder mit eurem Turniercode wieder öffnen.</p>
+            <p className="card-description">Turnier vorbereiten oder ein gespeichertes Turnier öffnen.</p>
             <p className="storage-note">Nur in diesem Browser gespeichert. Nicht im Privatmodus verwenden.
               Regelmäßig eine JSON-Sicherung herunterladen und sicher aufbewahren.</p>
             {notice && <p role="status">{notice}</p>}
+            {error && <p className="error-message" role="alert">{error}</p>}
             {list.error ? (
               <div role="alert" className="error-message">
                 <p>{list.error}</p>
@@ -326,11 +293,7 @@ export default function TournamentManager() {
                       <time dateTime={tournament.settings.startsAt}>{formatBerlinTime(tournament.settings.startsAt)}</time></span>
                     <button className="secondary-button" type="button"
                       aria-label={`${tournament.settings.name} öffnen`}
-                      onClick={() => {
-                        setCode('')
-                        setError('')
-                        setView({ kind: 'unlock', tournament })
-                      }}>Öffnen</button>
+                      onClick={() => open(tournament.id)}>Öffnen</button>
                   </li>
                 ))}
               </ul>
@@ -352,23 +315,8 @@ export default function TournamentManager() {
         {view.kind === 'import' && (
           <TournamentImport onCancel={backToList} onImported={() => {
             backToList()
-            setNotice('Turnier importiert. Zum Öffnen bitte den Turniercode aus der Sicherung eingeben.')
+            setNotice('Turnier importiert.')
           }} />
-        )}
-        {view.kind === 'unlock' && (
-          <form className="tournament-unlock" onSubmit={open} noValidate aria-busy={checking}>
-            <p className="card-description">{view.tournament.settings.name} · {formatBerlinTime(view.tournament.settings.startsAt)}</p>
-            <label htmlFor="tournament-code">Turnier-Zugangscode</label>
-            <input id="tournament-code" ref={codeInput} type="password" autoComplete="off"
-              autoCapitalize="none" spellCheck={false} value={code} disabled={checking}
-              aria-invalid={Boolean(error)} aria-describedby={error ? 'tournament-code-error' : undefined}
-              onChange={(event) => { setCode(event.target.value); setError('') }} />
-            {error && <p className="error-message" id="tournament-code-error" role="alert">{error}</p>}
-            <div className="form-actions">
-              <button className="action-button" type="submit" disabled={checking}>{checking ? 'Wird geprüft ...' : 'Turnier öffnen'}</button>
-              <button className="secondary-button" type="button" disabled={checking} onClick={backToList}>Zur Turnierauswahl</button>
-            </div>
-          </form>
         )}
         {(view.kind === 'create' || view.kind === 'edit') && (
           <TournamentForm
@@ -414,7 +362,7 @@ export default function TournamentManager() {
         {view.kind === 'start' && (
           <div className="start-confirmation">
             <p className="card-description">{view.tournament.settings.name} · {view.tournament.players?.length ?? 0} Spielende</p>
-            <p>Einstellungen, Punktevergabe, Dauer, Turniercode und Spielende werden mit dem Start festgeschrieben.
+            <p>Einstellungen, Punktevergabe, Dauer und Spielende werden mit dem Start festgeschrieben.
               Danach beginnt die Vorrunde. Es erfolgt kein automatischer Wechsel zur K.-o.-Phase.</p>
             {error && <p className="error-message" role="alert">{error}</p>}
             <div className="form-actions">
@@ -433,7 +381,7 @@ export default function TournamentManager() {
               'Einstellungen und Spielende können vor dem Turnierstart geändert werden.' :
               completed ? 'Das Turnier ist abgeschlossen. Beide Wertungen und alle Ergebnisse bleiben unverändert.' :
               view.tournament.phase === 'knockout' ? 'Der Vorrundenstand ist eingefroren. Teams, Einstellungen und Spielende stehen fest.' :
-              'Die Vorrunde läuft. Einstellungen, Turniercode und Spielende sind gesperrt.'}</p>
+              'Die Vorrunde läuft. Einstellungen und Spielende sind gesperrt.'}</p>
             <p>{view.tournament.players?.length ?? 0} Spielende angemeldet.</p>
             {view.tournament.phase !== 'preparation' ? <>
               <StandingsTable tournament={view.tournament}

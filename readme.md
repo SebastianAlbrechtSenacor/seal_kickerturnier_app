@@ -14,12 +14,18 @@ Story 1.1 setzt das React-/TypeScript-/Vite-Grundgeruest um:
 - Neutrale Zugangsmaske mit Master-Zugangscode und sichtbaren Eingabefehlern;
   ohne Office-Branding, Grafik oder Turnierinformationen.
 - Entsperrte Turnierauswahl als Einstieg in die Turnierverwaltung.
-- Explizites Sperren; nach Neuladen ist der Zugang ebenfalls wieder gesperrt.
+- [Story 2.1](./spec/story-2_1-DONE.md): Der Master-Zugang bleibt nach Neuladen
+  und in weiteren Tabs derselben App-Adresse im selben Browserprofil aktiv.
+  Es gibt keinen Sperrbutton mehr. Die Freigabe nutzt ein Sitzungscookie
+  ohne Klartext-Code. Nach einem vollständigen Browser-Neustart ohne
+  Sitzungswiederherstellung wird der Code erneut abgefragt. Stellt der
+  Browser die Sitzung wieder her, kann auch die Freigabe erhalten bleiben.
+  Bei blockierten Cookies zeigt die App einen Hinweis.
 - Responsive Gestaltung in Petrol/Tuerkis, Orange/Gelb und Weiss nach den
   [Werbeplakaten](./spec/epic-1-DONE.md#dauerhafte-designreferenzen), mit Maus-,
   Touch- und Tastaturbedienung sowie reduzierter Bewegung. Diese gestaltete
-  Oberflaeche erscheint erst nach erfolgreicher Mastercode-Eingabe und wird
-  beim Sperren wieder entfernt.
+  Oberflaeche erscheint erst nach erfolgreicher Mastercode-Eingabe oder
+  bei bereits aktiver Sitzungsfreigabe.
 - Tests, Typpruefung und Linting sowie GitHub-Pages-Deployment-Workflow.
 
 Der Entwickler hat die urspruenglichen Akzeptanzszenarien A-D einschliesslich
@@ -64,8 +70,8 @@ Stories abgeschlossen.
 ## Turniere vorbereiten
 
 1. Anwendung mit dem Master-Zugangscode entsperren.
-2. **Turnier anlegen** waehlen. Name, Datum/Startzeit, Spielort und einen
-   eigenen Turnier-Zugangscode eingeben. Beschreibung ist optional.
+2. **Turnier anlegen** waehlen. Name, Datum/Startzeit und Spielort eingeben.
+   Die Beschreibung ist optional. Ein Turnier-Zugangscode ist nicht noetig.
 3. Dauer je Partie (Standard 10 Minuten), Punkte je Sieg/Niederlage (3/1)
    und geplante Phasendauern (Vorrunde 120, K.-o. 60 Minuten) festlegen.
    Dauern muessen positive ganze Minutenzahlen sein, Punkte ganze Zahlen
@@ -74,12 +80,10 @@ Stories abgeschlossen.
    Sie ist unabhaengig von der Partiedauer und startet keine Phase automatisch.
 5. **Turnier speichern** oeffnet das neu angelegte Turnier sofort.
    **Einstellungen bearbeiten** erlaubt Aenderungen in der Vorbereitung.
-   Ein leeres Turniercode-Feld behaelt beim Bearbeiten den bisherigen Code;
-   eine Eingabe ersetzt ihn.
-6. **Zur Turnierauswahl** schliesst den Turnierzugang. Die Liste zeigt nur
-   Name und Datum. Erneutes Oeffnen erfordert den passenden Turniercode.
-7. **Anwendung sperren** oder Neuladen sperrt auch den Masterzugang.
-   Gespeicherte Turniere bleiben im selben Browserprofil erhalten.
+6. **Zur Turnierauswahl** fuehrt zur Liste mit Name und Datum zurueck.
+   **Oeffnen** zeigt das gespeicherte Turnier direkt.
+7. Neuladen beendet die Master-Freigabe nicht. Gespeicherte Turniere
+   bleiben auch nach Ende der Sitzung im selben Browserprofil erhalten.
 
 Datum und Uhrzeit gelten immer fuer `Europe/Berlin`, auch auf einem
 anders eingestellten Rechner. Nicht existierende Uhrzeiten bei der
@@ -90,9 +94,9 @@ als tatsaechlich vergangene Minuten gerechnet, auch ueber Tageswechsel hinweg.
 ### Speicherung und Fehler
 
 Jedes Turnier wird als zusammenhaengender, versionierter JSON-Stand mit
-eigener ID im lokalen Browserspeicher gespeichert. Fuer den Turniercode
-wird nur ein SHA-256-Pruefwert abgelegt, keine Klartext-Eingabe und keine
-entsperrte Sitzung. Die uebrigen Turnierdaten sind nicht verschluesselt.
+eigener ID im lokalen Browserspeicher gespeichert. Alte Turniere bleiben
+lesbar. Beim naechsten Speichern entfaellt ihr bisheriger Code-Pruefwert.
+Die Turnierdaten sind nicht verschluesselt.
 
 Bei fehlgeschlagenem Speichern zeigt die App einen Fehler und behaelt die
 Eingaben sowie den letzten erfolgreich gespeicherten Stand. Gesperrter
@@ -151,9 +155,9 @@ Nach Turnierstart ist die Spielendenliste gesperrt.
    absteigend, anschliessend nach deutschem Spielernamen aufsteigend.
    Auf schmalen Bildschirmen laesst sich die Tabelle seitlich scrollen,
    auch per Tastatur nach Fokussieren des Tabellenbereichs.
-5. Einstellungen, Punktevergabe, Dauern, Turniercode und Spielende sind
+5. Einstellungen, Punktevergabe, Dauern und Spielende sind
    nach Start unveraenderbar. Die Felder bleiben lesbar, Bearbeitungsaktionen
-   entfallen. Neuladen und erneute Codeeingabe behalten Phase und Rangfolge bei.
+   entfallen. Neuladen und erneutes Oeffnen behalten Phase und Rangfolge bei.
    Veraltete Tabs koennen die gesperrte Vorbereitung nicht ueberschreiben.
 6. **Partie vorbereiten** oeffnet die Positionsauswahl. Bei bereits offener
    Partie fuehrt **Offene Partie anzeigen** stattdessen zur laufenden Partie.
@@ -194,7 +198,7 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    direkt die Partie. Erst nach erfolgreichem Speichern wird der Countdown
    angezeigt; die Aufstellung ist dann gesperrt. Doppelklick startet keine
    zweite Partie. Bei Speicherfehlern bleibt der Entwurf mit Fehlerhinweis bestehen.
-6. **Vorbereitung verlassen**, Neuladen oder **Anwendung sperren** verwerfen
+6. **Vorbereitung verlassen** oder Neuladen verwerfen
    den Entwurf. Erneutes Vorbereiten beginnt leer; dieselben Personen duerfen
    erneut gewaehlt werden. Der Entwurf ist auch nicht Teil einer JSON-Sicherung.
    Veraltete Turnierstaende werden beim Oeffnen und vor dem Spielstart
@@ -205,7 +209,7 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
 1. Links bleibt die kompakte Tabelle, rechts stehen der grosse Countdown
    und die gesperrte Aufstellung. Auf schmalen Bildschirmen stehen die
    Bereiche untereinander. Die Restzeit folgt dem gespeicherten Endzeitpunkt:
-   Neuladen, Sperren, Tabwechsel oder Verlassen halten die Partie nicht an.
+   Neuladen, Tabwechsel oder Verlassen halten die Partie nicht an.
    Nach erneutem Zugang wird dieselbe offene Partie angezeigt.
 2. Der Start aktiviert den Ton im Rahmen des Klicks. **Ton aktivieren / testen**
    erlaubt einen Testpfiff, auch nach erneutem Oeffnen. Geraetelautstaerke
@@ -229,7 +233,7 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    **Ergebnis verbindlich speichern** beendet die Partie und wertet sie
    genau einmal. Erst nach erfolgreichem Speichern wird sofort die
    Vorbereitung der naechsten Partie mit vier leeren Positionen angezeigt.
-   Neuladen oder Sperren vor Bestaetigung verwerfen nur den Toreentwurf,
+   Neuladen vor Bestaetigung verwirft nur den Toreentwurf,
    nicht die offene Partie.
 6. **Partie abbrechen** erfordert eine Bestaetigung. Verwerfen behaelt die
    Partie samt urspruenglichem Endzeitpunkt; Bestaetigen beendet sie ohne
@@ -340,14 +344,15 @@ Konfliktmeldung abgewiesen, statt einen neueren Stand zu ueberschreiben.
   Phase, abgeschlossene Partien mit Aufstellungen, Toren und Zeitpunkten,
   eine gegebenenfalls offene Partie mit urspruenglichen Zeitpunkten sowie
   in der K.-o.-Phase den eingefrorenen Vorrundenstand, feste Teams und
-  deren separaten Ergebnisverlauf. Sie enthaelt den Pruefwert des
-  Turniercodes, aber weder Mastercode noch Klartext-Codes oder entsperrte Sitzung.
+  deren separaten Ergebnisverlauf. Neue Exporte enthalten weder
+  Turnier-Code-Pruefdaten noch Master-Code oder Sitzungsfreigabe.
+  Alte JSON-Sicherungen bleiben ohne Code-Eingabe importierbar.
   Die Daten sind nicht verschluesselt; Sicherungen nicht oeffentlich teilen.
 - In der Turnierauswahl **JSON-Sicherung importieren** waehlen und die
   Datei auswaehlen. Die Vorschau zeigt Name und Datum. Erst
   **Turnier importieren** speichert das neue Turnier; **Abbrechen** aendert nichts.
-- Existiert dieselbe ID bereits, sind der **bestehende** Turniercode und
-  die ausdrueckliche Ersetzungsbestaetigung erforderlich. **Turnier ersetzen**
+- Existiert dieselbe ID bereits, ist eine ausdrueckliche
+  Ersetzungsbestaetigung erforderlich. **Turnier ersetzen**
   ersetzt den gesamten Stand, ohne ihn mit dem lokalen Stand zu vermischen.
   Anschliessend gilt der Code aus der Sicherung. Zum Oeffnen wird er erneut
   abgefragt. Die lokale Revision steigt dabei zur Konflikterkennung.
@@ -464,8 +469,8 @@ des Repositorys muss er angepasst werden.
 
 ## Grenzen des Zugangs
 
-Master- und Turnier-Zugangscodes sind ausschliesslich umgehbare
-Frontend-Zugangshuerden, kein verlaesslicher Schutz einer nichtoeffentlichen
+Der Master-Code ist eine umgehbare
+Frontend-Zugangshuerde, kein verlaesslicher Schutz einer nichtoeffentlichen
 Anwendung. Pruefwert und Prueflogik werden an den Browser ausgeliefert;
 auch ein Hash ermoeglicht keine sichere Zugriffskontrolle.
 Keine echten, vertraulichen oder anderweitig verwendeten Passwoerter nutzen.

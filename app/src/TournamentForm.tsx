@@ -5,7 +5,7 @@ import type { Tournament, TournamentDraft, TournamentSettings } from './tourname
 
 interface Props {
   tournament?: Tournament
-  onSave: (settings: TournamentSettings, code: string) => Promise<void>
+  onSave: (settings: TournamentSettings) => Promise<void>
   onCancel: () => void
 }
 
@@ -20,7 +20,6 @@ const fields: { name: FieldName; label: string; type: string; min?: number }[] =
   { name: 'knockoutMinutes', label: 'Geplante K.-o.-Phase (Minuten)', type: 'number', min: 1 },
   { name: 'winPoints', label: 'Punkte je Sieg', type: 'number', min: 0 },
   { name: 'lossPoints', label: 'Punkte je Niederlage', type: 'number', min: 0 },
-  { name: 'code', label: 'Turnier-Zugangscode', type: 'password' },
 ]
 
 export default function TournamentForm({ tournament, onSave, onCancel }: Props) {
@@ -43,7 +42,7 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (saving) return
-    const result = validateDraft(draft, Boolean(tournament))
+    const result = validateDraft(draft)
     if (result.errors) {
       setErrors(result.errors)
       setSaveError('')
@@ -52,7 +51,7 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
     setSaving(true)
     setSaveError('')
     try {
-      await onSave(result.settings, draft.code)
+      await onSave(result.settings)
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : 'Das Turnier konnte nicht gespeichert werden. Bitte erneut versuchen.')
     } finally {
@@ -62,8 +61,7 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
 
   return (
     <form className="tournament-form" onSubmit={submit} noValidate aria-busy={saving}>
-      <p className="form-note">Pflichtfelder bitte ausfüllen. Beschreibung ist optional.
-        {tournament && ' Ein leerer Turniercode behält den bisherigen Code bei.'}</p>
+      <p className="form-note">Pflichtfelder bitte ausfüllen. Beschreibung ist optional.</p>
       <fieldset disabled={saving}>
         <legend className="sr-only">Turniereinstellungen</legend>
         <div className="form-grid">
@@ -75,12 +73,10 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
                 name={field.name}
                 type={field.type}
                 value={draft[field.name]}
-                required={field.name !== 'code' || !tournament}
+                required
                 min={field.min}
                 step={field.type === 'number' ? 1 : field.type === 'datetime-local' ? 60 : undefined}
-                autoComplete={field.name === 'code' ? 'new-password' : 'off'}
-                autoCapitalize={field.name === 'code' ? 'none' : undefined}
-                spellCheck={field.name === 'code' ? false : undefined}
+                autoComplete="off"
                 aria-invalid={Boolean(errors[field.name])}
                 aria-describedby={errors[field.name] ? `error-${field.name}` : undefined}
                 onChange={(event) => change(field.name, event.target.value)}

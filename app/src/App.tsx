@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { hasMasterCode, verifyMasterCode } from './access'
+import { hasMasterCode, hasMasterSession, rememberMasterSession, verifyMasterCode } from './access'
 import TournamentManager from './TournamentManager'
 import './App.css'
 
 function App() {
-  const [unlocked, setUnlocked] = useState(false)
+  const [unlocked, setUnlocked] = useState(hasMasterSession)
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [checking, setChecking] = useState(false)
@@ -32,7 +32,11 @@ function App() {
       const valid = await verifyMasterCode(code)
       setCode('')
       if (valid) {
-        setUnlocked(true)
+        if (rememberMasterSession()) {
+          setUnlocked(true)
+        } else {
+          setError('Die Freigabe konnte nicht gespeichert werden. Bitte erlaube Cookies für diese Anwendung.')
+        }
       } else {
         setError('Der Zugangscode ist nicht korrekt. Bitte versuche es erneut.')
       }
@@ -41,12 +45,6 @@ function App() {
     } finally {
       setChecking(false)
     }
-  }
-
-  function lock() {
-    setUnlocked(false)
-    setCode('')
-    setError('')
   }
 
   if (!unlocked) {
@@ -93,10 +91,7 @@ function App() {
           <span className="brand-icon" aria-hidden="true">K.</span>
           <span>OFFICE<span className="wordmark-accent">KICKER</span></span>
         </a>
-        <div className="header-actions">
-          <span className="location"><span aria-hidden="true" /> ESCHBORN EDITION</span>
-          <button className="header-lock" onClick={lock} type="button">Anwendung sperren</button>
-        </div>
+        <span className="location"><span aria-hidden="true" /> ESCHBORN EDITION</span>
       </header>
 
       <main className="arena">

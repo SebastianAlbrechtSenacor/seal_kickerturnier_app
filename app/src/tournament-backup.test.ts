@@ -1,6 +1,5 @@
 import { webcrypto } from 'node:crypto'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { hashCode } from './access'
 import { parseBackup, readBackupFile, restoreBackup, serializeBackup } from './tournament-backup'
 import { loadTournaments, readTournament, saveTournament } from './tournament-storage'
 import type { Tournament } from './tournament'
@@ -15,7 +14,6 @@ async function fixture(): Promise<Tournament> {
       location: 'Großer Raum', description: 'Weiß & Schwarz\nfür alle 👩🏽‍💻',
       matchMinutes: 10, preliminaryMinutes: 120, knockoutMinutes: 60, winPoints: 3, lossPoints: 1,
     },
-    codeHash: await hashCode('synthetic-backup-code'),
   }
 }
 
@@ -28,10 +26,10 @@ describe('JSON-Sicherungen', () => {
   it('uebertraegt alle aktuellen Turnierdaten verlustfrei ohne Zugangssitzung oder Klartext-Code', async () => {
     const original = await fixture()
     const text = serializeBackup(original)
-    expect(text).not.toContain('synthetic-backup-code')
+    expect(text).not.toContain('codeHash')
     expect(JSON.parse(text)).toEqual({ format: 'seal-kickerturnier-backup', version: 1, tournament: original })
     const restored = parseBackup(text)
-    await restoreBackup(restored, null, '')
+    await restoreBackup(restored, null)
     expect(readTournament(original.id)).toEqual(original)
   })
 
@@ -77,13 +75,11 @@ describe('JSON-Sicherungen', () => {
     }))).toThrow('Importfehler')
   })
 
-  it('prueft den bestehenden Code und macht alte Revisionen nach Ersetzen nicht wieder gueltig', async () => {
+  it('macht alte Revisionen nach dem Ersetzen nicht wieder gueltig', async () => {
     const original = await fixture()
-    const current = { ...original, revision: 4, codeHash: await hashCode('current-code') }
+    const current = { ...original, revision: 4 }
     await saveTournament(current, null)
-    await expect(restoreBackup(original, current, 'synthetic-backup-code')).rejects.toThrow('nicht korrekt')
-    expect(readTournament(original.id)).toEqual(current)
-    await restoreBackup(original, current, 'current-code')
+    await restoreBackup(original, current)
     expect(readTournament(original.id)).toEqual({ ...original, revision: 5 })
     await expect(saveTournament({ ...original, revision: 5 }, 4)).rejects.toThrow('zwischenzeitlich')
   })
@@ -91,10 +87,10 @@ describe('JSON-Sicherungen', () => {
   it('verhindert konkurrierenden Import und unbeabsichtigtes Ersetzen eines neuen Zielturniers', async () => {
     const original = await fixture()
     await saveTournament(original, null)
-    await expect(restoreBackup(original, null, '')).rejects.toThrow('zwischenzeitlich')
+    await expect(restoreBackup(original, null)).rejects.toThrow('zwischenzeitlich')
     const newer = { ...original, revision: 2 }
     await saveTournament(newer, 1)
-    await expect(restoreBackup(original, original, 'synthetic-backup-code')).rejects.toThrow('zwischenzeitlich')
+    await expect(restoreBackup(original, original)).rejects.toThrow('zwischenzeitlich')
     expect(readTournament(original.id)).toEqual(newer)
   })
 
@@ -103,7 +99,7 @@ describe('JSON-Sicherungen', () => {
     await saveTournament(original, null)
     const before = loadTournaments()
     vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => { throw new DOMException('Full', 'QuotaExceededError') })
-    await expect(restoreBackup(original, original, 'synthetic-backup-code')).rejects.toThrow('nicht gespeichert')
+    await expect(restoreBackup(original, original)).rejects.toThrow('nicht gespeichert')
     expect(loadTournaments()).toEqual(before)
   })
 
@@ -127,7 +123,7 @@ describe('JSON-Sicherungen', () => {
       ],
     }
     const restored = parseBackup(serializeBackup(original))
-    await restoreBackup(restored, null, '')
+    await restoreBackup(restored, null)
     expect(readTournament(original.id)).toEqual(original)
   })
 
@@ -160,12 +156,21 @@ describe('JSON-Sicherungen', () => {
       players: avatars.slice(0, 4).map((avatar, index) => ({ id: `p-${index}`, nickname: `Person ${index}`, avatar: avatar.emoji })),
     }
     const started = startPreliminary(preparation)
-    await restoreBackup(parseBackup(serializeBackup(started)), null, '')
+    await restoreBackup(parseBackup(serializeBackup(started)), null)
     expect(readTournament(started.id)).toEqual(started)
     await expect(saveTournament({ ...preparation, revision: 3 }, 2)).rejects.toThrow('gesperrt')
-    await expect(restoreBackup(preparation, started, 'wrong-code')).rejects.toThrow('nicht korrekt')
     expect(readTournament(started.id)).toEqual(started)
-    await restoreBackup(preparation, started, 'synthetic-backup-code')
+    await restoreBackup(preparation, started)
     expect(readTournament(started.id)).toEqual({ ...preparation, revision: 3 })
+  })
+
+  it('entfernt die Legacy-Prüfdaten aus Import, Speicherung und Re-Export', async () => {
+    const original = await fixture()
+    const legacy = { ...original, codeHash: 'b'.repeat(64) }
+    const imported = parseBackup(JSON.stringify({ format: 'seal-kickerturnier-backup', version: 1, tournament: legacy }))
+    expect(imported).toEqual(original)
+    expect(serializeBackup(legacy)).not.toContain('codeHash')
+    await restoreBackup(imported, null)
+    expect(localStorage.getItem(`seal-kickerturnier:tournament:${original.id}`)).not.toContain('codeHash')
   })
 })

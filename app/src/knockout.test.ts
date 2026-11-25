@@ -1,4 +1,4 @@
-import { createHash, webcrypto } from 'node:crypto'
+import { webcrypto } from 'node:crypto'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import { finishKnockoutMatch, knockoutFixtures, knockoutLineup, knockoutPlacements, knockoutStartError, nextKnockoutFixture, startKnockout, startKnockoutMatch } from './knockout'
 import { abortMatch, finishMatch, startMatch } from './matches'
@@ -14,7 +14,6 @@ const lineup = { whiteAttack: 'p-0', whiteDefence: 'p-1', blackAttack: 'p-2', bl
 function fixture(): Tournament {
   return {
     version: 2, id: 'knockout-test', revision: 1, phase: 'preliminary',
-    codeHash: createHash('sha256').update('fixture-cup').digest('hex'),
     settings: { name: 'K.-o.-Test', location: 'Office', description: '', startsAt: new Date(now).toISOString(),
       matchMinutes: 1, preliminaryMinutes: 120, knockoutMinutes: 60, winPoints: 3, lossPoints: 1 },
     players: ['Anton', 'Berta', 'Chris', 'Dana', 'Emil', 'Frida', 'Gabi', 'Hugo', 'Ina', 'Zoe']
@@ -80,7 +79,7 @@ describe('K.-o.-Phase', () => {
     expect(knockoutFixtures(tournament.knockout!).map((fixture) => fixture.result?.whiteGoals)).toEqual([10, 9, 7, 9])
     expect(nextKnockoutFixture(tournament.knockout!)).toBeNull()
     expect(() => startKnockoutMatch(tournament)).toThrow('abgeschlossen')
-    await restoreBackup(parseBackup(serializeBackup(tournament)), null, '')
+    await restoreBackup(parseBackup(serializeBackup(tournament)), null)
     expect(readTournament(tournament.id)).toEqual(tournament)
   })
 
@@ -133,20 +132,25 @@ describe('K.-o.-Phase', () => {
     expect(() => startMatch(completed, lineup)).toThrow('Vorrunde')
   })
 
-  it('uebertraegt offene K.-o.-Partien mit Pfiffstatus und sperrt das Ersetzen offener Zielturniere', async () => {
+  it('importiert alte offene K.-o.-Partien mit Pfiffstatus und sperrt das Ersetzen offener Zielturniere', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(now + 60_000)
     const active = startKnockoutMatch(startKnockout(fixture()), now)
-    await restoreBackup(parseBackup(serializeBackup(active)), null, '')
+    const legacy = JSON.stringify({
+      format: 'seal-kickerturnier-backup', version: 1,
+      tournament: { ...active, codeHash: 'a'.repeat(64) },
+    })
+    await restoreBackup(parseBackup(legacy), null)
     expect(readTournament(active.id)).toEqual(active)
-    await expect(restoreBackup(fixture(), active, 'fixture-cup')).rejects.toThrow('offene Partie')
+    expect(serializeBackup(readTournament(active.id))).not.toContain('codeHash')
+    await expect(restoreBackup(fixture(), active)).rejects.toThrow('offene Partie')
     const claimed = await claimWhistle(active.id, active.activeMatch.id)
     expect(claimed.claimed).toBe(true)
     expect((await claimWhistle(active.id, active.activeMatch.id)).claimed).toBe(false)
     const finished = await updateTournament(claimed.tournament,
       (current) => finishKnockoutMatch(current, active.activeMatch.id, '7', '5'))
     expect(finished.knockout?.standings).toEqual(active.knockout?.standings)
-    await restoreBackup(fixture(), finished, 'fixture-cup')
+    await restoreBackup(fixture(), finished)
     expect(readTournament(active.id).phase).toBe('preliminary')
   })
 

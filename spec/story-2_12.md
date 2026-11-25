@@ -1,7 +1,12 @@
 # Story 2.12: Konfetti-Kanonen für die Siegerehrung
 
 Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
-Reihenfolge: nach Abnahme von [Story 2.11](./story-2_11.md).
+Lieferpaket 6 – Pfiff und Konfetti: eigener Story-Test und eigene Abnahme;
+gemeinsamer Praxislauf und gemeinsames Deployment mit
+[Story 2.11](./story-2_11.md), wenn die freigegebene Audiodatei vorliegt.
+Reihenfolge: nach Abnahme von Story 2.11. Fehlt die Audiodatei, ist ein
+Vorziehen nach Abnahme von Story 2.10 nur mit ausdrücklicher Freigabe der
+geänderten Reihenfolge möglich.
 
 Als teilnehmende Person möchte ich den Turniersieg mit einer
 bildschirmfüllenden Konfetti-Feier erleben.

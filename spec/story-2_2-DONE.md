@@ -1,6 +1,8 @@
 # Story 2.2: Turnier-Code vollständig entfernen
 
-Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Status: Am 25.11.2026 abgenommen. Epic: [Epic 2](./epic-2.md).
+Lieferpaket 1 – Zugang und Import: gemeinsamer Browser-Regressionstest
+und gemeinsames Deployment mit [Story 2.1](./story-2_1-DONE.md); eigene Abnahme.
 
 Als organisierende Person möchte ich meine lokal gespeicherten Turniere
 ohne zusätzlichen Code erstellen, öffnen und wiederherstellen.
@@ -25,3 +27,15 @@ ohne zusätzlichen Code erstellen, öffnen und wiederherstellen.
   Ist im Zielturnier eine Partie oder Ergebniseingabe offen, wird das
   Ersetzen weiterhin abgelehnt. Beschädigte Sicherungen zeigen einen
   Fehler und überschreiben keine Daten.
+
+## Validierung
+
+- 163 Tests in 14 Dateien bestanden; Linting, Typprüfung und
+  Produktions-Build erfolgreich. Separat erneut geprüft: Altimport mit
+  offener K.-o.-Partie, unveränderter Spielzeit und Ersetzungsschutz.
+- Browserprüfung bestanden: ohne Turnier-Code anlegen und nach Neuladen
+  öffnen, alte JSON-Datei importieren, Ersetzen abbrechen, erst nach
+  ausdrücklicher Bestätigung ersetzen und den Stand direkt öffnen.
+- Automatisiert geprüft: keine Code-Prüfdaten in neu gespeicherten
+  Turnieren und Exporten; beschädigte Dateien und offene Zielpartien
+  überschreiben keine Bestandsdaten.

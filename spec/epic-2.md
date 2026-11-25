@@ -1,7 +1,9 @@
 # Epic 2: Kickerturnier nach dem MVP optimieren
 
 Status: Spezifikation für Stories 2.1 bis 2.12 am 25.11.2026 freigegeben.
-Umsetzung noch nicht begonnen. Baut auf [Epic 1](./epic-1-DONE.md) auf.
+Paket 1: Stories 2.1 und 2.2 sind abgenommen. Lokaler Browser-
+Regressionstest und Produktions-Build sind bestanden; das Deployment
+steht aus. Baut auf [Epic 1](./epic-1-DONE.md) auf.
 
 ## Ziel
 
@@ -59,8 +61,8 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 
 ## Stories und geplante Reihenfolge
 
-1. [Master-Zugang für die Browsersitzung merken](./story-2_1.md)
-2. [Turnier-Code vollständig entfernen](./story-2_2.md)
+1. [Master-Zugang für die Browsersitzung merken](./story-2_1-DONE.md)
+2. [Turnier-Code vollständig entfernen](./story-2_2-DONE.md)
 3. [Hauptansichten ohne Seitenscrollen im Querformat](./story-2_3.md)
 4. [Partievorbereitung als Standardansicht](./story-2_4.md)
 5. [Vorrundentabellen verdichten](./story-2_5.md)
@@ -72,6 +74,32 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 11. [Neuen An- und Abpfiff abspielen](./story-2_11.md)
 12. [Konfetti-Kanonen für die Siegerehrung](./story-2_12.md)
 
-Nach Freigabe werden die Stories einzeln umgesetzt, geprüft und abgenommen.
-Spätere Layoutänderungen müssen die bereits abgenommenen
-Querformat-Kriterien weiterhin erfüllen.
+## Lieferpakete für Test und Deployment
+
+| Paket | Stories | Gemeinsamer Testschwerpunkt |
+|---|---|---|
+| 1 – Zugang und Import | 2.1, 2.2 | Master-Freigabe nach Neuladen und im neuen Tab, Browser-Neustart, Import einer alten Sicherung ohne Turnier-Code |
+| 2 – Turnieransicht und Aufstellung | 2.3–2.7 | Querformat, Standardansicht, Tabellen-Overlay mit zwölf Spielenden, stabiler Kickertisch und neue Emojis |
+| 3 – Ergebnisverwaltung | 2.8 | Direktes Speichern, Korrektur und Löschen, unveränderte K.-o.-Qualifikation nach dem Phasenwechsel |
+| 4 – Phasenfarben | 2.9 | Helles Schema bis zum K.-o.-Start, dunkles Schema bis zur Siegerehrung und Rückkehr zum hellen Schema |
+| 5 – Design-Feinschliff | 2.10 | Fachreview und visuelle Abnahme nach Abnahme aller Stories 2.1–2.9 |
+| 6 – Pfiff und Konfetti | 2.11, 2.12 | Praxislauf vom Anpfiff bis zur Siegerehrung; gemeinsames Deployment bei vorliegender Audiodatei mit Nutzungsfreigabe |
+
+Die Pakete bündeln Testdaten, Browser-Testaufbau und Deployment, nicht die
+Abnahme der einzelnen Stories. Nach [agents.md](../agents.md) wird jede
+Story einzeln umgesetzt und anhand ihrer Akzeptanzkriterien geprüft. Nach
+jeder Story werden die Ergebnisse dokumentiert und wird Feedback eingeholt.
+Noch offene Entwicklerprüfungen werden mit Testschritten und erwartetem
+Ergebnis benannt. Erst nach Rückmeldung und Abschluss dieser Prüfungen
+beginnt die nächste Story, auch innerhalb desselben Pakets.
+
+Nach Abnahme der Paket-Stories folgen ein gemeinsamer Browser-Regressionstest,
+ein gemeinsames Deployment und gebündeltes Feedback zum Zusammenspiel. Diese
+Paketprüfung ersetzt keine Story-Abnahme. Bereits abgenommene Kriterien,
+insbesondere zur Darstellung im Querformat, werden bei späteren Änderungen
+erneut geprüft.
+
+Fehlt die freigegebene Audiodatei, kann Paket 6 getrennt ausgeliefert werden.
+Damit das Konfetti nicht auf die Datei warten muss, kann Story 2.12 nach
+Abnahme von 2.10 mit ausdrücklicher Freigabe einer geänderten Reihenfolge
+vorgezogen werden. Bis dahin gilt die festgelegte Reihenfolge.

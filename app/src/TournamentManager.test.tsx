@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import TournamentManager from './TournamentManager'
 import { loadTournaments, readTournament, saveTournament } from './tournament-storage'
 import { serializeBackup } from './tournament-backup'
-import { hashCode } from './access'
 import { draftFor, startPreliminary, validateDraft } from './tournament'
 import { avatars } from './players'
 
@@ -14,14 +13,14 @@ beforeEach(() => {
   vi.stubGlobal('crypto', webcrypto)
 })
 
-async function seed(name = 'Office Cup', code = 'fixture-cup') {
+async function seed(name = 'Office Cup') {
   const { settings } = validateDraft({
     ...draftFor(), name, location: `Ort von ${name}`, description: `Beschreibung von ${name}`,
-    startsAtLocal: '2026-11-26T17:00', code,
-  }, false)
+    startsAtLocal: '2026-11-26T17:00',
+  })
   const tournament = {
     version: 1, id: crypto.randomUUID(), revision: 1, phase: 'preparation',
-    settings, codeHash: await hashCode(code),
+    settings, codeHash: 'a'.repeat(64),
   }
   localStorage.setItem(`seal-kickerturnier:tournament:${tournament.id}`, JSON.stringify(tournament))
   return tournament.id
@@ -47,7 +46,6 @@ describe('Turniere vorbereiten', () => {
     await user.type(screen.getByLabelText('Turniername'), 'Office Cup')
     await user.type(screen.getByLabelText('Datum und Startzeit (Europe/Berlin)'), '2026-11-26T17:00')
     await user.type(screen.getByLabelText('Spielort'), 'Eschborn')
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup')
     expect(screen.getByLabelText('Dauer je Partie (Minuten)')).toHaveValue(10)
     expect(screen.getByLabelText('Punkte je Sieg')).toHaveValue(3)
     expect(screen.getByLabelText('Punkte je Niederlage')).toHaveValue(1)
@@ -58,47 +56,42 @@ describe('Turniere vorbereiten', () => {
     expect(await screen.findByRole('heading', { name: 'Office Cup' })).toBeVisible()
     const [saved] = loadTournaments()
     expect(saved).toMatchObject({ version: 2, phase: 'preparation', settings: { name: 'Office Cup', matchMinutes: 10 } })
-    expect(saved.codeHash).toBe(await hashCode('fixture-cup'))
-    expect(localStorage.getItem(`seal-kickerturnier:tournament:${saved.id}`)).not.toContain('fixture-cup')
+    expect(localStorage.getItem(`seal-kickerturnier:tournament:${saved.id}`)).not.toContain('codeHash')
     unmount()
     render(<TournamentManager />)
     expect(screen.getByRole('button', { name: 'Office Cup öffnen' })).toBeVisible()
     expect(screen.queryByText('Eschborn')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
+    expect(screen.getByText('Eschborn')).toBeVisible()
   })
 
-  it('trennt zwei Turniere und prueft deren Codes bei jedem erneuten Oeffnen', async () => {
+  it('öffnet getrennte alte Turniere direkt und ohne Turniercode', async () => {
     const user = userEvent.setup()
-    await seed('Cup A', 'fixture-a')
-    await seed('Cup B', 'fixture-b')
+    await seed('Cup A')
+    await seed('Cup B')
     render(<TournamentManager />)
     expect(screen.queryByText('Ort von Cup A')).not.toBeInTheDocument()
     expect(screen.queryByText('Beschreibung von Cup B')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Cup A öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-b')
-    await user.click(screen.getByRole('button', { name: 'Turnier öffnen' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('nicht korrekt')
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-a')
-    await user.keyboard('{Enter}')
+    expect(screen.queryByLabelText('Turnier-Zugangscode')).not.toBeInTheDocument()
     expect(await screen.findByText('Ort von Cup A')).toBeVisible()
     expect(screen.queryByText('Ort von Cup B')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Zur Turnierauswahl' }))
     await user.click(screen.getByRole('button', { name: 'Cup B öffnen' }))
-    expect(screen.getByLabelText('Turnier-Zugangscode')).toHaveValue('')
-    expect(screen.queryByText('Ort von Cup B')).not.toBeInTheDocument()
+    expect(screen.getByText('Ort von Cup B')).toBeVisible()
   })
 
-  it('speichert bearbeitete Einstellungen und ersetzt den Turniercode', async () => {
+  it('speichert bearbeitete Einstellungen ohne Legacy-Prüfwert', async () => {
     const user = userEvent.setup()
-    await seed()
+    const id = await seed()
     const { unmount } = render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Einstellungen bearbeiten' }))
     await user.clear(screen.getByLabelText('Geplante Vorrunde (Minuten)'))
     await user.type(screen.getByLabelText('Geplante Vorrunde (Minuten)'), '90')
     await user.clear(screen.getByLabelText('Punkte je Sieg'))
     await user.type(screen.getByLabelText('Punkte je Sieg'), '5')
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-new')
+    expect(screen.queryByLabelText('Turnier-Zugangscode')).not.toBeInTheDocument()
     expect(screen.getByText('26.11.2026, 18:30')).toBeVisible()
     expect(screen.getByText('26.11.2026, 19:30')).toBeVisible()
     expect(screen.getByLabelText('Dauer je Partie (Minuten)')).toHaveValue(10)
@@ -107,12 +100,10 @@ describe('Turniere vorbereiten', () => {
     unmount()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
-    expect(await screen.findByRole('alert')).toHaveTextContent('nicht korrekt')
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-new{Enter}')
     expect(await screen.findByText('Sieg: 5 · Niederlage: 1')).toBeVisible()
     expect(screen.getByText('90 Minuten')).toBeVisible()
     expect(loadTournaments()[0].phase).toBe('preparation')
+    expect(localStorage.getItem(`seal-kickerturnier:tournament:${id}`)).not.toContain('codeHash')
   })
 
   it('zeigt Feldfehler und behaelt bereits gueltige Eingaben', async () => {
@@ -136,7 +127,6 @@ describe('Turniere vorbereiten', () => {
     await user.type(screen.getByLabelText('Turniername'), 'Nicht verlieren')
     await user.type(screen.getByLabelText('Datum und Startzeit (Europe/Berlin)'), '2026-11-26T17:00')
     await user.type(screen.getByLabelText('Spielort'), 'Office')
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup')
     vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => { throw new DOMException('Full', 'QuotaExceededError') })
     await user.click(screen.getByRole('button', { name: 'Turnier speichern' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('nicht gespeichert')
@@ -147,12 +137,11 @@ describe('Turniere vorbereiten', () => {
     expect(loadTournaments()).toHaveLength(1)
   })
 
-  it('behaelt bei fehlgeschlagener Bearbeitung alte Daten und den Code bis zum erfolgreichen Wiederholen', async () => {
+  it('behaelt bei fehlgeschlagener Bearbeitung alte Daten bis zum erfolgreichen Wiederholen', async () => {
     const user = userEvent.setup()
     await seed()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Einstellungen bearbeiten' }))
     await user.clear(screen.getByLabelText('Spielort'))
     await user.type(screen.getByLabelText('Spielort'), 'Neuer Spielort')
@@ -163,7 +152,7 @@ describe('Turniere vorbereiten', () => {
     expect(loadTournaments()[0].settings.location).toBe('Ort von Office Cup')
     await user.click(screen.getByRole('button', { name: 'Turnier speichern' }))
     expect(await screen.findByText('Neuer Spielort')).toBeVisible()
-    expect(loadTournaments()[0].codeHash).toBe(await hashCode('fixture-cup'))
+    expect(loadTournaments()[0].settings.location).toBe('Neuer Spielort')
   })
 
   it('meldet Lesefehler statt eine erfolgreiche leere Turnierauswahl zu zeigen', () => {
@@ -174,10 +163,13 @@ describe('Turniere vorbereiten', () => {
     expect(screen.getByRole('button', { name: 'Turnier anlegen' })).toBeDisabled()
   })
 
-  it('importiert eine Datei verlustfrei und verlangt anschliessend den Turniercode', async () => {
+  it('importiert eine alte Datei verlustfrei und öffnet das Turnier ohne Code', async () => {
     const user = userEvent.setup()
     const id = await seed('Büro Cup 🏆')
-    const backup = serializeBackup(readTournament(id))
+    const backup = JSON.stringify({
+      format: 'seal-kickerturnier-backup', version: 1,
+      tournament: { ...readTournament(id), codeHash: 'b'.repeat(64) },
+    })
     localStorage.clear()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'JSON-Sicherung importieren' }))
@@ -188,16 +180,16 @@ describe('Turniere vorbereiten', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Turnier importiert')
     expect(screen.queryByText('Ort von Büro Cup 🏆')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Büro Cup 🏆 öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     expect(await screen.findByText('Ort von Büro Cup 🏆')).toBeVisible()
+    expect(localStorage.getItem(`seal-kickerturnier:tournament:${id}`)).not.toContain('codeHash')
   })
 
-  it('verlangt bestehendes Passwort und Bestaetigung, bricht folgenlos ab und ersetzt erst danach', async () => {
+  it('verlangt Ersetzungsbestätigung, bricht folgenlos ab und ersetzt ohne Code', async () => {
     const user = userEvent.setup()
     const id = await seed()
     const current = readTournament(id)
     const incoming = {
-      ...current, codeHash: await hashCode('imported-code'),
+      ...current,
       settings: { ...current.settings, name: 'Sicherungsstand' },
     }
     const file = new File([serializeBackup(incoming)], 'cup.json', { type: 'application/json' })
@@ -211,17 +203,11 @@ describe('Turniere vorbereiten', () => {
     await user.upload(screen.getByLabelText('JSON-Sicherungsdatei'), file)
     await user.click(await screen.findByLabelText('Ich möchte den lokalen Stand einschließlich Ergebnisverlauf und Wertung unwiderruflich ersetzen.'))
     expect(screen.getByText(/Auch der gesamte lokale Ergebnisverlauf/)).toBeVisible()
-    await user.type(screen.getByLabelText('Bestehender Turniercode'), 'imported-code')
-    await user.click(screen.getByRole('button', { name: 'Turnier ersetzen' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('nicht korrekt')
-    expect(readTournament(id)).toEqual(current)
-    await user.clear(screen.getByLabelText('Bestehender Turniercode'))
-    await user.type(screen.getByLabelText('Bestehender Turniercode'), 'fixture-cup')
+    expect(screen.queryByLabelText('Bestehender Turniercode')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Turnier ersetzen' }))
     await screen.findByRole('status')
     expect(readTournament(id)).toEqual({ ...incoming, revision: 2 })
     await user.click(screen.getByRole('button', { name: 'Sicherungsstand öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'imported-code{Enter}')
     expect(await screen.findByRole('heading', { name: 'Sicherungsstand' })).toBeVisible()
   })
 
@@ -252,7 +238,6 @@ describe('Turniere vorbereiten', () => {
     const id = await seed()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await screen.findByRole('heading', { name: 'Office Cup' })
     const current = readTournament(id)
     await saveTournament({ ...current, revision: 2 }, 1)
@@ -266,7 +251,6 @@ describe('Turniere vorbereiten', () => {
     const secondId = await seed('Anderes Turnier')
     const { unmount } = render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Spielende verwalten' }))
     await user.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
     await user.type(screen.getByLabelText('Spitzname'), '  Alex am  Kicker  ')
@@ -295,7 +279,6 @@ describe('Turniere vorbereiten', () => {
     unmount()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Spielende verwalten' }))
     await user.click(screen.getByRole('button', { name: 'Müller entfernen' }))
     await user.click(screen.getByRole('button', { name: 'Abbrechen' }))
@@ -315,7 +298,6 @@ describe('Turniere vorbereiten', () => {
     await saveTournament({ ...original, revision: 2 }, 1)
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Spielende verwalten' }))
     await user.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
     expect(screen.getByRole('button', { name: 'Avatar Hund (belegt)' })).toBeDisabled()
@@ -356,7 +338,6 @@ describe('Turniere vorbereiten', () => {
     }, 1)
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Spielende verwalten' }))
     expect(screen.getByRole('status')).toHaveTextContent('Alle 64 Avatare sind belegt')
     expect(screen.getByRole('button', { name: 'Person hinzufügen' })).toBeDisabled()
@@ -370,7 +351,6 @@ describe('Turniere vorbereiten', () => {
     const id = await seed()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Spielende verwalten' }))
     await user.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
     await user.type(screen.getByLabelText('Spitzname'), 'Veralteter Entwurf')
@@ -389,7 +369,6 @@ describe('Turniere vorbereiten', () => {
     await seed()
     const { unmount } = render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     expect(await screen.findByRole('button', { name: 'Turnier starten' })).toBeDisabled()
     expect(screen.getByText('Für den Turnierstart sind mindestens vier Spielende erforderlich.')).toBeVisible()
     unmount()
@@ -397,7 +376,6 @@ describe('Turniere vorbereiten', () => {
     const before = readTournament(id)
     render(<TournamentManager />)
     await user.click(screen.getAllByRole('button', { name: 'Office Cup öffnen' })[1])
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Turnier starten' }))
     expect(readTournament(id)).toEqual(before)
     await user.click(screen.getByRole('button', { name: 'Abbrechen' }))
@@ -411,7 +389,6 @@ describe('Turniere vorbereiten', () => {
     const before = readTournament(id)
     const { unmount } = render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Turnier starten' }))
     await user.click(screen.getByRole('button', { name: 'Vorrunde verbindlich starten' }))
     const table = await screen.findByRole('table', { name: 'Individuelle Vorrundenwertung' })
@@ -433,7 +410,6 @@ describe('Turniere vorbereiten', () => {
     unmount()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     const restored = await screen.findByRole('table')
     expect(within(restored).getAllByRole('row').slice(1).map((row) => row.textContent)).toEqual(originalRows)
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
@@ -446,7 +422,6 @@ describe('Turniere vorbereiten', () => {
     const before = readTournament(id)
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Turnier starten' }))
     vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => { throw new DOMException('Full', 'QuotaExceededError') })
     await user.click(screen.getByRole('button', { name: 'Vorrunde verbindlich starten' }))
@@ -465,7 +440,6 @@ describe('Turniere vorbereiten', () => {
     const id = await seedFourPlayers()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await screen.findByRole('button', { name: 'Turnier starten' })
     try {
       vi.useFakeTimers({ now: new Date('2026-11-26T15:00:00.000Z') })
@@ -497,7 +471,6 @@ describe('Turniere vorbereiten', () => {
     const raw = localStorage.getItem(`seal-kickerturnier:tournament:${id}`)
     const { unmount } = render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Partie vorbereiten' }))
     await user.click(screen.getByRole('button', { name: 'Weiß Angriff: frei' }))
     const source = screen.getByRole('button', { name: 'Zoe auswählen' })
@@ -516,7 +489,6 @@ describe('Turniere vorbereiten', () => {
     unmount()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
     await user.click(await screen.findByRole('button', { name: 'Partie vorbereiten' }))
     expect(screen.getByRole('button', { name: 'Spiel starten' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Schwarz Verteidigung: frei' })).toBeVisible()

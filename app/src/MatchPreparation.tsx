@@ -206,7 +206,7 @@ export default function MatchPreparation({ tournament, onStart, onBack }: Props)
         {drag.player.avatar} {drag.player.nickname}
       </div>}
       <MatchInfo tournament={tournament}>
-        <p>Ungespeicherter Entwurf. Verlassen, Neuladen oder Sperren verwirft die Aufstellung.</p>
+        <p>Ungespeicherter Entwurf. Verlassen oder Neuladen verwirft die Aufstellung.</p>
         <button className="secondary-button" type="button" disabled={starting} onClick={onBack}>Vorbereitung verlassen</button>
       </MatchInfo>
     </>

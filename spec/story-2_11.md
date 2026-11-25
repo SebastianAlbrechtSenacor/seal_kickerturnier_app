@@ -1,6 +1,9 @@
 # Story 2.11: Neuen An- und Abpfiff abspielen
 
 Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Lieferpaket 6 – Pfiff und Konfetti: eigener Story-Test und eigene Abnahme;
+gemeinsamer Praxislauf und gemeinsames Deployment mit
+[Story 2.12](./story-2_12.md), wenn die freigegebene Audiodatei vorliegt.
 Startbedingung: [Story 2.10](./story-2_10.md) ist abgenommen. Die
 Audiodatei muss mit Nutzungsfreigabe für die öffentliche App vorliegen.
 

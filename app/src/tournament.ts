@@ -24,7 +24,6 @@ export interface Tournament {
   revision: number
   phase: 'preparation' | 'preliminary' | 'knockout'
   settings: TournamentSettings
-  codeHash: string
   players?: Player[]
   activeMatch?: OpenMatch | null
   completedMatches?: CompletedMatch[]
@@ -41,7 +40,6 @@ export interface TournamentDraft {
   knockoutMinutes: string
   winPoints: string
   lossPoints: string
-  code: string
 }
 
 export type DraftErrors = Partial<Record<keyof TournamentDraft, string>>
@@ -104,20 +102,15 @@ export function draftFor(tournament?: Tournament): TournamentDraft {
     knockoutMinutes: String(settings?.knockoutMinutes ?? 60),
     winPoints: String(settings?.winPoints ?? 3),
     lossPoints: String(settings?.lossPoints ?? 1),
-    code: '',
   }
 }
 
 export function validateDraft(
   draft: TournamentDraft,
-  editing: boolean,
 ): { settings: TournamentSettings; errors?: never } | { errors: DraftErrors; settings?: never } {
   const errors: DraftErrors = {}
   if (!draft.name.trim()) errors.name = 'Bitte einen Turniernamen eingeben.'
   if (!draft.location.trim()) errors.location = 'Bitte einen Spielort eingeben.'
-  if ((!editing || draft.code !== '') && !draft.code.trim()) {
-    errors.code = 'Bitte einen nicht leeren Turniercode eingeben.'
-  }
   const startsAt = parseBerlinLocal(draft.startsAtLocal)
   if (!startsAt) errors.startsAtLocal = 'Bitte ein gültiges Datum mit Uhrzeit in Europe/Berlin eingeben.'
   for (const field of ['matchMinutes', 'preliminaryMinutes', 'knockoutMinutes'] as const) {
@@ -160,8 +153,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function isTournament(value: unknown): value is Tournament {
   if (!isRecord(value) || typeof value.version !== 'number' || ![1, 2, 3, 4, 5].includes(value.version) || typeof value.id !== 'string' || !value.id ||
       !Number.isSafeInteger(value.revision) || Number(value.revision) < 1 ||
-      (value.phase !== 'preparation' && value.phase !== 'preliminary' && value.phase !== 'knockout') || typeof value.codeHash !== 'string' ||
-      !/^[a-f0-9]{64}$/.test(value.codeHash) || !isRecord(value.settings)) return false
+      (value.phase !== 'preparation' && value.phase !== 'preliminary' && value.phase !== 'knockout') ||
+      ('codeHash' in value && (typeof value.codeHash !== 'string' || !/^[a-f0-9]{64}$/.test(value.codeHash))) ||
+      !isRecord(value.settings)) return false
   if (value.version < 5 && ('knockout' in value || value.phase === 'knockout')) return false
   if ((value.version >= 2 || 'players' in value) && !isPlayerList(value.players)) return false
   if (value.phase === 'preliminary' &&
@@ -180,8 +174,8 @@ export function isTournament(value: unknown): value is Tournament {
     matchMinutes: String(settings.matchMinutes),
     preliminaryMinutes: String(settings.preliminaryMinutes),
     knockoutMinutes: String(settings.knockoutMinutes),
-    winPoints: String(settings.winPoints), lossPoints: String(settings.lossPoints), code: '',
-  }, true)
+    winPoints: String(settings.winPoints), lossPoints: String(settings.lossPoints),
+  })
   if (!result.settings) return false
   if (value.version < 3) return !('activeMatch' in value) && !('completedMatches' in value)
   if (!isPlayerList(value.players) || !('activeMatch' in value) ||
@@ -201,9 +195,15 @@ export function isTournament(value: unknown): value is Tournament {
     isCompletedMatches([...value.completedMatches, ...value.knockout.results], value.players, result.settings.matchMinutes)
 }
 
+export function withoutLegacyCode(tournament: Tournament): Tournament {
+  if (!('codeHash' in tournament)) return tournament
+  const { codeHash: _legacy, ...current } = tournament
+  return current
+}
+
 export function assertPreparation(tournament: Tournament): void {
   if (tournament.phase !== 'preparation') {
-    throw new Error('Das Turnier wurde bereits gestartet. Einstellungen, Turniercode und Spielende sind gesperrt.')
+    throw new Error('Das Turnier wurde bereits gestartet. Einstellungen und Spielende sind gesperrt.')
   }
 }
 

@@ -8,7 +8,7 @@ import { avatars } from './players'
 
 function fixture(): Tournament {
   return {
-    version: 2, id: 'lineup-fixture', revision: 3, phase: 'preliminary', codeHash: 'a'.repeat(64),
+    version: 2, id: 'lineup-fixture', revision: 3, phase: 'preliminary',
     settings: {
       name: 'Aufstellungscup', startsAt: '2026-11-26T16:00:00.000Z', location: 'Office',
       description: '', matchMinutes: 10, preliminaryMinutes: 120, knockoutMinutes: 60, winPoints: 3, lossPoints: 1,

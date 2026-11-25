@@ -12,14 +12,12 @@ interface Props {
 
 export default function TournamentImport({ onImported, onCancel }: Props) {
   const [preview, setPreview] = useState<{ incoming: Tournament; existing: Tournament | null } | null>(null)
-  const [code, setCode] = useState('')
   const [confirmed, setConfirmed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   async function select(file: File | undefined) {
     setPreview(null)
-    setCode('')
     setConfirmed(false)
     setError('')
     if (!file) return
@@ -39,13 +37,9 @@ export default function TournamentImport({ onImported, onCancel }: Props) {
     event.preventDefault()
     if (!preview || busy || (preview.existing && !confirmed)) return
     setError('')
-    if (preview.existing && !code.trim()) {
-      setError('Bitte den bestehenden Turniercode eingeben.')
-      return
-    }
     setBusy(true)
     try {
-      await restoreBackup(preview.incoming, preview.existing, code)
+      await restoreBackup(preview.incoming, preview.existing)
       onImported()
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Importfehler: Das Turnier wurde nicht gespeichert.')
@@ -74,20 +68,17 @@ export default function TournamentImport({ onImported, onCancel }: Props) {
             {preview.existing ? (
               <>
                 <p>Die ID ist bereits vorhanden: <strong>{preview.existing.settings.name}</strong>.
-                  Der lokale Stand wird vollständig ersetzt. Anschließend gilt der Turniercode aus der Sicherung.</p>
+                  Der lokale Stand wird vollständig ersetzt.</p>
                 <p className="replacement-warning">Achtung: Auch der gesamte lokale Ergebnisverlauf und die daraus berechnete Wertung
                   werden ersetzt. Die Sicherung enthält {(preview.incoming.completedMatches?.length ?? 0) + (preview.incoming.knockout?.results.length ?? 0)} abgeschlossene
                   Partien, der lokale Stand {(preview.existing.completedMatches?.length ?? 0) + (preview.existing.knockout?.results.length ?? 0)}.
                   Neuere Ergebnisse können dabei verloren gehen. Es wird nichts zusammengeführt.</p>
-                <label htmlFor="replacement-code">Bestehender Turniercode</label>
-                <input id="replacement-code" type="password" autoComplete="off" autoCapitalize="none"
-                  spellCheck={false} value={code} onChange={(event) => setCode(event.target.value)} />
                 <label className="replacement-confirmation">
                   <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
                   <span>Ich möchte den lokalen Stand einschließlich Ergebnisverlauf und Wertung unwiderruflich ersetzen.</span>
                 </label>
               </>
-            ) : <p>Wird als zusätzliches Turnier gespeichert. Zum Öffnen ist der Turniercode aus der Sicherung erforderlich.</p>}
+            ) : <p>Wird als zusätzliches Turnier gespeichert.</p>}
           </div>
         )}
         {error && <p className="error-message" role="alert">{error}</p>}

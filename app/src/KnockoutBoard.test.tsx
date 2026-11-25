@@ -1,4 +1,4 @@
-import { createHash, webcrypto } from 'node:crypto'
+import { webcrypto } from 'node:crypto'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -15,7 +15,6 @@ const now = Date.parse('2026-11-25T15:00:00.000Z')
 function fixture(): Tournament {
   const tournament: Tournament = {
     version: 2, id: 'knockout-ui', revision: 1, phase: 'preliminary',
-    codeHash: createHash('sha256').update('fixture-cup').digest('hex'),
     settings: { name: 'Finalcup', location: 'Office', description: '', startsAt: new Date(now).toISOString(),
       matchMinutes: 1, preliminaryMinutes: 120, knockoutMinutes: 60, winPoints: 3, lossPoints: 1 },
     players: ['Anton', 'Berta', 'Chris', 'Dana', 'Emil', 'Frida', 'Gabi', 'Hugo', 'Ina', 'Zoe']
@@ -35,7 +34,6 @@ afterEach(() => { vi.useRealTimers() })
 
 async function open(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: 'Finalcup öffnen' }))
-  await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
 }
 
 describe('Vertraute K.-o.-Bedienung', () => {

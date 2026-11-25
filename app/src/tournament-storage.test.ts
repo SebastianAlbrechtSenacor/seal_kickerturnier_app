@@ -6,9 +6,9 @@ import type { Tournament } from './tournament'
 
 function fixture(id = 'fixture-a'): Tournament {
   const { settings } = validateDraft({
-    ...draftFor(), name: id, location: 'Office', startsAtLocal: '2026-11-26T17:00', code: 'fixture-only',
-  }, false)
-  return { version: 1, id, revision: 1, phase: 'preparation', settings: settings!, codeHash: 'a'.repeat(64) }
+    ...draftFor(), name: id, location: 'Office', startsAtLocal: '2026-11-26T17:00',
+  })
+  return { version: 1, id, revision: 1, phase: 'preparation', settings: settings! }
 }
 
 beforeEach(() => {
@@ -91,7 +91,6 @@ describe('Lokale Turnierspeicherung', () => {
     const attempts: Tournament[] = [
       { ...started, phase: 'preparation' },
       { ...started, settings: { ...started.settings, name: 'Anders', winPoints: 9, matchMinutes: 5 } },
-      { ...started, codeHash: 'b'.repeat(64) },
       { ...started, players: started.players!.slice(0, 3), phase: 'preparation' },
       { ...started, players: started.players!.map((player, index) => index ? player : { ...player, nickname: 'Neuer Name', avatar: '🦊' }) },
       { ...started, players: [...started.players!, { id: 'fifth', nickname: 'Neue Person', avatar: '🦊' }] },

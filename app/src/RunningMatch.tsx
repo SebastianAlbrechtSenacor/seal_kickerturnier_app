@@ -113,7 +113,7 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
 
   return (
     <>
-      <p className="card-description">Gespeicherte offene Partie. Die Aufstellung ist gesperrt; Verlassen oder Sperren stoppt die Zeit nicht.</p>
+      <p className="card-description">Gespeicherte offene Partie. Die Aufstellung ist gesperrt; Verlassen oder Neuladen stoppt die Zeit nicht.</p>
       <div className="match-layout">
         {tournament.knockout ? <KnockoutPlan tournament={tournament} /> :
           <StandingsTable compact tournament={tournament} />}

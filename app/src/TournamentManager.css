@@ -1,6 +1,3 @@
-.header-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: flex-end; }
-.header-lock { color: #eef9f7; border: 1px solid #73aaa8; background: transparent; padding: 8px 14px; border-radius: 3px; font-size: 13px; }
-.header-lock:focus-visible { outline-color: #ffba26; }
 .arena:has(.tournament-workspace) { grid-template-columns: minmax(0, 1fr); max-width: 1050px; }
 .arena:has(.tournament-workspace) .intro { display: none; }
 .tournament-workspace { width: 100%; }
@@ -23,7 +20,6 @@
 .action-button:not(:disabled):hover { background: #ffc643; }
 .form-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 .form-actions .secondary-button { width: auto; }
-.tournament-unlock { margin-top: 20px; }
 .tournament-details { margin: 24px 0; }
 .tournament-details > div { min-width: 0; }
 .tournament-details dt, .schedule-preview dt { font-size: 12px; color: #4a6467; margin-bottom: 5px; }
@@ -64,8 +60,6 @@ input[type="file"] { max-width: 100%; font-size: 14px; }
 .start-confirmation { margin-top: 24px; line-height: 1.6; }
 @media (max-width: 740px) {
   .site-header { align-items: flex-start; }
-  .header-actions { gap: 8px; }
-  .header-lock { font-size: 11px; }
   .form-grid, .tournament-details, .schedule-preview dl { grid-template-columns: minmax(0, 1fr); }
   .schedule-preview { padding: 16px; }
   .form-actions > button { width: 100% !important; }

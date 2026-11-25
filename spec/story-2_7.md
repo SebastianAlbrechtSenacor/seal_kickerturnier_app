@@ -1,6 +1,8 @@
 # Story 2.7: Emoji-Avatare vielfältiger gestalten
 
 Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Lieferpaket 2 – Turnieransicht und Aufstellung (2.3–2.7): gemeinsame
+Browser-Regression und gemeinsames Deployment; eigene Abnahme.
 
 Als spielende Person möchte ich aus verschiedenen Emoji-Kategorien
 wählen können, statt überwiegend Tieravatare angeboten zu bekommen.

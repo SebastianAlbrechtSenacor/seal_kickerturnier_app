@@ -4,14 +4,14 @@ import type { Tournament, TournamentDraft } from './tournament'
 import { avatars } from './players'
 
 const validDraft = (): TournamentDraft => ({
-  ...draftFor(), name: ' Office Cup ', location: ' Eschborn ', startsAtLocal: '2026-11-26T17:00', code: 'test-fixture',
+  ...draftFor(), name: ' Office Cup ', location: ' Eschborn ', startsAtLocal: '2026-11-26T17:00',
 })
 
 describe('Manueller Turnierstart', () => {
   function preparation(count: number): Tournament {
     return {
-      version: 2, id: 'start-fixture', revision: 1, phase: 'preparation', codeHash: 'a'.repeat(64),
-      settings: validateDraft(validDraft(), false).settings!,
+      version: 2, id: 'start-fixture', revision: 1, phase: 'preparation',
+      settings: validateDraft(validDraft()).settings!,
       players: avatars.slice(0, count).map((avatar, index) => ({
         id: `player-${index}`, nickname: `Person ${index}`, avatar: avatar.emoji,
       })),
@@ -41,7 +41,7 @@ describe('Manueller Turnierstart', () => {
 
 describe('Turniervalidierung und Zeitplanung', () => {
   it('uebernimmt gueltige Werte und trennt Planung von der Partiedauer', () => {
-    const result = validateDraft(validDraft(), false)
+    const result = validateDraft(validDraft())
     expect(result.errors).toBeUndefined()
     expect(result.settings).toMatchObject({
       name: 'Office Cup', location: 'Eschborn', startsAt: '2026-11-26T16:00:00.000Z',
@@ -50,7 +50,7 @@ describe('Turniervalidierung und Zeitplanung', () => {
     expect(planTimes(result.settings!.startsAt, 120, 60)).toEqual({
       knockout: '2026-11-26T18:00:00.000Z', end: '2026-11-26T19:00:00.000Z',
     })
-    const changed = validateDraft({ ...validDraft(), preliminaryMinutes: '90' }, false)
+    const changed = validateDraft({ ...validDraft(), preliminaryMinutes: '90' })
     expect(planTimes(changed.settings!.startsAt, 90, 60)).toEqual({
       knockout: '2026-11-26T17:30:00.000Z', end: '2026-11-26T18:30:00.000Z',
     })
@@ -58,19 +58,14 @@ describe('Turniervalidierung und Zeitplanung', () => {
   })
 
   it.each<[keyof TournamentDraft, string]>([
-    ['name', '  '], ['location', ''], ['code', ' '],
+    ['name', '  '], ['location', ''],
     ['startsAtLocal', '2026-02-30T17:00'], ['startsAtLocal', ''],
     ['matchMinutes', '0'], ['matchMinutes', '1.5'],
     ['preliminaryMinutes', '-1'], ['knockoutMinutes', ''],
     ['winPoints', '-1'], ['lossPoints', '0.5'], ['winPoints', '1'],
     ['knockoutMinutes', '9007199254740991'],
   ])('weist ungueltige Eingabe fuer %s=%s feldbezogen ab', (field, value) => {
-    expect(validateDraft({ ...validDraft(), [field]: value }, false).errors?.[field]).toBeTruthy()
-  })
-
-  it('behaelt den Code nur beim Bearbeiten mit exakt leerer Eingabe', () => {
-    expect(validateDraft({ ...validDraft(), code: '' }, true).errors).toBeUndefined()
-    expect(validateDraft({ ...validDraft(), code: '  ' }, true).errors?.code).toBeTruthy()
+    expect(validateDraft({ ...validDraft(), [field]: value }).errors?.[field]).toBeTruthy()
   })
 
   it('behandelt Sommerzeit, ungueltige Zeitumstellung und Tageswechsel unabhaengig vom Browserstandort', () => {

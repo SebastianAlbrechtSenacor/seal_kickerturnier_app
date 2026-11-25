@@ -1,6 +1,8 @@
 # Story 2.3: Hauptansichten ohne Seitenscrollen im Querformat
 
 Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Lieferpaket 2 – Turnieransicht und Aufstellung (2.3–2.7): gemeinsame
+Browser-Regression und gemeinsames Deployment; eigene Abnahme.
 
 Als teilnehmende Person möchte ich am Querformat-Bildschirm die aktuelle
 Ansicht bedienen, ohne die Hauptseite hin- und herscrollen zu müssen.
