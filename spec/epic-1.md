@@ -6,7 +6,9 @@ Story 1.2 ist umgesetzt, getestet und vom Entwickler abgenommen.
 Story 1.3 ist umgesetzt, getestet und am 24.11.2026 abgenommen.
 Story 1.4 ist umgesetzt, getestet und am 24.11.2026 abgenommen.
 Story 1.5 ist umgesetzt, getestet und am 25.11.2026 abgenommen.
-Stories 1.6 bis 1.10 sind noch nicht implementiert;
+Story 1.6 ist einschliesslich der UI-Rueckmeldung umgesetzt, getestet
+und nach erfolgreichen erneuten Praxispruefungen ausdruecklich abgenommen.
+Stories 1.7 bis 1.10 sind noch nicht implementiert;
 das Epic bleibt offen.
 
 ## Ziel
@@ -39,8 +41,14 @@ Plaetze 1 bis 4 aus. Die Bedienung funktioniert mit Maus und Touch.
 - Eindeutige Spitznamen und eindeutige Emoji-Avatare je Turnier.
 - Start ab vier Personen; Einstellungen und Spielendenliste danach gesperrt.
 - Genau vier verschiedene Personen je Vorrundenpartie, verteilt auf Weiss
-  Angriff/Verteidigung und Schwarz Angriff/Verteidigung. Auswahl per Klick/Touch;
-  Drag-and-drop ist kein Pflichtumfang.
+  Angriff/Verteidigung und Schwarz Angriff/Verteidigung. Freigegebene
+  Bedienkonkretisierung vom 25.11.2026: primaer Drag-and-drop mit Maus/Touch,
+  alternativ Position und freie Person per Klick/Touch oder Tastatur auswaehlen.
+  Tabelle links, Tisch rechts, Turnierinfos kompakt unten; auf schmalen
+  Bildschirmen stehen Tabelle und Tisch untereinander.
+  In der Partievorbereitung zeigt die schmalere Tabelle nur Rang, Spielende
+  und Punkte. Am Tisch stehen sich Angriff und gegnerische Verteidigung
+  gegenueber; besetzte Avatare werden deutlich vergroessert angezeigt.
 - Auswahl bis zum Spielstart aenderbar, danach gesperrt. Fuer die naechste
   Partie muessen alle vier Positionen erneut belegt werden. Wiederholte
   Teilnahme derselben Personen ist erlaubt.
@@ -189,7 +197,7 @@ Erst nach Rueckmeldung und ausstehenden Entwicklertests folgt die naechste.
 3. [JSON-Sicherung und Wiederherstellung: abgenommen](./story-1_3-DONE.md)
 4. [Spielende und Avatare verwalten: abgenommen](./story-1_4-DONE.md)
 5. [Vorrunde starten und Tabelle anzeigen: abgenommen](./story-1_5-DONE.md)
-6. [Vorrundenpartie besetzen](./story-1_6.md)
+6. [Vorrundenpartie besetzen: abgenommen](./story-1_6-DONE.md)
 7. [Partie, Countdown und Unterbrechungen](./story-1_7.md)
 8. [Ergebnis bestaetigen und Punkte auswerten](./story-1_8.md)
 9. [K.-o.-Phase spielen](./story-1_9.md)

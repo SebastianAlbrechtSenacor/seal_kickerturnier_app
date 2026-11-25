@@ -5,6 +5,7 @@ import TournamentForm from './TournamentForm'
 import TournamentImport from './TournamentImport'
 import PlayerManager from './PlayerManager'
 import StandingsTable from './StandingsTable'
+import MatchPreparation from './MatchPreparation'
 import type { Player } from './players'
 import { downloadBackup } from './tournament-backup'
 import { assertPreparation, formatBerlinTime, planTimes, startPreliminary } from './tournament'
@@ -21,6 +22,7 @@ type View =
   | { kind: 'edit'; tournament: Tournament }
   | { kind: 'players'; tournament: Tournament }
   | { kind: 'start'; tournament: Tournament }
+  | { kind: 'match'; tournament: Tournament }
 
 function readList(): { tournaments: Tournament[]; error: string } {
   try {
@@ -141,6 +143,17 @@ export default function TournamentManager() {
     }
   }
 
+  function prepareMatch(tournament: Tournament) {
+    setError('')
+    try {
+      assertCurrentTournament(tournament)
+      if (tournament.phase !== 'preliminary') throw new Error('Partien können nur in der Vorrunde vorbereitet werden.')
+      setView({ kind: 'match', tournament })
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Die Partievorbereitung konnte nicht geöffnet werden.')
+    }
+  }
+
   const expanded = view.kind !== 'list' && view.kind !== 'unlock'
   const title = view.kind === 'list' ? 'Deine Turniere.' :
     view.kind === 'create' ? 'Neues Turnier' :
@@ -148,10 +161,11 @@ export default function TournamentManager() {
     view.kind === 'edit' ? 'Turnier bearbeiten' :
     view.kind === 'players' ? 'Spielende verwalten' :
     view.kind === 'start' ? 'Vorrunde starten?' :
+    view.kind === 'match' ? 'Partie vorbereiten' :
     view.kind === 'unlock' ? 'Turnier öffnen' : view.tournament.settings.name
 
   return (
-    <section className={`entry-card${expanded ? ' tournament-workspace' : ''}`} aria-labelledby="entry-title">
+    <section className={`entry-card${expanded ? ' tournament-workspace' : ''}${view.kind === 'match' ? ' match-workspace' : ''}`} aria-labelledby="entry-title">
       <div className="card-stripe" aria-hidden="true" />
       <div className="card-content">
         <p className="card-eyebrow">{view.kind === 'details' ?
@@ -231,6 +245,11 @@ export default function TournamentManager() {
           <PlayerManager players={view.tournament.players ?? []} onSave={savePlayers}
             onBack={() => setView({ kind: 'details', tournament: view.tournament })} />
         )}
+        {view.kind === 'match' && (
+          <MatchPreparation tournament={view.tournament}
+            onCheckCurrent={() => assertCurrentTournament(view.tournament)}
+            onBack={() => setView({ kind: 'details', tournament: view.tournament })} />
+        )}
         {view.kind === 'start' && (
           <div className="start-confirmation">
             <p className="card-description">{view.tournament.settings.name} · {view.tournament.players?.length ?? 0} Spielende</p>
@@ -253,7 +272,8 @@ export default function TournamentManager() {
               'Einstellungen und Spielende können vor dem Turnierstart geändert werden.' :
               'Die Vorrunde läuft. Einstellungen, Turniercode und Spielende sind gesperrt.'}</p>
             <p>{view.tournament.players?.length ?? 0} Spielende angemeldet.</p>
-            {view.tournament.phase === 'preliminary' && <StandingsTable players={view.tournament.players ?? []} />}
+            {view.tournament.phase === 'preliminary' && <StandingsTable players={view.tournament.players ?? []}
+              onPrepare={() => prepareMatch(view.tournament)} />}
             <dl className="tournament-details">
               <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(view.tournament.settings.startsAt)}</dd></div>
               <div><dt>Spielort</dt><dd>{view.tournament.settings.location}</dd></div>

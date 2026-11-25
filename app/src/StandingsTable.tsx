@@ -1,31 +1,45 @@
 import type { Player } from './players'
+import type { ReactNode } from 'react'
 import { initialStandings } from './standings'
 
-export default function StandingsTable({ players }: { players: Player[] }) {
+interface Props {
+  players: Player[]
+  onPrepare?: () => void
+  renderPlayer?: (player: Player) => ReactNode
+  compact?: boolean
+}
+
+export default function StandingsTable({ players, onPrepare, renderPlayer, compact = false }: Props) {
   const standings = initialStandings(players)
   return (
     <section className="standings" aria-labelledby="standings-heading">
       <h3 id="standings-heading">Vorrundentabelle</h3>
       <p className="form-note" id="standings-hint">Jede Person sammelt ihre eigenen Punkte.
-        Auf schmalen Bildschirmen die Tabelle seitlich scrollen.</p>
-      <div className="standings-scroll" role="region" aria-label="Vorrundentabelle horizontal scrollen"
+        {!compact && ' Auf schmalen Bildschirmen die Tabelle seitlich scrollen.'}</p>
+      <div className="standings-scroll" role="region" aria-label={compact ? 'Vorrundentabelle scrollen' : 'Vorrundentabelle horizontal scrollen'}
         aria-describedby="standings-hint" tabIndex={0}>
-        <table className="standings-table">
+        <table className={`standings-table${compact ? ' standings-compact' : ''}`}>
           <caption className="sr-only">Individuelle Vorrundenwertung</caption>
           <thead>
             <tr>
-              <th scope="col">Rang</th><th scope="col">Spielende</th><th scope="col">Spiele</th>
-              <th scope="col">Siege</th><th scope="col">Niederlagen</th><th scope="col">Tore</th>
-              <th scope="col">Gegentore</th><th scope="col">Tordifferenz</th><th scope="col">Punkte</th>
+              <th scope="col">Rang</th><th scope="col">Spielende</th>
+              {!compact && <>
+                <th scope="col">Spiele</th><th scope="col">Siege</th><th scope="col">Niederlagen</th>
+                <th scope="col">Tore</th><th scope="col">Gegentore</th><th scope="col">Tordifferenz</th>
+              </>}
+              <th scope="col">Punkte</th>
             </tr>
           </thead>
           <tbody>
             {standings.map((standing, index) => (
               <tr key={standing.player.id}>
                 <td>{index + 1}</td>
-                <th scope="row"><span aria-hidden="true">{standing.player.avatar} </span>{standing.player.nickname}</th>
-                <td>{standing.played}</td><td>{standing.wins}</td><td>{standing.losses}</td>
-                <td>{standing.goalsFor}</td><td>{standing.goalsAgainst}</td><td>{standing.goalDifference}</td>
+                <th scope="row">{renderPlayer ? renderPlayer(standing.player) :
+                  <><span aria-hidden="true">{standing.player.avatar} </span>{standing.player.nickname}</>}</th>
+                {!compact && <>
+                  <td>{standing.played}</td><td>{standing.wins}</td><td>{standing.losses}</td>
+                  <td>{standing.goalsFor}</td><td>{standing.goalsAgainst}</td><td>{standing.goalDifference}</td>
+                </>}
                 <td className="standings-points">{standing.points}</td>
               </tr>
             ))}
@@ -33,8 +47,7 @@ export default function StandingsTable({ players }: { players: Player[] }) {
         </table>
       </div>
       <p className="form-note">Reihenfolge: Punkte, Siege, Tordifferenz, erzielte Tore, dann deutscher Spielername.</p>
-      <button className="action-button" type="button" disabled aria-describedby="next-match-hint">Partie vorbereiten</button>
-      <p className="form-note" id="next-match-hint">Die Positionsauswahl für eine Partie folgt in Story 1.6.</p>
+      {onPrepare && <button className="action-button" type="button" onClick={onPrepare}>Partie vorbereiten</button>}
     </section>
   )
 }

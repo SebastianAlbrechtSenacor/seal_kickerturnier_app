@@ -40,7 +40,10 @@ erfolgreichen Entwickler-Praxispruefungen am 24.11.2026 abgenommen.
 erfolgreichen Entwickler-Praxispruefungen am 24.11.2026 abgenommen.
 [Story 1.5](./spec/story-1_5-DONE.md) ist umgesetzt, getestet und nach
 erfolgreichen Entwickler-Praxispruefungen am 25.11.2026 abgenommen.
-Stories 1.6 bis 1.10 sind noch nicht implementiert.
+[Story 1.6](./spec/story-1_6-DONE.md) ist einschliesslich der UI-Rueckmeldung
+umgesetzt, getestet und nach erfolgreichen erneuten Entwickler-
+Praxispruefungen ausdruecklich abgenommen.
+Stories 1.7 bis 1.10 sind noch nicht implementiert.
 
 ## Turniere vorbereiten
 
@@ -136,13 +139,49 @@ Nach Turnierstart ist die Spielendenliste gesperrt.
    nach Start unveraenderbar. Die Felder bleiben lesbar, Bearbeitungsaktionen
    entfallen. Neuladen und erneute Codeeingabe behalten Phase und Rangfolge bei.
    Veraltete Tabs koennen die gesperrte Vorbereitung nicht ueberschreiben.
-6. **Partie vorbereiten** ist bereits sichtbar, aber bis zur Positionsauswahl
-   in Story 1.6 deaktiviert. Es wird noch keine Partie gestartet.
+6. **Partie vorbereiten** oeffnet die Positionsauswahl. Ein verbindlicher
+   Partiestart und der Timer folgen erst mit Story 1.7.
 
 Startzeit und geplante Phasenenden sind nur Planung. Weder der geplante
 Beginn noch 19 Uhr starten oder wechseln eine Phase automatisch.
 Speicherfehler oder ein konkurrierend geaenderter Stand zeigen einen Fehler;
 ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
+
+### Eine Partie besetzen
+
+1. In der gestarteten Vorrunde **Partie vorbereiten** waehlen.
+   Links steht die kompakte Tabelle mit **Rang**, **Spielende** und **Punkte**,
+   rechts der groessere Tisch. Die Turnieruebersicht behaelt ihre vollstaendige
+   Tabelle mit allen neun Spalten. Auf schmalen Bildschirmen stehen beide
+   Bereiche untereinander. Turnierinfos stehen kompakt unten.
+2. Name oder Avatar mit Maus oder Finger aus der Tabelle auf Weiss Angriff,
+   Weiss Verteidigung, Schwarz Angriff oder Schwarz Verteidigung ziehen.
+   Am oberen/unteren Bildschirmrand scrollt die Seite beim Ziehen mit.
+   Ausserhalb der Namens-/Avatarflaechen bleiben Tabelle und Seite scrollbar.
+   Tabellenkopf und Namensspalte bleiben beim Tabellenscrollen sichtbar.
+   Links steht Weiss Verteidigung oben und Weiss Angriff darunter;
+   rechts steht Schwarz Angriff oben und Schwarz Verteidigung darunter.
+   Angriff und gegnerische Verteidigung stehen sich damit gegenueber.
+   Besetzte Positionen zeigen den Avatar deutlich vergroessert,
+   weiterhin mit Positionsbezeichnung und Spitzname.
+3. Alternativ zuerst eine Position anklicken/antippen, dann eine freie Person
+   in der Tabelle auswaehlen. Beide Schritte funktionieren auch mit
+   Tabulator und Enter/Leertaste. Die ausgewaehlte Position ist markiert.
+4. Eingesetzte Personen sind mit ihrer Position markiert und gegen erneutes
+   Einsetzen gesperrt. Eine freie Person auf eine belegte Position ziehen
+   oder fuer sie auswaehlen ersetzt die Belegung; die bisherige Person wird frei.
+   **Entfernen** leert eine einzelne Position, **Aufstellung leeren** alle vier.
+   Ungueltiges oder abgebrochenes Ziehen laesst den Entwurf mit Hinweis bestehen.
+5. Erst mit vier verschiedenen Personen ist **Spiel starten** aktiv und
+   hervorgehoben. Vier Belegungen allein sperren die Bearbeitung nicht.
+   Die Aktion oeffnet derzeit ausdruecklich nur **Aufstellung pruefen**:
+   Noch keine Partie laeuft, es werden keine Partiedaten gespeichert.
+   **Zur Aufstellung** behaelt den bearbeitbaren Entwurf bei.
+6. **Vorbereitung verlassen**, Neuladen oder **Anwendung sperren** verwerfen
+   den Entwurf. Erneutes Vorbereiten beginnt leer; dieselben Personen duerfen
+   erneut gewaehlt werden. Der Entwurf ist auch nicht Teil einer JSON-Sicherung.
+   Veraltete Turnierstaende werden beim Oeffnen und vor der Aufstellungspruefung
+   mit Konfliktmeldung abgewiesen.
 
 ### JSON-Sicherung und Wiederherstellung
 

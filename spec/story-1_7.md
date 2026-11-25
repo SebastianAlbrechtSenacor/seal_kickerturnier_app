@@ -2,7 +2,7 @@
 
 Status: Freigegeben am 24.11.2026, noch nicht implementiert.
 Epic: [Epic 1](./epic-1.md)
-Abhaengigkeiten: [Story 1.6](./story-1_6.md).
+Abhaengigkeiten: [Story 1.6](./story-1_6-DONE.md).
 
 Als spielende Person moechte ich die Restzeit gross sehen und nach Zeitablauf
 durch einen Pfiff und einen sichtbaren Hinweis informiert werden.
