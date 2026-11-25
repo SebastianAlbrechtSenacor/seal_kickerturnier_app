@@ -1,9 +1,42 @@
 import { describe, expect, it } from 'vitest'
-import { draftFor, parseBerlinLocal, planTimes, toBerlinLocal, validateDraft } from './tournament'
-import type { TournamentDraft } from './tournament'
+import { draftFor, isTournament, parseBerlinLocal, planTimes, startPreliminary, toBerlinLocal, validateDraft } from './tournament'
+import type { Tournament, TournamentDraft } from './tournament'
+import { avatars } from './players'
 
 const validDraft = (): TournamentDraft => ({
   ...draftFor(), name: ' Office Cup ', location: ' Eschborn ', startsAtLocal: '2026-11-26T17:00', code: 'test-fixture',
+})
+
+describe('Manueller Turnierstart', () => {
+  function preparation(count: number): Tournament {
+    return {
+      version: 2, id: 'start-fixture', revision: 1, phase: 'preparation', codeHash: 'a'.repeat(64),
+      settings: validateDraft(validDraft(), false).settings!,
+      players: avatars.slice(0, count).map((avatar, index) => ({
+        id: `player-${index}`, nickname: `Person ${index}`, avatar: avatar.emoji,
+      })),
+    }
+  }
+
+  it.each([0, 1, 2, 3])('weist einen Start mit %i Spielenden ab', (count) => {
+    expect(() => startPreliminary(preparation(count))).toThrow('mindestens vier')
+  })
+
+  it('startet mit vier Personen ohne Aenderung der Vorbereitungsdaten und verhindert erneuten Start', () => {
+    const original = preparation(4)
+    const started = startPreliminary(original)
+    expect(started).toEqual({ ...original, revision: 2, phase: 'preliminary' })
+    expect(original.phase).toBe('preparation')
+    expect(isTournament(started)).toBe(true)
+    expect(() => startPreliminary(started)).toThrow('bereits gestartet')
+  })
+
+  it('weist ungueltige Einstellungen und unmoegliche gespeicherte Vorrunden ab', () => {
+    const original = preparation(4)
+    expect(() => startPreliminary({ ...original, settings: { ...original.settings, winPoints: 0 } })).toThrow('ungültige Daten')
+    expect(isTournament({ ...preparation(3), phase: 'preliminary' })).toBe(false)
+    expect(isTournament({ ...original, version: 1, phase: 'preliminary' })).toBe(false)
+  })
 })
 
 describe('Turniervalidierung und Zeitplanung', () => {

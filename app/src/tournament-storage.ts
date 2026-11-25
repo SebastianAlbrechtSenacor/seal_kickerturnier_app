@@ -45,28 +45,39 @@ export function readTournament(id: string): Tournament {
   }
 }
 
-export async function saveTournament(tournament: Tournament, expectedRevision: number | null): Promise<void> {
+export async function saveTournament(
+  tournament: Tournament,
+  expectedRevision: number | null,
+  operation: 'update' | 'restore' = 'update',
+): Promise<void> {
   if (!isTournament(tournament)) throw new Error('Ungültige Turnierdaten können nicht gespeichert werden.')
   if (!navigator.locks) {
     throw new Error('Dieser Browser unterstützt keine sicheren parallelen Speicherzugriffe. Bitte einen aktuellen Browser über HTTPS oder localhost verwenden. Es wurde nichts gespeichert.')
   }
   await navigator.locks.request(`${prefix}${tournament.id}`, () => {
-    writeTournament(tournament, expectedRevision)
+    writeTournament(tournament, expectedRevision, operation)
   })
 }
 
-function writeTournament(tournament: Tournament, expectedRevision: number | null): void {
+function writeTournament(tournament: Tournament, expectedRevision: number | null, operation: 'update' | 'restore'): void {
   let raw: string | null
   try {
     raw = window.localStorage.getItem(`${prefix}${tournament.id}`)
   } catch (cause) {
     throw new Error('Der Browserspeicher ist gesperrt. Das Turnier wurde nicht gespeichert; deine Eingaben bleiben erhalten.', { cause })
   }
-  if (expectedRevision === null ? raw !== null : raw === null || storedTournament(raw, tournament.id).revision !== expectedRevision) {
+  const current = raw === null ? null : storedTournament(raw, tournament.id)
+  if (expectedRevision === null ? current !== null : current?.revision !== expectedRevision) {
     throw new Error('Das Turnier wurde zwischenzeitlich geändert. Bitte den aktuellen Stand über die Turnierauswahl neu öffnen.')
   }
   if (expectedRevision !== null && tournament.revision !== expectedRevision + 1) {
     throw new Error('Ungültige Speicherrevision. Bitte das Turnier über die Turnierauswahl neu öffnen.')
+  }
+  if (operation === 'update' && current?.phase === 'preliminary' &&
+      (tournament.phase !== 'preliminary' || tournament.codeHash !== current.codeHash ||
+       JSON.stringify(tournament.settings) !== JSON.stringify(current.settings) ||
+       JSON.stringify(tournament.players) !== JSON.stringify(current.players))) {
+    throw new Error('Das Turnier wurde bereits gestartet. Einstellungen, Turniercode und Spielende sind gesperrt.')
   }
   try {
     window.localStorage.setItem(`${prefix}${tournament.id}`, JSON.stringify(tournament))

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadTournaments, readTournament, saveTournament } from './tournament-storage'
-import { draftFor, validateDraft } from './tournament'
+import { draftFor, startPreliminary, validateDraft } from './tournament'
+import { avatars } from './players'
 import type { Tournament } from './tournament'
 
 function fixture(id = 'fixture-a'): Tournament {
@@ -77,5 +78,28 @@ describe('Lokale Turnierspeicherung', () => {
     Object.defineProperty(navigator, 'locks', { configurable: true, value: undefined })
     await expect(saveTournament(fixture(), null)).rejects.toThrow('Dieser Browser unterstützt keine')
     expect(loadTournaments()).toEqual([])
+  })
+
+  it('sperrt nach Start Einstellungen, Codes und jede Aenderung der Spielendenliste auch beim direkten Speichern', async () => {
+    const preparation: Tournament = {
+      ...fixture(), version: 2,
+      players: avatars.slice(0, 4).map((avatar, index) => ({ id: `p-${index}`, nickname: `Person ${index}`, avatar: avatar.emoji })),
+    }
+    await saveTournament(preparation, null)
+    const started = startPreliminary(preparation)
+    await saveTournament(started, preparation.revision)
+    const attempts: Tournament[] = [
+      { ...started, phase: 'preparation' },
+      { ...started, settings: { ...started.settings, name: 'Anders', winPoints: 9, matchMinutes: 5 } },
+      { ...started, codeHash: 'b'.repeat(64) },
+      { ...started, players: started.players!.slice(0, 3), phase: 'preparation' },
+      { ...started, players: started.players!.map((player, index) => index ? player : { ...player, nickname: 'Neuer Name', avatar: '🦊' }) },
+      { ...started, players: [...started.players!, { id: 'fifth', nickname: 'Neue Person', avatar: '🦊' }] },
+    ]
+    for (const attempt of attempts) {
+      await expect(saveTournament({ ...attempt, revision: started.revision + 1 }, started.revision)).rejects.toThrow('gesperrt')
+      expect(readTournament(started.id)).toEqual(started)
+    }
+    await expect(saveTournament({ ...preparation, revision: 2 }, 1)).rejects.toThrow('zwischenzeitlich')
   })
 })

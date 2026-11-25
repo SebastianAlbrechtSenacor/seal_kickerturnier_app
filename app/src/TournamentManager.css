@@ -52,6 +52,15 @@ input[type="file"] { max-width: 100%; font-size: 14px; }
 .avatar-option[aria-pressed="true"] { border-color: #007b80; background: #c8ece3; box-shadow: inset 0 0 0 1px #007b80; }
 .avatar-option:disabled { filter: grayscale(1); opacity: .35; cursor: not-allowed; }
 .avatar-selection { font-size: 14px; margin: 16px 0; }
+.standings { margin-top: 28px; }
+.standings-scroll { width: 100%; max-width: 100%; overflow-x: auto; margin: 16px 0; }
+.standings-table { width: 100%; min-width: 820px; border-collapse: collapse; font-size: 14px; }
+.standings-table th, .standings-table td { padding: 14px 10px; text-align: right; border-bottom: 1px solid #c9d8d1; }
+.standings-table thead { background: #e5eeea; color: #234a4d; }
+.standings-table th:nth-child(2), .standings-table tbody th { text-align: left; }
+.standings-table tbody th { min-width: 150px; max-width: 260px; overflow-wrap: anywhere; white-space: break-spaces; }
+.standings-points { color: #006c71; font-weight: 800; }
+.start-confirmation { margin-top: 24px; line-height: 1.6; }
 @media (max-width: 740px) {
   .site-header { align-items: flex-start; }
   .header-actions { gap: 8px; }

@@ -38,7 +38,9 @@ erfolgreichen Entwickler-Praxispruefungen abgenommen.
 erfolgreichen Entwickler-Praxispruefungen am 24.11.2026 abgenommen.
 [Story 1.4](./spec/story-1_4-DONE.md) ist umgesetzt, getestet und nach
 erfolgreichen Entwickler-Praxispruefungen am 24.11.2026 abgenommen.
-Stories 1.5 bis 1.10 sind noch nicht implementiert.
+[Story 1.5](./spec/story-1_5-DONE.md) ist umgesetzt, getestet und nach
+erfolgreichen Entwickler-Praxispruefungen am 25.11.2026 abgenommen.
+Stories 1.6 bis 1.10 sind noch nicht implementiert.
 
 ## Turniere vorbereiten
 
@@ -88,7 +90,7 @@ eine Fehlermeldung statt eines ungeschuetzten Schreibzugriffs.
 Die Daten liegen **nur in diesem Browserprofil auf diesem Geraet**,
 nicht bei GitHub. Kein Privatmodus; geloeschte Browserdaten koennen zum
 Datenverlust fuehren. Regelmaessig JSON-Sicherungen herunterladen.
-Der Turnierstart ist noch nicht verfuegbar.
+Der Turnierstart erfolgt ausschliesslich manuell mit Bestaetigung.
 
 ### Spielende und Avatare verwalten
 
@@ -113,7 +115,34 @@ Aeussere Leerzeichen werden entfernt, interne bleiben unveraendert.
 Leere oder doppelte Namen zeigen einen Feldhinweis.
 Fehlgeschlagene Speicherungen und Mehrtab-Konflikte veraendern die
 gespeicherte Liste nicht und behalten den Entwurf bei.
-Die Bearbeitungssperre nach Turnierstart folgt mit Story 1.5.
+Nach Turnierstart ist die Spielendenliste gesperrt.
+
+### Vorrunde starten und Tabelle anzeigen
+
+1. Mindestens vier Spielende anmelden. Darunter bleibt **Turnier starten**
+   mit sichtbarer Begruendung gesperrt.
+2. **Turnier starten** oeffnet eine Bestaetigungsansicht. Bis zur
+   Bestaetigung bleibt alles unveraendert; **Abbrechen** kehrt zur Vorbereitung
+   zurueck. **Vorrunde verbindlich starten** speichert den Phasenwechsel.
+3. Die Vorrundentabelle zeigt alle Personen mit Avatar, eindeutigem Rang,
+   Spielen, Siegen, Niederlagen, Toren, Gegentoren, Tordifferenz und Punkten.
+   Alle Statistiken beginnen bei null. Da Partien und Ergebniswertung erst
+   folgen, bleiben sie in diesem Entwicklungsstand bei null.
+4. Sortiert wird nach Punkten, Siegen, Tordifferenz und erzielten Toren
+   absteigend, anschliessend nach deutschem Spielernamen aufsteigend.
+   Auf schmalen Bildschirmen laesst sich die Tabelle seitlich scrollen,
+   auch per Tastatur nach Fokussieren des Tabellenbereichs.
+5. Einstellungen, Punktevergabe, Dauern, Turniercode und Spielende sind
+   nach Start unveraenderbar. Die Felder bleiben lesbar, Bearbeitungsaktionen
+   entfallen. Neuladen und erneute Codeeingabe behalten Phase und Rangfolge bei.
+   Veraltete Tabs koennen die gesperrte Vorbereitung nicht ueberschreiben.
+6. **Partie vorbereiten** ist bereits sichtbar, aber bis zur Positionsauswahl
+   in Story 1.6 deaktiviert. Es wird noch keine Partie gestartet.
+
+Startzeit und geplante Phasenenden sind nur Planung. Weder der geplante
+Beginn noch 19 Uhr starten oder wechseln eine Phase automatisch.
+Speicherfehler oder ein konkurrierend geaenderter Stand zeigen einen Fehler;
+ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
 
 ### JSON-Sicherung und Wiederherstellung
 
@@ -130,6 +159,11 @@ Die Bearbeitungssperre nach Turnierstart folgt mit Story 1.5.
   ersetzt den gesamten Stand, ohne ihn mit dem lokalen Stand zu vermischen.
   Anschliessend gilt der Code aus der Sicherung. Zum Oeffnen wird er erneut
   abgefragt. Die lokale Revision steigt dabei zur Konflikterkennung.
+  Das gilt auch fuer eine gestartete Vorrunde: Eine aeltere
+  Vorbereitungssicherung setzt nach Codepruefung und Ersetzungsbestaetigung
+  bewusst den gesamten Stand zurueck. Dies ist keine normale Einstellungsaenderung.
+  Eine gesicherte Vorrunde wird hingegen mit gesperrter Vorbereitung
+  und derselben Spielendenliste wiederhergestellt.
 - Beschaedigte Dateien, unbekannte Versionen/Felder und widerspruechliche
   Einstellungen werden mit Importfehler abgewiesen. Vorhandene Turniere
   bleiben ebenso bei Lese-/Speicherfehlern unveraendert.

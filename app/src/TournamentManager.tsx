@@ -4,9 +4,10 @@ import { hashCode } from './access'
 import TournamentForm from './TournamentForm'
 import TournamentImport from './TournamentImport'
 import PlayerManager from './PlayerManager'
+import StandingsTable from './StandingsTable'
 import type { Player } from './players'
 import { downloadBackup } from './tournament-backup'
-import { formatBerlinTime, planTimes } from './tournament'
+import { assertPreparation, formatBerlinTime, planTimes, startPreliminary } from './tournament'
 import type { Tournament, TournamentSettings } from './tournament'
 import { assertCurrentTournament, loadTournaments, readTournament, saveTournament } from './tournament-storage'
 import './TournamentManager.css'
@@ -19,6 +20,7 @@ type View =
   | { kind: 'details'; tournament: Tournament }
   | { kind: 'edit'; tournament: Tournament }
   | { kind: 'players'; tournament: Tournament }
+  | { kind: 'start'; tournament: Tournament }
 
 function readList(): { tournaments: Tournament[]; error: string } {
   try {
@@ -38,6 +40,7 @@ export default function TournamentManager() {
   const [error, setError] = useState('')
   const [checking, setChecking] = useState(false)
   const [notice, setNotice] = useState('')
+  const [starting, setStarting] = useState(false)
   const heading = useRef<HTMLHeadingElement>(null)
   const codeInput = useRef<HTMLInputElement>(null)
 
@@ -85,6 +88,7 @@ export default function TournamentManager() {
 
   async function save(settings: TournamentSettings, newCode: string) {
     const existing = view.kind === 'edit' ? view.tournament : undefined
+    if (existing) assertPreparation(existing)
     let codeHash: string
     try {
       codeHash = newCode ? await hashCode(newCode) : existing?.codeHash ?? ''
@@ -106,9 +110,25 @@ export default function TournamentManager() {
 
   async function savePlayers(players: Player[]) {
     if (view.kind !== 'players') throw new Error('Bitte das Turnier erneut öffnen.')
+    assertPreparation(view.tournament)
     const tournament: Tournament = { ...view.tournament, version: 2, players, revision: view.tournament.revision + 1 }
     await saveTournament(tournament, view.tournament.revision)
     setView({ kind: 'players', tournament })
+  }
+
+  async function confirmStart() {
+    if (view.kind !== 'start' || starting) return
+    setError('')
+    setStarting(true)
+    try {
+      const tournament = startPreliminary(view.tournament)
+      await saveTournament(tournament, view.tournament.revision)
+      setView({ kind: 'details', tournament })
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Das Turnier konnte nicht gestartet werden. Bitte erneut versuchen.')
+    } finally {
+      setStarting(false)
+    }
   }
 
   function exportBackup(tournament: Tournament) {
@@ -121,19 +141,21 @@ export default function TournamentManager() {
     }
   }
 
-  const expanded = view.kind === 'create' || view.kind === 'edit' || view.kind === 'details' || view.kind === 'import' || view.kind === 'players'
+  const expanded = view.kind !== 'list' && view.kind !== 'unlock'
   const title = view.kind === 'list' ? 'Deine Turniere.' :
     view.kind === 'create' ? 'Neues Turnier' :
     view.kind === 'import' ? 'JSON-Sicherung importieren' :
     view.kind === 'edit' ? 'Turnier bearbeiten' :
     view.kind === 'players' ? 'Spielende verwalten' :
+    view.kind === 'start' ? 'Vorrunde starten?' :
     view.kind === 'unlock' ? 'Turnier öffnen' : view.tournament.settings.name
 
   return (
     <section className={`entry-card${expanded ? ' tournament-workspace' : ''}`} aria-labelledby="entry-title">
       <div className="card-stripe" aria-hidden="true" />
       <div className="card-content">
-        <p className="card-eyebrow">{view.kind === 'details' ? 'VORBEREITUNG' : 'EUER NÄCHSTES MATCH'}</p>
+        <p className="card-eyebrow">{view.kind === 'details' ?
+          view.tournament.phase === 'preliminary' ? 'VORRUNDE' : 'VORBEREITUNG' : 'EUER NÄCHSTES MATCH'}</p>
         <h2 id="entry-title" ref={heading} tabIndex={-1}>{title}</h2>
         {view.kind === 'list' && (
           <>
@@ -209,11 +231,29 @@ export default function TournamentManager() {
           <PlayerManager players={view.tournament.players ?? []} onSave={savePlayers}
             onBack={() => setView({ kind: 'details', tournament: view.tournament })} />
         )}
+        {view.kind === 'start' && (
+          <div className="start-confirmation">
+            <p className="card-description">{view.tournament.settings.name} · {view.tournament.players?.length ?? 0} Spielende</p>
+            <p>Einstellungen, Punktevergabe, Dauer, Turniercode und Spielende werden mit dem Start festgeschrieben.
+              Danach beginnt die Vorrunde. Es erfolgt kein automatischer Wechsel zur K.-o.-Phase.</p>
+            {error && <p className="error-message" role="alert">{error}</p>}
+            <div className="form-actions">
+              <button className="action-button" type="button" disabled={starting} onClick={() => void confirmStart()}>
+                {starting ? 'Wird gestartet ...' : 'Vorrunde verbindlich starten'}</button>
+              <button className="secondary-button" type="button" disabled={starting} onClick={() => {
+                setError('')
+                setView({ kind: 'details', tournament: view.tournament })
+              }}>Abbrechen</button>
+            </div>
+          </div>
+        )}
         {view.kind === 'details' && (
           <>
-            <p className="card-description">Einstellungen können vor dem Turnierstart geändert werden.
-              Der Turnierstart folgt in Story 1.5.</p>
+            <p className="card-description">{view.tournament.phase === 'preparation' ?
+              'Einstellungen und Spielende können vor dem Turnierstart geändert werden.' :
+              'Die Vorrunde läuft. Einstellungen, Turniercode und Spielende sind gesperrt.'}</p>
             <p>{view.tournament.players?.length ?? 0} Spielende angemeldet.</p>
+            {view.tournament.phase === 'preliminary' && <StandingsTable players={view.tournament.players ?? []} />}
             <dl className="tournament-details">
               <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(view.tournament.settings.startsAt)}</dd></div>
               <div><dt>Spielort</dt><dd>{view.tournament.settings.location}</dd></div>
@@ -225,11 +265,21 @@ export default function TournamentManager() {
             </dl>
             <Schedule tournament={view.tournament} />
             {error && <p className="error-message" role="alert">{error}</p>}
+            {view.tournament.phase === 'preparation' && (view.tournament.players?.length ?? 0) < 4 && (
+              <p className="form-note" id="start-requirement">Für den Turnierstart sind mindestens vier Spielende erforderlich.</p>
+            )}
             <div className="form-actions">
+              {view.tournament.phase === 'preparation' && (
+                <>
               <button className="action-button" type="button"
                 onClick={() => setView({ kind: 'players', tournament: view.tournament })}>Spielende verwalten</button>
               <button className="action-button" type="button"
                 onClick={() => setView({ kind: 'edit', tournament: view.tournament })}>Einstellungen bearbeiten</button>
+                  <button className="action-button" type="button" disabled={(view.tournament.players?.length ?? 0) < 4}
+                    aria-describedby={(view.tournament.players?.length ?? 0) < 4 ? 'start-requirement' : undefined}
+                    onClick={() => { setError(''); setView({ kind: 'start', tournament: view.tournament }) }}>Turnier starten</button>
+                </>
+              )}
               <button className="secondary-button" type="button"
                 onClick={() => exportBackup(view.tournament)}>JSON-Sicherung herunterladen</button>
               <button className="secondary-button" type="button" onClick={backToList}>Zur Turnierauswahl</button>

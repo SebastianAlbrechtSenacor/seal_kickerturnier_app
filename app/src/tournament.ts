@@ -17,7 +17,7 @@ export interface Tournament {
   version: 1 | 2
   id: string
   revision: number
-  phase: 'preparation'
+  phase: 'preparation' | 'preliminary'
   settings: TournamentSettings
   codeHash: string
   players?: Player[]
@@ -152,9 +152,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function isTournament(value: unknown): value is Tournament {
   if (!isRecord(value) || (value.version !== 1 && value.version !== 2) || typeof value.id !== 'string' || !value.id ||
       !Number.isSafeInteger(value.revision) || Number(value.revision) < 1 ||
-      value.phase !== 'preparation' || typeof value.codeHash !== 'string' ||
+      (value.phase !== 'preparation' && value.phase !== 'preliminary') || typeof value.codeHash !== 'string' ||
       !/^[a-f0-9]{64}$/.test(value.codeHash) || !isRecord(value.settings)) return false
   if ((value.version === 2 || 'players' in value) && !isPlayerList(value.players)) return false
+  if (value.phase === 'preliminary' &&
+      (value.version !== 2 || !isPlayerList(value.players) || value.players.length < 4)) return false
   const settings = value.settings
   if (typeof settings.name !== 'string' || typeof settings.location !== 'string' ||
       typeof settings.description !== 'string' || typeof settings.startsAt !== 'string' ||
@@ -172,4 +174,19 @@ export function isTournament(value: unknown): value is Tournament {
     winPoints: String(settings.winPoints), lossPoints: String(settings.lossPoints), code: '',
   }, true)
   return !result.errors
+}
+
+export function assertPreparation(tournament: Tournament): void {
+  if (tournament.phase !== 'preparation') {
+    throw new Error('Das Turnier wurde bereits gestartet. Einstellungen, Turniercode und Spielende sind gesperrt.')
+  }
+}
+
+export function startPreliminary(tournament: Tournament): Tournament {
+  assertPreparation(tournament)
+  if (!isTournament(tournament)) throw new Error('Das Turnier enthält ungültige Daten und kann nicht gestartet werden.')
+  if ((tournament.players?.length ?? 0) < 4) {
+    throw new Error('Für den Turnierstart sind mindestens vier Spielende erforderlich.')
+  }
+  return { ...tournament, version: 2, phase: 'preliminary', revision: tournament.revision + 1 }
 }

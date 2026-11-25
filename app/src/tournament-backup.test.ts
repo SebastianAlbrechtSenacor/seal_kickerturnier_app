@@ -4,6 +4,8 @@ import { hashCode } from './access'
 import { parseBackup, readBackupFile, restoreBackup, serializeBackup } from './tournament-backup'
 import { loadTournaments, readTournament, saveTournament } from './tournament-storage'
 import type { Tournament } from './tournament'
+import { startPreliminary } from './tournament'
+import { avatars } from './players'
 
 async function fixture(): Promise<Tournament> {
   return {
@@ -150,5 +152,20 @@ describe('JSON-Sicherungen', () => {
       expect(() => parseBackup(JSON.stringify(backup))).toThrow('Importfehler')
       expect(loadTournaments()).toEqual([original])
     }
+  })
+
+  it('sichert eine gesperrte Vorrunde und erlaubt nur explizite Wiederherstellung eines Vorbereitungsstands', async () => {
+    const preparation: Tournament = {
+      ...await fixture(), version: 2,
+      players: avatars.slice(0, 4).map((avatar, index) => ({ id: `p-${index}`, nickname: `Person ${index}`, avatar: avatar.emoji })),
+    }
+    const started = startPreliminary(preparation)
+    await restoreBackup(parseBackup(serializeBackup(started)), null, '')
+    expect(readTournament(started.id)).toEqual(started)
+    await expect(saveTournament({ ...preparation, revision: 3 }, 2)).rejects.toThrow('gesperrt')
+    await expect(restoreBackup(preparation, started, 'wrong-code')).rejects.toThrow('nicht korrekt')
+    expect(readTournament(started.id)).toEqual(started)
+    await restoreBackup(preparation, started, 'synthetic-backup-code')
+    expect(readTournament(started.id)).toEqual({ ...preparation, revision: 3 })
   })
 })

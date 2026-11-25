@@ -59,7 +59,7 @@ export async function restoreBackup(
     // Never resurrect an old revision and accidentally validate stale tabs.
     revision: existing ? existing.revision + 1 : incoming.revision,
   }
-  await saveTournament(tournament, existing?.revision ?? null)
+  await saveTournament(tournament, existing?.revision ?? null, 'restore')
 }
 
 export function readBackupFile(file: File): Promise<Tournament> {

@@ -1,12 +1,12 @@
 import { webcrypto } from 'node:crypto'
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import TournamentManager from './TournamentManager'
 import { loadTournaments, readTournament, saveTournament } from './tournament-storage'
 import { serializeBackup } from './tournament-backup'
 import { hashCode } from './access'
-import { draftFor, validateDraft } from './tournament'
+import { draftFor, startPreliminary, validateDraft } from './tournament'
 import { avatars } from './players'
 
 beforeEach(() => {
@@ -25,6 +25,18 @@ async function seed(name = 'Office Cup', code = 'fixture-cup') {
   }
   localStorage.setItem(`seal-kickerturnier:tournament:${tournament.id}`, JSON.stringify(tournament))
   return tournament.id
+}
+
+async function seedFourPlayers() {
+  const id = await seed()
+  const current = readTournament(id)
+  await saveTournament({
+    ...current, version: 2, revision: 2,
+    players: ['Zoe', 'Änne', 'Berta', 'Anton'].map((nickname, index) => ({
+      id: `player-${index}`, nickname, avatar: avatars[index].emoji,
+    })),
+  }, 1)
+  return id
 }
 
 describe('Turniere vorbereiten', () => {
@@ -369,5 +381,109 @@ describe('Turniere vorbereiten', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('zwischenzeitlich geändert')
     expect(screen.getByLabelText('Spitzname')).toHaveValue('Veralteter Entwurf')
     expect(readTournament(id)).toEqual(changed)
+  })
+
+  it('erklaert die Mindestanzahl und behaelt bei abgebrochener Bestaetigung die Vorbereitung', async () => {
+    const user = userEvent.setup()
+    await seed()
+    const { unmount } = render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    expect(await screen.findByRole('button', { name: 'Turnier starten' })).toBeDisabled()
+    expect(screen.getByText('Für den Turnierstart sind mindestens vier Spielende erforderlich.')).toBeVisible()
+    unmount()
+    const id = await seedFourPlayers()
+    const before = readTournament(id)
+    render(<TournamentManager />)
+    await user.click(screen.getAllByRole('button', { name: 'Office Cup öffnen' })[1])
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    await user.click(await screen.findByRole('button', { name: 'Turnier starten' }))
+    expect(readTournament(id)).toEqual(before)
+    await user.click(screen.getByRole('button', { name: 'Abbrechen' }))
+    expect(readTournament(id)).toEqual(before)
+    expect(screen.getByRole('button', { name: 'Einstellungen bearbeiten' })).toBeVisible()
+  })
+
+  it('startet ausdruecklich, zeigt alle Nullstatistiken sortiert und sperrt die Vorbereitung nach Neuladen', async () => {
+    const user = userEvent.setup()
+    const id = await seedFourPlayers()
+    const before = readTournament(id)
+    const { unmount } = render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    await user.click(await screen.findByRole('button', { name: 'Turnier starten' }))
+    await user.click(screen.getByRole('button', { name: 'Vorrunde verbindlich starten' }))
+    const table = await screen.findByRole('table', { name: 'Individuelle Vorrundenwertung' })
+    expect(within(table).getAllByRole('columnheader').map((header) => header.textContent)).toEqual([
+      'Rang', 'Spielende', 'Spiele', 'Siege', 'Niederlagen', 'Tore', 'Gegentore', 'Tordifferenz', 'Punkte',
+    ])
+    const rows = within(table).getAllByRole('row').slice(1)
+    for (const [index, nickname] of ['Änne', 'Anton', 'Berta', 'Zoe'].entries()) {
+      expect(within(rows[index]).getByRole('rowheader', { name: nickname })).toBeVisible()
+      expect(within(rows[index]).getAllByRole('cell').map((cell) => cell.textContent)).toEqual([
+        String(index + 1), '0', '0', '0', '0', '0', '0', '0',
+      ])
+    }
+    expect(screen.getByRole('button', { name: 'Partie vorbereiten' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Einstellungen bearbeiten' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Spielende verwalten' })).not.toBeInTheDocument()
+    expect(readTournament(id)).toEqual({ ...before, phase: 'preliminary', revision: 3 })
+    const originalRows = rows.map((row) => row.textContent)
+    unmount()
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    const restored = await screen.findByRole('table')
+    expect(within(restored).getAllByRole('row').slice(1).map((row) => row.textContent)).toEqual(originalRows)
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Turnier starten' })).not.toBeInTheDocument()
+  })
+
+  it('meldet fehlgeschlagenen und konkurrierenden Start ohne vorgetaeuschten Erfolg', async () => {
+    const user = userEvent.setup()
+    const id = await seedFourPlayers()
+    const before = readTournament(id)
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    await user.click(await screen.findByRole('button', { name: 'Turnier starten' }))
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => { throw new DOMException('Full', 'QuotaExceededError') })
+    await user.click(screen.getByRole('button', { name: 'Vorrunde verbindlich starten' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('nicht gespeichert')
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(readTournament(id)).toEqual(before)
+    const changed = startPreliminary(before)
+    await saveTournament(changed, 2)
+    await user.click(screen.getByRole('button', { name: 'Vorrunde verbindlich starten' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('zwischenzeitlich geändert')
+    expect(readTournament(id)).toEqual(changed)
+  })
+
+  it('aendert die Phase weder zur Startzeit noch um 19 Uhr automatisch', async () => {
+    const user = userEvent.setup()
+    const id = await seedFourPlayers()
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
+    await user.type(screen.getByLabelText('Turnier-Zugangscode'), 'fixture-cup{Enter}')
+    await screen.findByRole('button', { name: 'Turnier starten' })
+    try {
+      vi.useFakeTimers({ now: new Date('2026-11-26T15:00:00.000Z') })
+      act(() => { vi.advanceTimersByTime(4 * 60 * 60 * 1000) })
+      expect(readTournament(id).phase).toBe('preparation')
+      expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+    await user.click(screen.getByRole('button', { name: 'Turnier starten' }))
+    await user.click(screen.getByRole('button', { name: 'Vorrunde verbindlich starten' }))
+    await screen.findByRole('table')
+    try {
+      vi.useFakeTimers({ now: new Date('2026-11-26T17:00:00.000Z') })
+      act(() => { vi.advanceTimersByTime(3 * 60 * 60 * 1000) })
+      expect(readTournament(id).phase).toBe('preliminary')
+      expect(screen.getByRole('table')).toBeVisible()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

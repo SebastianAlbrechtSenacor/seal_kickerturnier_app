@@ -48,6 +48,10 @@ export const avatars = [
 
 const nameCollator = new Intl.Collator('de', { sensitivity: 'accent' })
 
+export function comparePlayerNames(first: string, second: string): number {
+  return nameCollator.compare(first, second)
+}
+
 export function validatePlayerDraft(
   draft: PlayerDraft,
   players: readonly Player[],
@@ -58,7 +62,7 @@ export function validatePlayerDraft(
   const others = players.filter((player) => player.id !== editingId)
   if (!nickname) {
     errors.nickname = 'Bitte einen Spitznamen eingeben.'
-  } else if (others.some((player) => nameCollator.compare(player.nickname, nickname) === 0)) {
+  } else if (others.some((player) => comparePlayerNames(player.nickname, nickname) === 0)) {
     errors.nickname = 'Dieser Spitzname ist im Turnier bereits vergeben.'
   }
   if (!avatars.some((avatar) => avatar.emoji === draft.avatar)) {
