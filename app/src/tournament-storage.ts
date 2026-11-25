@@ -112,12 +112,24 @@ function writeTournament(tournament: Tournament, expectedRevision: number | null
     if (JSON.stringify(next.slice(0, previous.length)) !== JSON.stringify(previous) ||
         next.length > previous.length + 1 ||
         (next.length > previous.length &&
-          (!current.activeMatch || tournament.activeMatch !== null || next.at(-1)?.id !== current.activeMatch.id))) {
+          (current.phase !== 'preliminary' || !current.activeMatch || tournament.activeMatch !== null || next.at(-1)?.id !== current.activeMatch.id))) {
       throw new Error('Gespeicherte Ergebnisse sind unveränderlich. Bitte das Turnier erneut öffnen.')
     }
   }
-  if (operation === 'update' && current?.phase === 'preliminary' &&
-      (tournament.phase !== 'preliminary' || tournament.codeHash !== current.codeHash ||
+  if (operation === 'update' && current?.knockout) {
+    const previous = current.knockout.results
+    const next = tournament.knockout
+    if (!next || JSON.stringify(current.knockout.standings) !== JSON.stringify(next.standings) ||
+        JSON.stringify(current.knockout.teams) !== JSON.stringify(next.teams) ||
+        JSON.stringify(previous) !== JSON.stringify(next.results.slice(0, previous.length)) ||
+        next.results.length > previous.length + 1 ||
+        (next.results.length > previous.length && (!current.activeMatch || tournament.activeMatch !== null ||
+          next.results.at(-1)?.id !== current.activeMatch.id))) {
+      throw new Error('K.-o.-Teams, Vorrundenstand und gespeicherte Ergebnisse sind unveränderlich.')
+    }
+  }
+  if (operation === 'update' && current && current.phase !== 'preparation' &&
+      (tournament.phase === 'preparation' || (current.phase === 'knockout' && tournament.phase !== 'knockout') || tournament.codeHash !== current.codeHash ||
        JSON.stringify(tournament.settings) !== JSON.stringify(current.settings) ||
        JSON.stringify(tournament.players) !== JSON.stringify(current.players))) {
     throw new Error('Das Turnier wurde bereits gestartet. Einstellungen, Turniercode und Spielende sind gesperrt.')

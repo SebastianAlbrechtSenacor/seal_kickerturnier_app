@@ -2,7 +2,7 @@
 
 Status: Freigegeben am 24.11.2026, noch nicht implementiert.
 Epic: [Epic 1](./epic-1.md)
-Abhaengigkeiten: [Story 1.9](./story-1_9.md).
+Abhaengigkeiten: [Story 1.9](./story-1_9-DONE.md).
 
 Als teilnehmende Person moechte ich nach dem Finale die Teamplatzierungen
 und davon getrennt die individuelle Vorrundentabelle sehen.

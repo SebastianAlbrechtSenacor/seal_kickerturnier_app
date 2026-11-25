@@ -72,19 +72,22 @@ export function finishMatch(tournament: Tournament, matchId: string, white: stri
   if (tournament.phase !== 'preliminary' || !match || match.id !== matchId) {
     throw new Error('Die Partie wurde zwischenzeitlich geändert. Bitte das Turnier erneut öffnen.')
   }
-  const problem = resultError(white, black, now >= Date.parse(match.endsAt))
+  const completed = completeMatch(match, white, black, now)
+  const next: Tournament = {
+    ...tournament, version: tournament.version >= 4 ? tournament.version : 4, revision: tournament.revision + 1, activeMatch: null,
+    completedMatches: [...(tournament.completedMatches ?? []), completed],
+  }
+  if (!isTournament(next)) throw new Error('Das Ergebnis kann nicht gespeichert werden: Die Turnierdaten oder berechneten Punktzahlen sind ungültig.')
+  return next
+}
+
+export function completeMatch(match: OpenMatch, first: string, second: string, now: number): CompletedMatch {
+  const problem = resultError(first, second, now >= Date.parse(match.endsAt))
   if (problem) throw new Error(problem)
   if (!Number.isFinite(now) || Math.abs(now) > 8.64e15 || now < Date.parse(match.startedAt)) {
     throw new Error('Der Abschlusszeitpunkt ist ungültig. Bitte die Geräteuhr prüfen.')
   }
-  const next: Tournament = {
-    ...tournament, version: 4, revision: tournament.revision + 1, activeMatch: null,
-    completedMatches: [...(tournament.completedMatches ?? []), {
-      ...match, whiteGoals: Number(white), blackGoals: Number(black), finishedAt: new Date(now).toISOString(),
-    }],
-  }
-  if (!isTournament(next)) throw new Error('Das Ergebnis kann nicht gespeichert werden: Die Turnierdaten oder berechneten Punktzahlen sind ungültig.')
-  return next
+  return { ...match, whiteGoals: Number(first), blackGoals: Number(second), finishedAt: new Date(now).toISOString() }
 }
 
 export function startMatch(tournament: Tournament, lineup: Lineup, now = Date.now()): ActiveTournament {
@@ -92,22 +95,26 @@ export function startMatch(tournament: Tournament, lineup: Lineup, now = Date.no
   if (tournament.activeMatch) throw new Error('Es ist bereits eine Partie offen.')
   const problem = lineupError(lineup, tournament.players ?? [])
   if (problem) throw new Error(problem)
-  const end = now + tournament.settings.matchMinutes * 60_000
+  return {
+    ...tournament, version: tournament.version >= 4 ? tournament.version : 3, revision: tournament.revision + 1,
+    activeMatch: createOpenMatch(lineup, tournament.settings.matchMinutes, now),
+  }
+}
+
+export function createOpenMatch(lineup: Lineup, minutes: number, now: number): OpenMatch {
+  const end = now + minutes * 60_000
   if (!Number.isFinite(now) || !Number.isFinite(end) || Math.abs(end) > 8.64e15 || Math.abs(now) > 8.64e15) {
     throw new Error('Diese Partiedauer überschreitet den darstellbaren Zeitbereich.')
   }
   return {
-    ...tournament, version: tournament.version === 4 ? 4 : 3, revision: tournament.revision + 1,
-    activeMatch: {
-      id: crypto.randomUUID(), lineup: { ...lineup },
-      startedAt: new Date(now).toISOString(), endsAt: new Date(end).toISOString(), whistleAttempted: false,
-    },
+    id: crypto.randomUUID(), lineup: { ...lineup },
+    startedAt: new Date(now).toISOString(), endsAt: new Date(end).toISOString(), whistleAttempted: false,
   }
 }
 
 export function abortMatch(tournament: Tournament): Tournament {
   if (!tournament.activeMatch) throw new Error('Es ist keine Partie mehr offen. Bitte das Turnier erneut öffnen.')
-  return { ...tournament, version: tournament.version === 4 ? 4 : 3, revision: tournament.revision + 1, activeMatch: null }
+  return { ...tournament, version: tournament.version >= 4 ? tournament.version : 3, revision: tournament.revision + 1, activeMatch: null }
 }
 
 export function remainingSeconds(endsAt: string, now: number): number {

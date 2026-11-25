@@ -3,6 +3,8 @@ import type { Player } from './players'
 import { isCompletedMatches, isOpenMatch } from './matches'
 import type { CompletedMatch, OpenMatch } from './matches'
 import { calculateStandings } from './standings'
+import { isKnockoutState } from './knockout'
+import type { KnockoutState } from './knockout'
 
 export interface TournamentSettings {
   name: string
@@ -17,15 +19,16 @@ export interface TournamentSettings {
 }
 
 export interface Tournament {
-  version: 1 | 2 | 3 | 4
+  version: 1 | 2 | 3 | 4 | 5
   id: string
   revision: number
-  phase: 'preparation' | 'preliminary'
+  phase: 'preparation' | 'preliminary' | 'knockout'
   settings: TournamentSettings
   codeHash: string
   players?: Player[]
   activeMatch?: OpenMatch | null
   completedMatches?: CompletedMatch[]
+  knockout?: KnockoutState | null
 }
 
 export interface TournamentDraft {
@@ -155,10 +158,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function isTournament(value: unknown): value is Tournament {
-  if (!isRecord(value) || typeof value.version !== 'number' || ![1, 2, 3, 4].includes(value.version) || typeof value.id !== 'string' || !value.id ||
+  if (!isRecord(value) || typeof value.version !== 'number' || ![1, 2, 3, 4, 5].includes(value.version) || typeof value.id !== 'string' || !value.id ||
       !Number.isSafeInteger(value.revision) || Number(value.revision) < 1 ||
-      (value.phase !== 'preparation' && value.phase !== 'preliminary') || typeof value.codeHash !== 'string' ||
+      (value.phase !== 'preparation' && value.phase !== 'preliminary' && value.phase !== 'knockout') || typeof value.codeHash !== 'string' ||
       !/^[a-f0-9]{64}$/.test(value.codeHash) || !isRecord(value.settings)) return false
+  if (value.version < 5 && ('knockout' in value || value.phase === 'knockout')) return false
   if ((value.version >= 2 || 'players' in value) && !isPlayerList(value.players)) return false
   if (value.phase === 'preliminary' &&
       (value.version < 2 || !isPlayerList(value.players) || value.players.length < 4)) return false
@@ -182,14 +186,19 @@ export function isTournament(value: unknown): value is Tournament {
   if (value.version < 3) return !('activeMatch' in value) && !('completedMatches' in value)
   if (!isPlayerList(value.players) || !('activeMatch' in value) ||
       (value.activeMatch !== null && !isOpenMatch(value.activeMatch, value.players, result.settings.matchMinutes)) ||
-      (value.phase !== 'preliminary' && value.activeMatch !== null)) return false
+      (value.phase === 'preparation' && value.activeMatch !== null)) return false
   if (value.version === 3) return !('completedMatches' in value)
   const activeMatch = value.activeMatch
   if (!isCompletedMatches(value.completedMatches, value.players, result.settings.matchMinutes) ||
-      (value.phase !== 'preliminary' && value.completedMatches.length > 0) ||
+      (value.phase === 'preparation' && value.completedMatches.length > 0) ||
       (activeMatch !== null && value.completedMatches.some((match) => match.id === activeMatch.id))) return false
-  return calculateStandings(value.players, value.completedMatches, result.settings).every(({ player: _player, ...stats }) =>
-    Object.values(stats).every(Number.isSafeInteger))
+  const standings = calculateStandings(value.players, value.completedMatches, result.settings)
+  if (!standings.every(({ player: _player, ...stats }) => Object.values(stats).every(Number.isSafeInteger))) return false
+  if (value.version < 5) return true
+  if (!('knockout' in value)) return false
+  if (value.phase !== 'knockout') return value.knockout === null
+  return isKnockoutState(value.knockout, standings, value.players, result.settings.matchMinutes, activeMatch) &&
+    isCompletedMatches([...value.completedMatches, ...value.knockout.results], value.players, result.settings.matchMinutes)
 }
 
 export function assertPreparation(tournament: Tournament): void {

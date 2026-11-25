@@ -12,8 +12,13 @@ Story 1.7 ist umgesetzt, automatisiert und im Browser getestet und nach
 allen drei bestandenen Entwickler-Praxispruefungen am 25.11.2026 abgenommen.
 Story 1.8 ist einschliesslich Ergebnisverlauf und kompakter Turnieruebersicht
 umgesetzt, getestet und nach beiden bestandenen Entwickler-Praxispruefungen
-am 25.11.2026 abgenommen. Stories 1.9 und 1.10 sind noch nicht implementiert;
-das Epic bleibt offen.
+am 25.11.2026 abgenommen. Story 1.9 ist umgesetzt, automatisiert und im Browser
+getestet; beide Entwickler-Praxispruefungen sind bestanden.
+Die gewuenschte UI-Anpassung ist ebenfalls freigegeben, umgesetzt und
+getestet: links nur der K.-o.-Spielplan, Vorrundentabelle ausschliesslich im
+unteren Archiv. Auch die erneute Layoutpruefung P3 ist bestanden;
+Story 1.9 wurde am 25.11.2026 ausdruecklich abgenommen.
+Story 1.10 ist noch nicht implementiert; das Epic bleibt offen.
 
 ## Ziel
 
@@ -74,6 +79,14 @@ Plaetze 1 bis 4 aus. Die Bedienung funktioniert mit Maus und Touch.
   Halbfinals A gegen D und B gegen C, danach Platz 3, danach Finale.
 - K.-o.-Teams bleiben fest; keine Positions- oder Farbauswahl. Ergebnisse
   werden direkt dem jeweiligen Team zugeordnet, ohne Vorrundenpunkte.
+- Freigegebene Bedienkonkretisierung fuer Story 1.9 vom 25.11.2026:
+  Die bekannte Partieansicht mit Tisch und grossen Avataren bleibt erhalten;
+  feste Teams werden automatisch eingesetzt. Gemaess anschliessend
+  freigegebener UI-Rueckmeldung steht links direkt der K.-o.-Spielplan;
+  die eingefrorene Tabelle ist ausschliesslich im unteren Archiv erreichbar.
+  Fuer die Qualifikation
+  gilt keine Mindestspielzahl. Die separate Abschlussgestaltung folgt
+  in Story 1.10.
 - Abschluss zeigt den eingefrorenen Vorrundenstand aller Personen und
   getrennt die vier K.-o.-Teams in ihrer endgueltigen Platzierung.
 
@@ -211,7 +224,7 @@ Erst nach Rueckmeldung und ausstehenden Entwicklertests folgt die naechste.
 6. [Vorrundenpartie besetzen: abgenommen](./story-1_6-DONE.md)
 7. [Partie, Countdown und Unterbrechungen: abgenommen](./story-1_7-DONE.md)
 8. [Ergebnis bestaetigen und Punkte auswerten: abgenommen](./story-1_8-DONE.md)
-9. [K.-o.-Phase spielen](./story-1_9.md)
+9. [K.-o.-Phase spielen](./story-1_9-DONE.md)
 10. [Turnierabschluss anzeigen](./story-1_10.md)
 
 Das JSON-Sicherungsformat aus Story 3 wird bei Einfuehrung neuer Daten in den

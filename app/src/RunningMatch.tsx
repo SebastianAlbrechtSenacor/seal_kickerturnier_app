@@ -4,6 +4,8 @@ import type { ActiveTournament } from './matches'
 import type { Whistle } from './whistle'
 import { LineupPitch, MatchInfo } from './MatchPresentation'
 import StandingsTable from './StandingsTable'
+import { KnockoutArchive, KnockoutPlan } from './KnockoutBoard'
+import { nextKnockoutFixture } from './knockout'
 import './RunningMatch.css'
 
 interface Props {
@@ -23,6 +25,8 @@ interface Props {
 export default function RunningMatch({ tournament, whistle, audioBusy, onTestAudio, onAudioError, onWhistle,
   onAbort, onSave, onCheckCurrent, onBack, onExport }: Props) {
   const match = tournament.activeMatch
+  const fixture = tournament.knockout ? nextKnockoutFixture(tournament.knockout) : null
+  const labels = { white: fixture ? `Team ${fixture.first.id}` : 'Weiß', black: fixture ? `Team ${fixture.second.id}` : 'Schwarz' }
   const [now, setNow] = useState(Date.now)
   const [entry, setEntry] = useState(false)
   const [preview, setPreview] = useState(false)
@@ -111,8 +115,10 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
     <>
       <p className="card-description">Gespeicherte offene Partie. Die Aufstellung ist gesperrt; Verlassen oder Sperren stoppt die Zeit nicht.</p>
       <div className="match-layout">
-        <StandingsTable compact tournament={tournament} />
+        {tournament.knockout ? <KnockoutPlan tournament={tournament} /> :
+          <StandingsTable compact tournament={tournament} />}
         <section className="lineup-panel" aria-label="Laufende Partie">
+          {fixture && <h3>{fixture.title}: {labels.white} gegen {labels.black}</h3>}
           <div className={`match-clock${expired ? ' is-expired' : ''}`}>
             <span>RESTZEIT</span>
             <div role="timer" aria-label="Restzeit" aria-live="off">{formatCountdown(seconds)}</div>
@@ -122,11 +128,12 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
             onClick={onTestAudio}>{audioBusy ? 'Audio wird aktiviert ...' : 'Ton aktivieren / testen'}</button>
           <p className="form-note">{whistle.ready() ? 'Audio aktiviert. Geräte-Lautstärke mit dem Testpfiff prüfen.' :
             'Ton nicht aktiviert. Der sichtbare Ablaufhinweis bleibt immer verfügbar.'}</p>
-          <LineupPitch players={tournament.players ?? []} lineup={match.lineup} />
+          <LineupPitch players={tournament.players ?? []} lineup={match.lineup} teamLabels={fixture ? labels : undefined} />
           {confirmAbort ? (
             <section className="match-result" aria-label="Abbruch bestätigen">
               <h3 ref={abortHeading} tabIndex={-1}>Partie wirklich abbrechen?</h3>
-              <p>Ohne Ergebnis und ohne Punkte beenden. Die nächste Aufstellung beginnt leer.</p>
+              <p>{fixture ? 'Ohne Ergebnis beenden. Dieselbe Begegnung mit denselben Teams bleibt neu startbar.' :
+                'Ohne Ergebnis und ohne Punkte beenden. Die nächste Aufstellung beginnt leer.'}</p>
               <div className="form-actions">
                 <button className="action-button" type="button" disabled={busy} onClick={() => void commit('abort')}>
                   {pending === 'abort' ? 'Wird abgebrochen ...' : 'Partie verbindlich abbrechen'}</button>
@@ -137,8 +144,9 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
           ) : preview ? (
             <section className="match-result" aria-label="Ergebnisprüfung">
               <h3 ref={entryHeading} tabIndex={-1}>Ergebnis prüfen</h3>
-              <p><strong>Weiß {white} : {black} Schwarz</strong></p>
-              <p>Weiß: {team('white')}</p><p>Schwarz: {team('black')}</p>
+              <p><strong>{labels.white} {white} : {black} {labels.black}</strong></p>
+              <p>{labels.white}: {team('white')}</p><p>{labels.black}: {team('black')}</p>
+              {fixture && <p>Keine Vorrundenpunkte. Dieses Ergebnis entscheidet den K.-o.-Spielplan.</p>}
               <p role="status">Noch nicht gespeichert. Nach der Bestätigung sind Ergebnis und Wertung unveränderlich.</p>
               <button className="action-button" type="button" disabled={busy} onClick={() => void commit('save')}>
                 {pending === 'save' ? 'Wird gespeichert ...' : 'Ergebnis verbindlich speichern'}</button>
@@ -152,9 +160,9 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
               <h3 ref={entryHeading} tabIndex={-1}>Ergebnis eingeben</h3>
               <p>{expired ? 'Kein Unentschieden: gegebenenfalls bis zum nächsten Tor weiterspielen.' : 'Vor Ablauf muss genau ein Team 10 Tore erreicht haben. Die Zeit läuft weiter.'}</p>
               <div className="score-inputs">
-                <label>Tore Weiß<input type="number" min="0" max="10" step="1" inputMode="numeric" value={white}
+                <label>Tore {labels.white}{fixture && ` (${team('white')})`}<input type="number" min="0" max="10" step="1" inputMode="numeric" value={white}
                   onChange={(event) => { setWhite(event.target.value); setError('') }} /></label>
-                <label>Tore Schwarz<input type="number" min="0" max="10" step="1" inputMode="numeric" value={black}
+                <label>Tore {labels.black}{fixture && ` (${team('black')})`}<input type="number" min="0" max="10" step="1" inputMode="numeric" value={black}
                   onChange={(event) => { setBlack(event.target.value); setError('') }} /></label>
               </div>
               <div className="form-actions">
@@ -173,6 +181,7 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
             onClick={() => { setConfirmAbort(true); setError('') }}>Partie abbrechen</button>}
         </section>
       </div>
+      {tournament.knockout && <KnockoutArchive tournament={tournament} />}
       <MatchInfo tournament={tournament}>
         <p>Nur ausdrücklich gespeicherte Ergebnisse zählen. Ein bestätigter Abbruch beendet die Partie ohne Wertung.</p>
         <div className="form-actions">

@@ -1,0 +1,9 @@
+.match-layout > .match-history { margin-top: 0; }
+.knockout-plan li[aria-current="step"] { border-color: #b46b00; background: #fff0cb; }
+.knockout-plan h4 { margin: 0 0 8px; font-size: 16px; }
+.knockout-plan p { font-size: 13px; line-height: 1.7; }
+.knockout-plan .history-score { margin-top: 8px; margin-bottom: 0; font-size: 16px; }
+.knockout-archive { margin-top: 28px; min-width: 0; }
+.knockout-archive > summary { cursor: pointer; color: #006c71; font-weight: 700; }
+.knockout-qualifiers { padding-left: 28px; margin-block: 20px; line-height: 1.9; }
+.start-confirmation:has(.knockout-qualifiers) { overflow-wrap: anywhere; }

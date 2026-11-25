@@ -49,7 +49,13 @@ am 25.11.2026 ausdruecklich abgenommen.
 [Story 1.8](./spec/story-1_8-DONE.md) ist einschliesslich Ergebnisverlauf und
 kompakter Turnieruebersicht umgesetzt, getestet und nach beiden bestandenen
 Entwickler-Praxispruefungen am 25.11.2026 ausdruecklich abgenommen.
-Stories 1.9 und 1.10 sind noch nicht implementiert.
+[Story 1.9](./spec/story-1_9-DONE.md) ist mit der vertrauten Partieansicht umgesetzt,
+automatisiert und im Browser getestet. Beide Entwickler-Praxispruefungen
+sind bestanden; die anschliessend gewuenschte Anpassung der linken
+K.-o.-Ansicht ist ebenfalls freigegeben, umgesetzt und getestet.
+Auch die erneute Layoutpruefung P3 ist bestanden; die Story wurde am
+25.11.2026 ausdruecklich abgenommen.
+Story 1.10 ist noch nicht implementiert.
 
 ## Turniere vorbereiten
 
@@ -251,13 +257,57 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
   Das bewusste Ersetzen des ganzen Turniers durch eine Sicherung bleibt
   davon getrennt moeglich, einschliesslich des gesamten Ergebnisverlaufs.
 
+### K.-o.-Phase spielen
+
+1. In der Turnieruebersicht **K.-o.-Phase starten** waehlen. Erforderlich
+   sind mindestens acht angemeldete Personen und keine offene Partie.
+   Eine Mindestspielzahl gibt es nicht; bei mehr als acht Personen
+   qualifizieren sich genau die ersten acht der aktuellen Tabelle.
+2. Die Vorschau zeigt die Qualifizierten und feste Teams:
+   **A = Rang 1+8**, **B = 2+7**, **C = 3+6**, **D = 4+5**.
+   **Abbrechen** veraendert nichts. **K.-o.-Phase verbindlich starten**
+   friert die vollstaendige Vorrundentabelle aller Personen ein.
+   Weitere Vorrundenpartien sind danach gesperrt.
+3. Links steht direkt der K.-o.-Spielplan, ohne zusaetzliche Vorrundentabelle;
+   rechts steht derselbe Tisch mit vier grossen Avataren. Die festen Teammitglieder
+   sind automatisch eingesetzt und nicht veraenderbar. Beschriftungen nennen
+   Teams statt Positionen oder Farben; es gibt keine weitere Auswahl.
+4. Die feste Reihenfolge lautet **Halbfinale A gegen D**, **Halbfinale
+   B gegen C**, **Spiel um Platz 3 der beiden Verliererteams**, **Finale
+   der beiden Siegerteams**. Ueberspringen ist nicht moeglich.
+   Unbekannte spaetere Paarungen zeigen Sieger-/Verlierer-Platzhalter.
+5. **Spiel starten** speichert die Partie und startet den bekannten
+   Countdown mit derselben Partiedauer und denselben Audio-/Ergebnisregeln.
+   Die Torefelder und Vorschau nennen beide Teams samt Personen.
+   K.-o.-Ergebnisse veraendern keine Vorrundenpunkte oder -statistiken.
+6. Nach **Ergebnis verbindlich speichern** ist die naechste feste Begegnung
+   sofort vorbereitet, startet aber erst nach erneutem **Spiel starten**.
+   Bestaetigtes Abbrechen laesst dieselbe Begegnung ungewertet zum Neustart
+   bereit. Neuladen behaelt eine offene Partie samt urspruenglichem Endzeitpunkt.
+7. Ausschliesslich unten unter **Vorrundenstand und Ergebnisse** lassen sich
+   die vollstaendige eingefrorene Tabelle aller Personen und alle
+   Vorrundenergebnisse aufklappen, auch waehrend einer Partie.
+   Auf schmalen Bildschirmen steht der Spielplan vor dem Tisch;
+   die vollstaendige Tabelle bleibt innerhalb ihres Bereichs scrollbar.
+8. Nach dem Finale steht **K.-o.-Phase abgeschlossen** mit allen vier
+   Ergebnissen. Weitere Starts sind auch nach Neuladen oder Wiederherstellen
+   gesperrt. Export und Navigation bleiben moeglich. Der separate
+   Abschlussbildschirm mit Teamplatzierungen folgt erst in Story 1.10.
+
+Der normale Phasenwechsel ist unumkehrbar. Davon getrennt bleibt das bewusst
+bestaetigte Ersetzen des ganzen Turniers durch eine Sicherung moeglich.
+Bei Schreibfehlern bleiben Phase, offene Partie beziehungsweise Ergebnisentwurf
+und der zuletzt gespeicherte Spielplan erhalten. Veraltete Tabs werden mit
+Konfliktmeldung abgewiesen, statt einen neueren Stand zu ueberschreiben.
+
 ### JSON-Sicherung und Wiederherstellung
 
 - Im geoeffneten Turnier **JSON-Sicherung herunterladen** waehlen.
   Die UTF-8-Datei enthaelt ID, Einstellungen, Spielende mit IDs/Spitznamen/Avataren,
   Phase, abgeschlossene Partien mit Aufstellungen, Toren und Zeitpunkten,
   eine gegebenenfalls offene Partie mit urspruenglichen Zeitpunkten sowie
-  den Pruefwert des
+  in der K.-o.-Phase den eingefrorenen Vorrundenstand, feste Teams und
+  deren separaten Ergebnisverlauf. Sie enthaelt den Pruefwert des
   Turniercodes, aber weder Mastercode noch Klartext-Codes oder entsperrte Sitzung.
   Die Daten sind nicht verschluesselt; Sicherungen nicht oeffentlich teilen.
 - In der Turnierauswahl **JSON-Sicherung importieren** waehlen und die
@@ -272,7 +322,8 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
   diese muss vorher ausdruecklich abgebrochen werden.
   Die Vorschau warnt ausdruecklich vor dem Ersetzen des gesamten
   Ergebnisverlaufs und der daraus berechneten Wertung und zeigt die
-  Ergebnisanzahl der Sicherung und des lokalen Stands. Auch eine aeltere
+  Ergebnisanzahl der Sicherung und des lokalen Stands, einschliesslich
+  K.-o.-Ergebnissen. Auch eine aeltere
   Sicherung mit weniger oder keinen Ergebnissen ersetzt alles;
   neuere lokale Ergebnisse gehen dabei bewusst verloren.
   Das gilt auch fuer eine gestartete Vorrunde: Eine aeltere
@@ -289,7 +340,7 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
   Zeitpunkten weiter; bereits abgelaufene Zeit bleibt abgelaufen.
   Nicht gespeicherte Toreentwuerfe sind kein Bestandteil der Sicherung.
   Ergebnisse und die daraus berechnete Wertung werden vollstaendig
-  wiederhergestellt. Weitere Turnierphasen folgen in den naechsten Stories.
+  wiederhergestellt, einschliesslich K.-o.-Spielplan und festgelegter Teams.
   CSV wird nicht unterstuetzt.
 
 Alte Turniere und Sicherungen ohne Spielendenliste bleiben nutzbar und
@@ -298,15 +349,19 @@ Datenschema 2 mit ausdruecklicher Spielendenliste. Ab dem ersten Partiestart
 verwendet ein Turnier Schema 3 mit offener Partie oder ausdruecklichem
 Leerwert nach Abbruch. Mit dem ersten gespeicherten Ergebnis folgt
 Schema 4 mit ausdruecklichem Ergebnisverlauf; dieses Schema bleibt bei
-weiteren Starts und Abbruechen erhalten. Alte Schemata ohne Ergebnisse
-bleiben lesbar und koennen normal fortgesetzt werden.
+weiteren Starts und Abbruechen erhalten. Der K.-o.-Start verwendet Schema 5
+mit eingefrorener Vorrundentabelle, festen Teams und separaten K.-o.-Ergebnissen.
+Alte Schemata ohne Ergebnisse oder K.-o.-Daten bleiben lesbar und koennen
+normal fortgesetzt werden.
 Die Sicherungshuellen-Version bleibt 1. Alte App-Versionen koennen die
 jeweils neueren Schemata nicht bearbeiten und daher keine unbekannten
 Daten versehentlich entfernen. Nach einem Deployment offene App-Tabs
 neu laden. Ungueltige oder doppelte Spielenden-IDs, Spitznamen und Avatare
 sowie doppelte Partie-IDs, ungueltige Endstaende, widerspruechliche
 Aufstellungen und Partiezeitpunkte werden beim Laden/Importieren
-abgewiesen. Nicht mehr exakt darstellbare Punktesummen werden ebenfalls
+abgewiesen. Das gilt auch fuer widerspruechliche K.-o.-Teams, veraenderte
+Vorrunden-Snapshots und eine falsche Begegnungsreihenfolge.
+Nicht mehr exakt darstellbare Punktesummen werden ebenfalls
 mit Fehler zurueckgewiesen, statt falsche Ranglisten zu speichern.
 
 ## Lokal starten
@@ -386,11 +441,9 @@ Zugangsmaske nicht verschluesselt.
 
 ## Geplanter weiterer Funktionsumfang
 
-- Partien mit der konfigurierten Dauer und Punktewertung.
-  Keine Unentschieden; bei Gleichstand nach Zeit entscheidet das naechste Tor.
-- Wechselnde Zweierteams, individuelle Punkte und Rangliste.
-- K.-o.-Phase der besten acht Personen mit festen Teams und
-  getrennten Abschlusswertungen.
+- Separater feierlicher Abschlussbildschirm mit eingefrorener
+  Vorrundentabelle und den vier K.-o.-Teams in ihrer endgueltigen Platzierung
+  (Story 1.10).
 
 Kein Backend und keine automatische Synchronisation zwischen Geraeten.
 Geloeschte Browserdaten koennen ohne Sicherung zum Datenverlust fuehren.

@@ -1,5 +1,6 @@
 import type { Player } from './players'
 import type { ReactNode } from 'react'
+import { useId } from 'react'
 import { calculateStandings } from './standings'
 import type { Tournament } from './tournament'
 
@@ -12,14 +13,17 @@ interface Props {
 }
 
 export default function StandingsTable({ tournament, onPrepare, renderPlayer, compact = false, prepareLabel = 'Partie vorbereiten' }: Props) {
-  const standings = calculateStandings(tournament.players ?? [], tournament.completedMatches ?? [], tournament.settings)
+  const standings = tournament.knockout?.standings ?? calculateStandings(tournament.players ?? [], tournament.completedMatches ?? [], tournament.settings)
+  const id = useId()
+  const heading = `${id}-heading`
+  const hint = `${id}-hint`
   return (
-    <section className="standings" aria-labelledby="standings-heading">
-      <h3 id="standings-heading">Vorrundentabelle</h3>
-      <p className="form-note" id="standings-hint">Jede Person sammelt ihre eigenen Punkte.
+    <section className="standings" aria-labelledby={heading}>
+      <h3 id={heading}>{tournament.knockout ? 'Vorrunde (eingefroren)' : 'Vorrundentabelle'}</h3>
+      <p className="form-note" id={hint}>{tournament.knockout ? 'Dieser Stand bleibt während der K.-o.-Phase unverändert.' : 'Jede Person sammelt ihre eigenen Punkte.'}
         {!compact && ' Auf schmalen Bildschirmen die Tabelle seitlich scrollen.'}</p>
       <div className="standings-scroll" role="region" aria-label={compact ? 'Vorrundentabelle scrollen' : 'Vorrundentabelle horizontal scrollen'}
-        aria-describedby="standings-hint" tabIndex={0}>
+        aria-describedby={hint} tabIndex={0}>
         <table className={`standings-table${compact ? ' standings-compact' : ''}`}>
           <caption className="sr-only">Individuelle Vorrundenwertung</caption>
           <thead>
