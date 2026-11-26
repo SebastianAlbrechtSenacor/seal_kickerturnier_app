@@ -84,8 +84,9 @@ Ergebnisse zeigen beide Teams und den Spielstand in einer Zeile;
 Datum und Uhrzeit stehen in den aufklappbaren Ergebnisdetails.
 
 Beim Anlegen und Bearbeiten stehen Beschreibung, Spielregeln und
-Zeitplanung unter **Weitere Einstellungen**. In der Turniervorbereitung
-sind ausfuehrliche Angaben unter **Turnierinfos** erreichbar.
+Zeitplanung direkt im Formular. Vor dem Vorrundenstart zeigt die
+Turniervorbereitung alle Angaben direkt sowie die angemeldeten Namen
+kommagetrennt und ohne Avatare.
 
 1. Anwendung mit dem Master-Zugangscode entsperren.
 2. **Turnier anlegen** waehlen. Name, Datum/Startzeit und Spielort eingeben.
@@ -98,7 +99,7 @@ sind ausfuehrliche Angaben unter **Turnierinfos** erreichbar.
    Sie ist unabhaengig von der Partiedauer und startet keine Phase automatisch.
 5. **Turnier speichern** oeffnet das neu angelegte Turnier sofort.
    **Einstellungen bearbeiten** erlaubt Aenderungen in der Vorbereitung.
-6. **Zur Turnierauswahl** fuehrt zur Liste mit Name und Datum zurueck.
+6. **Turnier verlassen** fuehrt direkt zur Liste mit Name und Datum zurueck.
    **Oeffnen** zeigt das gespeicherte Turnier direkt.
 7. Neuladen beendet die Master-Freigabe nicht. Gespeicherte Turniere
    bleiben auch nach Ende der Sitzung im selben Browserprofil erhalten.
@@ -148,7 +149,7 @@ Der Turnierstart erfolgt ausschliesslich manuell mit Bestaetigung.
    behalten diese Zuordnungen. **Entfernen** fordert eine Bestaetigung;
    **Abbrechen** laesst die Person unveraendert. Ein Avatar aus der
    aktuellen Palette wird nach dem Entfernen wieder frei.
-5. **Zur Turnieruebersicht** fuehrt zu Einstellungen und JSON-Sicherung zurueck.
+5. **Zur Turniervorbereitung** fuehrt zu den Einstellungen und zum Vorrundenstart zurueck.
    Aendern der Turniereinstellungen behaelt die Spielendenliste bei.
 
 Spitznamen und Avatare sind pro Turnier eindeutig; andere Turniere duerfen
@@ -191,7 +192,7 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
 ### Eine Partie besetzen
 
 1. Links steht die kompakte Tabelle mit **Rang**, **Spielende** und **Punkte**,
-   rechts der groessere Tisch. **Mehr Infos** an der Vorrundentabelle oeffnet alle
+   rechts der Tisch. **Vollständige Vorrundentabelle** oeffnet alle
    neun Spalten im Overlay. **Schließen** oder Escape kehrt zum Ausloeser
    zurueck; die Aufstellung bleibt erhalten. Auf schmalen Bildschirmen stehen
    Tabelle und Tisch untereinander.
@@ -235,10 +236,11 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    Bereiche untereinander. Die Restzeit folgt dem gespeicherten Endzeitpunkt:
    Neuladen, Tabwechsel oder Verlassen halten die Partie nicht an.
    Nach erneutem Zugang wird dieselbe offene Partie angezeigt.
-2. Der Start aktiviert den Ton im Rahmen des Klicks. **Ton aktivieren / testen**
-   erlaubt einen Testpfiff, auch nach erneutem Oeffnen. Geraetelautstaerke
-   pruefen! Audiofehler erscheinen sichtbar und verhindern weder den
-   gespeicherten Start noch die spaetere Ergebniseingabe.
+2. Der Start aktiviert den Ton im Rahmen des Klicks. Nach erneutem Oeffnen
+   versucht die App bei der naechsten geeigneten Bedieninteraktion, Audio
+   zu aktivieren. Wenn der Browser die Aktivierung blockiert, bleibt der
+   sichtbare Ablaufhinweis massgeblich. Eine bereits abgelaufene Partie
+   pfeift nicht nachtraeglich.
 3. Bei Zeitablauf steht der Timer auf `00:00`; ein deutlicher Hinweis und
    **Ergebnis eingeben** erscheinen. Bei Gleichstand entscheidet das naechste
    Tor. Die App versucht hoechstens einmal je gespeicherter Partie automatisch
@@ -263,7 +265,8 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    Ergebnis und Punkte und oeffnet eine leere neue Aufstellung.
    Ein Schreibfehler beim Abbruch oder beim Ergebnisspeichern laesst die
    gespeicherte Partie offen und zeigt einen Fehler; der Entwurf bleibt erhalten.
-   Auch ueber die Turnieruebersicht kann keine zweite Partie parallel starten.
+   **Turnier verlassen** beendet die Partie nicht. Beim erneuten Oeffnen
+   zeigt die App direkt die noch offene Partie an.
 
 ### Individuelle Wertung und Ergebnisverlauf
 
@@ -274,15 +277,16 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
   Tabellen in Uebersicht, Vorbereitung und laufender Partie verwenden
   denselben berechneten Stand und dieselben Rangentscheidungen.
 - Unter dem Spieltisch stehen hoechstens die **letzten drei Ergebnisse**.
-  **Mehr Infos** an der Ergebnisliste oeffnet den vollstaendigen Verlauf
+  **Vollständiger Ergebnisverlauf** oeffnet den Verlauf
   im Overlay, ohne die Aufstellung zu verwerfen.
   Zuletzt gespeicherte Partien stehen zuerst, mit Endstand, Teams samt
   Namen/Avataren und Abschlusszeit in Eschborner Ortszeit.
 - Ohne Ergebnisse erscheint ein Leerhinweis. Offene oder abgebrochene
   Partien erscheinen nicht im Verlauf und bringen keine Punkte.
-- **Mehr Infos** an der Turnierinfo unten oeffnet Beschreibung, geplante
-  Phasendauern und Zeitplanung auf. Vor Vorrundenstart bleibt die
-  bisherige ausfuehrliche Vorbereitungsansicht erhalten.
+- **Turnierinfos** bzw. **Weitere Turnierinfos** steht in den
+  Spielansichten und auf der Siegerehrung bei den Basisinfos unter der
+  Trennlinie am unteren Kartenrand. Der Link oeffnet Beschreibung,
+  geplante Phasendauern und Zeitplanung.
 - **✎ Bearbeiten** neben einem der letzten drei Vorrundenergebnisse ist
   verfuegbar, solange keine Partie offen ist und die K.-o.-Phase noch nicht
   begonnen hat. **Korrektur speichern** aendert nur den Torstand: Ganze Tore
@@ -301,7 +305,7 @@ blau-tuerkis-gruenes Farbschema mit gelb-orangen Akzenten. Erst der
 erfolgreich gespeicherte K.-o.-Start wechselt die gesamte Anwendung zu
 Dunkelblau mit einem kraeftigen diagonalen Verlauf sowie gruenen und
 tief-orangen Lichtakzenten. Das dunkle Schema bleibt beim erneuten
-Oeffnen eines K.-o.-Turniers, in seiner Uebersicht und auf der Siegerehrung
+Oeffnen eines K.-o.-Turniers und auf der Siegerehrung
 aktiv. Die Rueckkehr zur Turnierauswahl stellt das helle Schema wieder her.
 Die Master-Zugangsmaske bleibt neutral.
 
@@ -309,13 +313,15 @@ Die Master-Zugangsmaske bleibt neutral.
    sind mindestens acht angemeldete Personen und keine offene Partie.
    Eine Mindestspielzahl gibt es nicht; bei mehr als acht Personen
    qualifizieren sich genau die ersten acht der aktuellen Tabelle.
-2. Die Vorschau zeigt die Qualifizierten und feste Teams:
+2. Die Vorschau zeigt die vollstaendige Vorrundentabelle, markiert die
+   ersten acht als qualifiziert und zeigt die festen Teams:
    **A = Rang 1+8**, **B = 2+7**, **C = 3+6**, **D = 4+5**.
    **Abbrechen** veraendert nichts. **K.-o.-Phase verbindlich starten**
    friert die vollstaendige Vorrundentabelle aller Personen ein.
    Weitere Vorrundenpartien sind danach gesperrt.
-3. Links steht direkt der K.-o.-Spielplan, ohne zusaetzliche Vorrundentabelle;
-   rechts steht derselbe Tisch mit vier grossen Avataren. Die festen Teammitglieder
+3. Links stehen alle vier K.-o.-Begegnungen, rechts derselbe Tisch mit
+   vier grossen Avataren. Im grossen Querformat bleibt der Tisch in
+   Vorbereitung und laufender Partie an derselben Stelle. Die festen Teammitglieder
    sind automatisch eingesetzt und nicht veraenderbar. Beschriftungen nennen
    Teams statt Positionen oder Farben; es gibt keine weitere Auswahl.
 4. Die feste Reihenfolge lautet **Halbfinale A gegen D**, **Halbfinale
@@ -324,7 +330,7 @@ Die Master-Zugangsmaske bleibt neutral.
    Unbekannte spaetere Paarungen zeigen Sieger-/Verlierer-Platzhalter.
 5. **Spiel starten** speichert die Partie und startet den bekannten
    Countdown mit derselben Partiedauer und denselben Audio-/Ergebnisregeln.
-   Die Torefelder nennen beide Teams samt Personen.
+   Die Torefelder stehen unter dem Tisch und zeigen Teamnamen und Avatare.
    K.-o.-Ergebnisse veraendern keine Vorrundenpunkte oder -statistiken.
 6. Nach **Ergebnis speichern** ist die naechste feste Begegnung
    sofort vorbereitet, startet aber erst nach erneutem **Spiel starten**.
@@ -332,7 +338,7 @@ Die Master-Zugangsmaske bleibt neutral.
    bereit. Neuladen behaelt eine offene Partie samt urspruenglichem Endzeitpunkt.
 7. Ausschliesslich unten unter **Vorrundenstand und Ergebnisse** lassen sich
    die vollstaendige eingefrorene Tabelle aller Personen und alle
-   Vorrundenergebnisse aufklappen, auch waehrend einer Partie.
+   Vorrundenergebnisse im Overlay anzeigen, auch waehrend einer Partie.
    Auf schmalen Bildschirmen steht der Spielplan vor dem Tisch;
    die vollstaendige Tabelle bleibt innerhalb ihres Bereichs scrollbar.
 8. Nach dem erfolgreich gespeicherten Finale erscheint automatisch die
@@ -352,14 +358,12 @@ Konfliktmeldung abgewiesen, statt einen neueren Stand zu ueberschreiben.
   Finalsieger auf Platz 1, Finalverlierer auf Platz 2, Sieger des Spiels
   um Platz 3 auf Platz 3. Dessen Verlierer steht als Platz 4 direkt darunter.
   Jedes Team zeigt beide Namen und Avatare.
-- Bei breiter Darstellung steht Platz 1 hervorgehoben in der Mitte,
-  Platz 2 links und Platz 3 rechts. Bis 1000 Pixel Breite stehen die
-  vier Teams in Rangfolge untereinander.
-- **Vorrundenstand und Ergebnisse** ist zunaechst eingeklappt und zeigt
-  bei Bedarf die vollstaendige eingefrorene Einzelwertung aller Personen
+- Im Querformat nutzt das Podest die Arbeitsbreite. Platz 1 steht am
+  hoechsten in der Mitte, Platz 2 mittelhoch links und Platz 3 niedriger rechts.
+- **Vorrundenstand und Ergebnisse** oeffnet die vollstaendige eingefrorene Einzelwertung
   sowie den gesamten Vorrundenverlauf. Diese Wertung ist von den Teamplaetzen
   getrennt und wird durch K.-o.-Ergebnisse nicht veraendert.
-  **K.-o.-Spielplan und Ergebnisse** klappt die vier K.-o.-Begegnungen auf.
+  **K.-o.-Spielplan und Ergebnisse** oeffnet das separate Overlay mit den vier Begegnungen.
 - Nur direkt nach dem erfolgreich gespeicherten Finale laeuft einmal
   eine kurze Konfettianimation von hoechstens zwei Sekunden. Archivaktionen,
   Export und Navigation funktionieren waehrenddessen sofort.
@@ -369,8 +373,8 @@ Konfliktmeldung abgewiesen, statt einen neueren Stand zu ueberschreiben.
   ohne erneute Animation. Auch bereits vorher abgeschlossene
   Schema-5-Turniere funktionieren ohne Datenmigration oder erneutes
   Speichern. Es werden keine zusaetzlichen Punkte vergeben.
-- **Zur Turnieruebersicht** zeigt die unveraenderlichen Turnierinformationen;
-  **Turnierabschluss anzeigen** fuehrt zur Siegerehrung zurueck.
+- **Turnier verlassen** kehrt direkt zur Liste zurueck. Beim erneuten
+  Oeffnen erscheint die Siegerehrung direkt.
   Die JSON-Sicherung bleibt verfuegbar. Ein bewusst bestaetigtes
   Wiederherstellen einer anderen Sicherung bleibt vom gesperrten
   Spielbetrieb getrennt moeglich.

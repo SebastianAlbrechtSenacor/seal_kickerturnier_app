@@ -18,6 +18,7 @@ export default function WorkspaceDialog({ label, inline, title, disabled, busy, 
   const id = useId()
   const dialog = useRef<HTMLDialogElement>(null)
   const opener = useRef<HTMLButtonElement>(null)
+  const closer = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
 
   function close() {
@@ -29,12 +30,12 @@ export default function WorkspaceDialog({ label, inline, title, disabled, busy, 
 
   return <>
     <button className={inline ? 'dialog-info-link' : 'secondary-button'} ref={opener} type="button" aria-haspopup="dialog"
-      aria-label={inline ? `Mehr Infos: ${label}` : undefined}
       aria-describedby={descriptionId} disabled={disabled || busy} onClick={() => {
         onOpen?.()
         dialog.current?.showModal()
+        closer.current?.focus({ preventScroll: true })
         setOpen(true)
-      }}>{inline ? 'Mehr Infos' : label}</button>
+      }}>{label}</button>
     <dialog className="workspace-dialog" ref={dialog} aria-labelledby={id}
       onKeyDown={(event) => {
         if (event.key !== 'Escape') return
@@ -47,7 +48,7 @@ export default function WorkspaceDialog({ label, inline, title, disabled, busy, 
       }}>
       <header className="workspace-dialog-header">
         <h3 id={id}>{title}</h3>
-        <button className="secondary-button" type="button" disabled={busy} onClick={close}>
+        <button className="secondary-button" ref={closer} type="button" disabled={busy} onClick={close}>
           {confirm ? 'Abbrechen' : 'Schließen'}
         </button>
       </header>

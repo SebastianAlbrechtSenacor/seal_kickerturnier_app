@@ -1,6 +1,11 @@
 .match-layout > .match-history { margin-top: 0; }
 .knockout-plan li[aria-current="step"] { border-color: var(--warning-line); background: var(--warning-bg); }
 .knockout-plan h4 { margin: 0 0 8px; font-size: 16px; }
+.qualified-row { background: var(--selected); }
+.qualification-badge { display: inline-block; margin-inline-start: .5em; color: var(--teal); font-size: .85em; }
+.knockout-team-preview { list-style: none; margin: 8px 0; padding: 0; }
+.knockout-team-preview li { display: grid; grid-template-columns: 5em repeat(2, minmax(0, 1fr)); gap: 8px; padding: 5px 8px; border-bottom: 1px solid var(--line); background: var(--surface); overflow-wrap: anywhere; }
+.match-info-actions, .app-shell .completion-archives { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; }
 .knockout-plan p { font-size: 13px; line-height: 1.7; }
 .knockout-plan .history-score { margin-top: 8px; margin-bottom: 0; font-size: 16px; }
 .knockout-archive { margin-top: 28px; min-width: 0; }

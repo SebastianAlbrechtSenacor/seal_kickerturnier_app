@@ -14,6 +14,9 @@ Firefox am Turnierlaptop sind bestanden. Das separate Deployment steht aus.
 Paket 4: Story 2.9 wurde am 26.11.2026 einschließlich des kräftigeren
 K.-o.-Hintergrunds abgenommen. Der lokale Browser-Durchlauf über beide
 Farbschemata ist bestanden. Das separate Deployment steht aus.
+Paket 5: Story 2.10 wurde am 26.11.2026 einschließlich der vier
+Screenshot-Nachträge abgenommen. Der lokale Browsercheck in beiden
+Referenzgrößen ist bestanden. Das separate Deployment steht aus.
 
 ## Ziel
 
@@ -89,7 +92,7 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 7. [Emoji-Avatare vielfältiger gestalten](./story-2_7-DONE.md)
 8. [Ergebnisse direkt speichern und jüngste Vorrundenspiele korrigieren](./story-2_8-DONE.md)
 9. [Farbschema mit Turnierphase wechseln](./story-2_9-DONE.md)
-10. [Anwendung durch Design-Fachperson prüfen und verfeinern](./story-2_10.md)
+10. [Anwendung durch Design-Fachperson prüfen und verfeinern](./story-2_10-DONE.md)
 11. [Neuen An- und Abpfiff abspielen](./story-2_11.md)
 12. [Konfetti-Kanonen für die Siegerehrung](./story-2_12.md)
 

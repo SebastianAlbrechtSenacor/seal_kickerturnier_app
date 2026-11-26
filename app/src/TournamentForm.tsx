@@ -27,7 +27,6 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
   const [errors, setErrors] = useState<Partial<Record<keyof TournamentDraft, string>>>({})
   const [saveError, setSaveError] = useState('')
   const [saving, setSaving] = useState(false)
-  const [advanced, setAdvanced] = useState(false)
   const startsAt = parseBerlinLocal(draft.startsAtLocal)
   const preliminary = Number(draft.preliminaryMinutes)
   const knockout = Number(draft.knockoutMinutes)
@@ -47,7 +46,6 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
     if (result.errors) {
       setErrors(result.errors)
       setSaveError('')
-      if (fields.slice(3).some(({ name }) => result.errors?.[name])) setAdvanced(true)
       return
     }
     setSaving(true)
@@ -87,17 +85,12 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
             </div>
           ))
           if (index === 0) return <div key="basic" className="form-grid basic-fields">{inputs}</div>
-          return <div key="advanced" className="advanced-settings">
-            <p className="settings-recap">Partie: {draft.matchMinutes} Min. · Vorrunde: {draft.preliminaryMinutes} Min. · K.-o.: {draft.knockoutMinutes} Min. · Punkte: {draft.winPoints}/{draft.lossPoints}</p>
-            <button type="button" className="secondary-button" aria-expanded={advanced}
-              aria-controls="advanced-tournament-settings" onClick={() => setAdvanced(!advanced)}>Weitere Einstellungen</button>
-            <div id="advanced-tournament-settings" className="advanced-settings-content" hidden={!advanced}>
+          return <div key="settings" className="settings-content">
               <div className="form-grid">{inputs}
           <div className="form-field full-width">
             <label htmlFor="tournament-description">Beschreibung (optional)</label>
             <textarea id="tournament-description" rows={3} value={draft.description}
               onChange={(event) => change('description', event.target.value)} />
-          </div>
         </div>
         <aside className="schedule-preview" aria-label="Zeitplanung" aria-live="polite">
           <h3>Zeitplanung</h3>

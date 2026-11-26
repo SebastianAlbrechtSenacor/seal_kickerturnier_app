@@ -113,6 +113,11 @@ export default function MatchHistory({ tournament, recent = false, headingAction
         </header>
         {editing && <div className="workspace-dialog-content">
           <p>Weiß {editing.whiteGoals} : {editing.blackGoals} Schwarz · {formatBerlinTime(editing.finishedAt)}</p>
+          {(['white', 'black'] as const).map((side) => <p key={side}>
+            {side === 'white' ? 'Weiß: ' : 'Schwarz: '}
+            {(['Defence', 'Attack'] as const).map((position) =>
+              tournament.players?.find(({ id }) => id === editing.lineup[`${side}${position}`])?.nickname).join(' + ')}
+          </p>)}
           {deleting ? <>
             <p>Das Spiel und seine Wertung werden dauerhaft entfernt.</p>
             <button type="button" className="action-button" disabled={busy} onClick={() => void commit({ kind: 'delete' })}>

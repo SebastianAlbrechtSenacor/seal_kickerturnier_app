@@ -183,10 +183,7 @@ form input[aria-invalid='true'] { border-color: var(--error, #a42b20); }
   .site-footer { padding: 20px 24px; flex-wrap: wrap; font-size: 9px; gap: 10px; }
 }
 
-.settings-recap { margin-block: 12px; font-size: 13px; }
-.advanced-settings > button { width: auto; }
-.advanced-settings-content { margin-top: 12px; }
-.preparation-info > summary { cursor: pointer; font-weight: 700; }
+.settings-content { margin-top: 12px; }
 
 @media (min-width: 1280px) and (min-height: 720px) and (orientation: landscape) {
   .app-shell { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100svh; overflow: clip; }
@@ -259,23 +256,23 @@ form input[aria-invalid='true'] { border-color: var(--error, #a42b20); }
   .app-shell :is(.archive-content, .turnierinfo-content) { max-height: 105px; }
   .app-shell .description { max-height: 100px; }
   .app-shell .avatar-palette { max-width: 100%; }
-  .app-shell .running-layout { grid-template-columns: minmax(220px, .7fr) minmax(0, 2fr); }
-  .app-shell .running-layout > .lineup-panel {
-    display: grid;
-    grid-template-columns: minmax(280px, 1fr) minmax(320px, .9fr);
-    gap: 12px 20px;
-    align-items: start;
-  }
   .app-shell .running-status {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, .6fr);
-    gap: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
     align-items: center;
   }
-  .app-shell .running-status :is(h3, .expiry-message) { grid-column: 1 / -1; margin: 0; }
-  .app-shell .running-status .match-clock { padding-block: 10px; margin: 0; }
-  .app-shell .running-status .match-clock [role="timer"] { font-size: 80px; }
+  .app-shell .running-status h3 { margin: 0; }
+  .app-shell .running-status .match-clock { display: flex; align-items: center; gap: 10px; padding: 4px 12px; margin: 0; }
+  .app-shell .running-status .match-clock [role="timer"] { font-size: 34px; }
+  .app-shell .pitch-workspace { margin-top: 0; }
+  .app-shell .pitch-description { margin: 4px 0 0; }
+  .app-shell .pitch-header { height: 66px; flex: none; }
+  .app-shell .pitch-workspace .lineup-pitch { padding: 8px; gap: 8px; }
+  .app-shell .pitch-workspace .knockout-plan { max-height: none; overflow: visible; }
+  .app-shell .pitch-workspace .knockout-plan > li { margin-top: 6px; padding: 5px 10px; }
+  .app-shell .pitch-workspace .knockout-plan p { margin: 0; font-size: 13px; }
+  .app-shell .pitch-workspace .knockout-plan h4 { margin: 0 0 3px; }
   .app-shell .running-actions .match-result { margin-top: 0; }
   .app-shell .score-inputs { overflow-wrap: anywhere; }
   .app-shell .completion-banner { margin-top: 12px; padding: 12px 20px; }
@@ -293,7 +290,6 @@ form input[aria-invalid='true'] { border-color: var(--error, #a42b20); }
   }
   .app-shell .completion-archives > details { margin-top: 8px; }
   .app-shell .completion-podium .podium-team.place-4 { padding-block: 8px; }
-  .app-shell .tournament-completion .match-info { margin-top: 8px; }
   .app-shell .tournament-completion .match-info .secondary-button { margin-top: 0; }
 }
 
@@ -310,21 +306,14 @@ form input[aria-invalid='true'] { border-color: var(--error, #a42b20); }
   .app-shell .form-note, .app-shell .storage-note { margin-bottom: 8px; }
   .app-shell .form-grid, .app-shell .tournament-details { gap: 10px 16px; }
   .app-shell .basic-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .app-shell .advanced-settings-content:not([hidden]) {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-    gap: 16px;
-    max-height: min(250px, 33svh);
-    overflow: auto;
-    padding: 6px;
-  }
-  .app-shell .advanced-settings-content .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .app-shell .advanced-settings-content .schedule-preview { margin-top: 0; align-self: start; }
+  .app-shell .settings-content .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .app-shell .settings-content .full-width { grid-column: span 2; }
+  .app-shell .settings-content .schedule-preview { margin-top: 0; padding: 12px; align-self: start; }
+  .app-shell .tournament-form .form-actions { margin-top: 12px; }
   .app-shell form input:not([type="checkbox"]) { min-height: 42px; padding-block: 7px; }
   .app-shell form label { margin-bottom: 5px; }
   .app-shell .tournament-form { margin-top: 12px; }
   .app-shell .tournament-details { margin-block: 12px; }
-  .app-shell .preparation-info .turnierinfo-content { max-height: 225px; }
   .app-shell .match-info .turnierinfo-content { max-height: 72px; }
   .app-shell .overview-history { margin-top: 6px; min-width: 0; }
   .app-shell .card-content:has(.overview-results) > .match-info { margin-top: 6px; padding-top: 6px; }
@@ -342,37 +331,29 @@ form input[aria-invalid='true'] { border-color: var(--error, #a42b20); }
   .app-shell .lineup-panel > h3 { margin-bottom: 6px; }
   .app-shell .lineup-panel > p { margin-bottom: 6px; }
   .app-shell .lineup-pitch { --slot-height: 108px; padding: 10px; gap: 12px; }
+  .app-shell .pitch-header { height: 48px; }
   .app-shell .position-avatar { font-size: 34px; }
   .app-shell .lineup-notice { min-height: 20px; margin-block: 6px; }
-  .app-shell .running-status .match-clock [role="timer"] { font-size: 54px; }
-  .app-shell .running-audio > p { margin-bottom: 0; }
   .app-shell .running-actions .match-result { padding: 10px; }
   .app-shell .running-actions .match-result > :is(h3, p) { margin-bottom: 6px; }
-  .app-shell .running-actions .error-message { margin-top: 6px; }
-  .app-shell .running-layout .match-clock { padding-block: 8px; }
+  .app-shell .running-actions .error-message { margin-top: 4px; line-height: 1.3; }
   .app-shell .running-actions .score-inputs { margin-top: 6px; }
   .app-shell .running-actions .score-inputs input { margin-top: 4px; }
   .app-shell .running-actions .match-abort { margin-top: 8px; }
   .app-shell .match-info .secondary-button { margin-top: 0; }
   .app-shell .match-info > p { line-height: 1.35; }
   .app-shell .match-info .form-actions { margin-top: 6px; }
-  .app-shell .match-workspace .card-content > .match-info { margin-top: 6px; padding-top: 6px; }
   .app-shell .match-workspace .card-content > .form-actions { margin-top: 8px; }
   .app-shell .running-layout + .knockout-archive,
   .app-shell .match-layout + .knockout-archive { margin-top: 6px; }
-  .app-shell .completion-banner h3 { font-size: 24px; }
-  .app-shell .completion-banner { padding-block: 8px; }
-  .app-shell .completion-podium .podium-team { min-height: 0; }
-  .app-shell .completion-podium .place-1 { padding-block: 18px; }
+  .app-shell .completion-banner h3 { font-size: 24px; margin-block: 4px; }
+  .app-shell .completion-banner { margin-top: 6px; padding-block: 8px; }
+  .app-shell .completion-podium .place-1 { min-height: 190px; }
+  .app-shell .completion-podium .place-2 { min-height: 170px; }
+  .app-shell .completion-podium .place-3 { min-height: 150px; }
   .app-shell .completion-avatar, .app-shell .podium-medal { font-size: 28px; }
   .app-shell .podium-members { gap: 6px; }
   .app-shell .archive-content { max-height: 78px; }
-  .app-shell .tournament-completion {
-    display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-    gap: 8px 18px;
-    align-items: start;
-  }
 
   @media (min-width: 1280px) and (min-height: 720px) and (orientation: landscape) {
     .app-shell .card-content:has(> .preparation-layout),
@@ -405,20 +386,13 @@ form input[aria-invalid='true'] { border-color: var(--error, #a42b20); }
   }
 
   @media (min-width: 1280px) and (min-height: 720px) and (max-height: 900px) and (orientation: landscape) {
-    .app-shell .card-content > #lineup-instructions { margin-block: 4px; }
-    .app-shell .preparation-layout { margin-top: 4px; }
     .app-shell .preparation-layout > .standings > .standings-scroll { margin-block: 3px; }
-    .app-shell .preparation-layout .lineup-pitch { padding: 8px; gap: 8px; }
     .app-shell .preparation-layout .history-result > summary { min-height: 32px; padding-block: 3px; }
     .app-shell .preparation-layout .history-edit { min-height: 32px; padding-block: 3px; }
-    .app-shell .preparation-layout .lineup-panel > #lineup-progress,
     .app-shell .preparation-layout .lineup-notice { margin-block: 2px; }
   }
-  .app-shell .completion-banner,
-  .app-shell .tournament-completion > .match-info { grid-column: 1 / -1; }
-  .app-shell .completion-heading { grid-column: 1; margin-top: 0; }
-  .app-shell .completion-podium { grid-column: 1; margin-top: 0; }
-  .app-shell .completion-archives { grid-column: 2; grid-row: 2 / span 2; grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .app-shell .completion-heading { margin-top: 8px; }
+  .app-shell .completion-podium { margin-top: 8px; }
   .app-shell .completion-podium .podium-team { padding: 8px; }
   .app-shell .completion-podium .podium-members p { gap: 4px; font-size: 13px; }
   .app-shell .completion-podium .podium-team h4 { font-size: 15px; }
@@ -427,6 +401,47 @@ form input[aria-invalid='true'] { border-color: var(--error, #a42b20); }
     grid-template-columns: minmax(0, 1fr) minmax(0, .8fr);
     column-gap: 16px;
     align-items: start;
+  }
+
+  @media (min-width: 1280px) and (min-height: 720px) and (orientation: landscape) {
+    .app-shell .running-actions { margin-top: 6px; }
+    .app-shell .running-actions .match-result { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+    .app-shell .running-actions .match-result > :is(h3, p) { grid-column: 1 / -1; margin: 0; }
+    .app-shell .running-actions form.match-result > h3 { grid-column: 1; font-size: 16px; }
+    .app-shell .running-actions form.match-result > #score-rule { grid-column: 2; font-size: 13px; align-self: center; }
+    .app-shell .running-actions .form-actions { margin: 0; align-self: end; }
+    .app-shell .running-actions .score-inputs { margin: 0; }
+    .app-shell .running-actions .score-inputs label { margin: 0; }
+    .app-shell .running-actions .score-inputs input { min-height: 36px; font-size: 20px; padding-block: 4px; margin-top: 2px; }
+    .app-shell .running-actions :is(.action-button, .secondary-button) { min-height: 36px; padding: 6px 12px; }
+    .app-shell .running-actions .match-abort { width: auto; margin: 6px 0 0; }
+    .app-shell .running-actions .expiry-message { padding: 4px 10px; font-size: 13px; margin-bottom: 4px; }
+    .app-shell .match-info-actions { margin: 0; }
+  }
+
+  @media (min-width: 1280px) and (min-height: 720px) and (orientation: landscape) {
+    .app-shell:has(.match-workspace, .preparation-info) {
+      height: auto;
+      min-height: 100svh;
+      grid-template-rows: auto minmax(max-content, 1fr);
+    }
+    .app-shell .preparation-players { margin-bottom: 16px; }
+    .app-shell .preparation-info { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 24px; align-items: start; margin-bottom: 16px; }
+    .app-shell .preparation-info :is(.tournament-details, .schedule-preview) { margin: 0; }
+    .app-shell .match-workspace > .card-content,
+    .app-shell .tournament-completion { display: flex; flex: 1; flex-direction: column; }
+    .app-shell .match-workspace > .card-content > *,
+    .app-shell .tournament-completion > * { flex-shrink: 0; }
+    .app-shell .match-workspace .match-info {
+      margin-top: auto;
+      padding-top: 6px;
+    }
+    .app-shell .match-workspace :is(.pitch-workspace, .completion-archives) { margin-bottom: 12px; }
+    .app-shell .match-workspace .pitch-workspace { margin-top: 12px; column-gap: 32px; }
+    .app-shell .match-info-actions { align-items: baseline; margin-top: 2px; }
+    .app-shell .preparation-layout > .standings > .standings-scroll { margin-top: 9px; max-height: 340px; }
+    .app-shell .preparation-layout .lineup-panel > .match-history { margin-top: 12px; }
+    .app-shell .preparation-layout .match-history > .section-heading { margin-bottom: 8px; }
   }
   .app-shell .match-workspace .card-content:has(.match-layout + .knockout-archive) > :not(.knockout-archive, .match-info) {
     grid-column: 1 / -1;

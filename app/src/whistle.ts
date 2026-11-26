@@ -15,16 +15,16 @@ export function createWhistle(): Whistle {
       let timeout: ReturnType<typeof setTimeout> | undefined
       try {
         await new Promise<void>((resolve, reject) => {
-          timeout = setTimeout(() => reject(new Error('Audioaktivierung blockiert. Bitte Ton aktivieren / testen und die Geräte-Lautstärke prüfen.')), 3000)
+          timeout = setTimeout(() => reject(new Error('Audioaktivierung blockiert. Der sichtbare Ablaufhinweis bleibt verfügbar.')), 3000)
           audio.resume().then(resolve, reject)
         })
-        if (audio.state !== 'running') throw new Error('Audio ist nicht freigegeben. Bitte Ton aktivieren / testen.')
+        if (audio.state !== 'running') throw new Error('Audio ist nicht freigegeben. Der sichtbare Ablaufhinweis bleibt verfügbar.')
       } finally {
         clearTimeout(timeout)
       }
     },
     play() {
-      if (!context || context.state !== 'running') throw new Error('Kein automatischer Pfiff: Audio ist nicht aktiviert. Bitte Ton aktivieren / testen.')
+      if (!context || context.state !== 'running') throw new Error('Kein automatischer Pfiff: Audio ist nicht aktiviert.')
       const audio = context
       const gain = audio.createGain()
       const time = audio.currentTime

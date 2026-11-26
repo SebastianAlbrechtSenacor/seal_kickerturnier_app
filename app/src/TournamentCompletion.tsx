@@ -4,18 +4,21 @@ import { KnockoutArchive, KnockoutPlan } from './KnockoutBoard'
 import { MatchInfo } from './MatchPresentation'
 import { WorkspaceNavigation } from './WorkspaceNavigation'
 import './TournamentCompletion.css'
+import WorkspaceDialog from './WorkspaceDialog'
+import type { ReactNode } from 'react'
 
 interface Props {
   tournament: Tournament
   celebrate: boolean
   onBack: () => void
   onExport: () => void
+  tournamentInfo?: ReactNode
 }
 
 const medals = ['🏆', '🥈', '🥉', '👏']
 const confettiColors = ['#ffc63c', '#ee7b00', '#007b80', '#b2d8d5']
 
-export default function TournamentCompletion({ tournament, celebrate, onBack, onExport }: Props) {
+export default function TournamentCompletion({ tournament, celebrate, onBack, onExport, tournamentInfo }: Props) {
   if (!tournament.knockout || tournament.activeMatch) throw new Error('Das Turnier ist noch nicht abgeschlossen.')
   const teams = knockoutPlacements(tournament.knockout)
   return (
@@ -47,17 +50,17 @@ export default function TournamentCompletion({ tournament, celebrate, onBack, on
       </ol>
       <div className="completion-archives">
         <KnockoutArchive tournament={tournament} />
-        <details className="completion-history">
-          <summary>K.-o.-Spielplan und Ergebnisse</summary>
-          <div className="archive-content" role="region" aria-label="K.-o.-Archiv" tabIndex={0}>
-            <KnockoutPlan tournament={tournament} />
-          </div>
-        </details>
+        <WorkspaceDialog inline label="K.-o.-Spielplan und Ergebnisse" title="K.-o.-Spielplan und Ergebnisse">
+          <KnockoutPlan tournament={tournament} />
+        </WorkspaceDialog>
       </div>
       <MatchInfo tournament={tournament}>
-        <p>Die K.-o.-Teamplätze und die individuelle Vorrundenwertung bleiben getrennt. Das Turnier ist abgeschlossen.</p>
+        <div className="match-info-actions">
+          <p>Die K.-o.-Teamplätze und die individuelle Vorrundenwertung bleiben getrennt. Das Turnier ist abgeschlossen.</p>
+          {tournamentInfo}
+        </div>
         <WorkspaceNavigation>
-          <button className="secondary-button" type="button" onClick={onBack}>Zur Turnierübersicht</button>
+          <button className="secondary-button" type="button" onClick={onBack}>Turnier verlassen</button>
           <button className="secondary-button" type="button" onClick={onExport}>JSON-Sicherung herunterladen</button>
         </WorkspaceNavigation>
       </MatchInfo>

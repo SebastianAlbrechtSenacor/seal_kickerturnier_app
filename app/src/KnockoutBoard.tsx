@@ -1,11 +1,13 @@
 import { useRef, useState } from 'react'
-import { knockoutFixtures, knockoutLineup, knockoutTeamName, nextKnockoutFixture, teamsFor } from './knockout'
+import { knockoutFixtures, knockoutLineup, nextKnockoutFixture, teamsFor } from './knockout'
 import { calculateStandings } from './standings'
 import type { Tournament } from './tournament'
 import StandingsTable from './StandingsTable'
 import MatchHistory from './MatchHistory'
 import { LineupPitch, MatchInfo } from './MatchPresentation'
 import { WorkspaceNavigation } from './WorkspaceNavigation'
+import WorkspaceDialog from './WorkspaceDialog'
+import type { ReactNode } from 'react'
 import './KnockoutBoard.css'
 
 export function KnockoutPlan({ tournament }: { tournament: Tournament }) {
@@ -18,9 +20,9 @@ export function KnockoutPlan({ tournament }: { tournament: Tournament }) {
         {knockoutFixtures(state).map((fixture) => (
           <li key={fixture.index} aria-current={fixture.index === state.results.length ? 'step' : undefined}>
             <h4>{fixture.title}</h4>
-            <p>{fixture.first ? knockoutTeamName(fixture.first, tournament.players ?? []) :
+            <p>{fixture.first ? `Team ${fixture.first.id}` :
               `${fixture.index === 2 ? 'Verlierer' : 'Sieger'} Halbfinale 1`}</p>
-            <p>gegen {fixture.second ? knockoutTeamName(fixture.second, tournament.players ?? []) :
+            <p>gegen {fixture.second ? `Team ${fixture.second.id}` :
               `${fixture.index === 2 ? 'Verlierer' : 'Sieger'} Halbfinale 2`}</p>
             <p className="history-score">{fixture.result ?
               <strong>Team {fixture.first?.id} {fixture.result.whiteGoals} : {fixture.result.blackGoals} Team {fixture.second?.id}</strong> :
@@ -34,13 +36,10 @@ export function KnockoutPlan({ tournament }: { tournament: Tournament }) {
 
 export function KnockoutArchive({ tournament }: { tournament: Tournament }) {
   return (
-    <details className="knockout-archive">
-      <summary>Vorrundenstand und Ergebnisse</summary>
-      <div className="archive-content" role="region" aria-label="Vorrundenarchiv" tabIndex={0}>
+    <WorkspaceDialog inline label="Vorrundenstand und Ergebnisse" title="Vorrundenstand und Ergebnisse">
       <StandingsTable tournament={tournament} />
       <MatchHistory tournament={tournament} />
-      </div>
-    </details>
+    </WorkspaceDialog>
   )
 }
 
@@ -49,11 +48,18 @@ export function KnockoutConfirmation({ tournament }: { tournament: Tournament })
   return (
     <>
       <p className="card-description">Die ersten acht qualifizieren sich. Eine Mindestspielzahl ist nicht erforderlich.</p>
-      <ol className="knockout-qualifiers">
-        {standings.slice(0, 8).map(({ player, points }) =>
-          <li key={player.id}><span aria-hidden="true">{player.avatar} </span>{player.nickname} · {points} Punkte</li>)}
-      </ol>
-      {teamsFor(standings).map((team) => <p key={team.id}>{knockoutTeamName(team, tournament.players ?? [])}</p>)}
+      <StandingsTable tournament={tournament} showQualification />
+      <h4>Feste K.-o.-Teams</h4>
+      <ul className="knockout-team-preview" aria-label="Feste K.-o.-Teams">
+        {teamsFor(standings).map((team) => <li key={team.id}>
+          <strong>Team {team.id}</strong>
+          {team.playerIds.map((id) => {
+            const player = standings.find(({ player }) => player.id === id)?.player
+            if (!player) throw new Error('Das K.-o.-Team enthält unbekannte Spielende.')
+            return <span key={id}><span aria-hidden="true">{player.avatar} </span>{player.nickname}</span>
+          })}
+        </li>)}
+      </ul>
       <p className="storage-note">Dieser Wechsel ist unumkehrbar. Der vollständige Vorrundenstand wird eingefroren.
         Weitere Vorrundenpartien sind danach nicht möglich.</p>
     </>
@@ -65,9 +71,10 @@ interface Props {
   onStart: () => Promise<void>
   onBack: () => void
   onExport: () => void
+  tournamentInfo?: ReactNode
 }
 
-export default function KnockoutBoard({ tournament, onStart, onBack, onExport }: Props) {
+export default function KnockoutBoard({ tournament, onStart, onBack, onExport, tournamentInfo }: Props) {
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState('')
   const pending = useRef(false)
@@ -86,13 +93,15 @@ export default function KnockoutBoard({ tournament, onStart, onBack, onExport }:
 
   return (
     <>
-      <p className="card-description">Feste Teams. Der Vorrundenstand bleibt unverändert; K.-o.-Partien vergeben keine Vorrundenpunkte.</p>
-      <div className="match-layout">
+      <p className="card-description pitch-description">Feste Teams · K.-o.-Partien ändern die Vorrundenwertung nicht.</p>
+      <div className="match-layout pitch-workspace">
         <KnockoutPlan tournament={tournament} />
         <section className="lineup-panel" aria-label={fixture ? 'K.-o.-Begegnung vorbereiten' : 'K.-o.-Abschluss'}>
           {fixture ? <>
-            <h3>{fixture.title}: Team {fixture.first.id} gegen Team {fixture.second.id}</h3>
-            <p>Teams stehen fest. Starte die Partie, wenn alle am Tisch bereit sind.</p>
+            <div className="pitch-header">
+              <h3>{fixture.title}: Team {fixture.first.id} gegen Team {fixture.second.id}</h3>
+              <p>Teams stehen fest. Starte die Partie, wenn alle am Tisch bereit sind.</p>
+            </div>
             <LineupPitch players={tournament.players ?? []} lineup={knockoutLineup(fixture)}
               teamLabels={{ white: `Team ${fixture.first.id}`, black: `Team ${fixture.second.id}` }} />
             <div className="form-actions"><button className="action-button" type="button" disabled={starting}
@@ -104,10 +113,10 @@ export default function KnockoutBoard({ tournament, onStart, onBack, onExport }:
           {error && <p className="error-message" role="alert">{error}</p>}
         </section>
       </div>
-      <KnockoutArchive tournament={tournament} />
       <MatchInfo tournament={tournament}>
+        <div className="match-info-actions"><KnockoutArchive tournament={tournament} />{tournamentInfo}</div>
         <WorkspaceNavigation>
-          <button className="secondary-button" type="button" disabled={starting} onClick={onBack}>Zur Turnierübersicht</button>
+          <button className="secondary-button" type="button" disabled={starting} onClick={onBack}>Turnier verlassen</button>
           <button className="secondary-button" type="button" disabled={starting} onClick={onExport}>JSON-Sicherung herunterladen</button>
         </WorkspaceNavigation>
       </MatchInfo>

@@ -72,6 +72,8 @@ input[type="file"] { max-width: 100%; font-size: 14px; }
 .standings-table th:nth-child(2), .standings-table tbody th { text-align: left; }
 .standings-table tbody th { min-width: 100px; overflow-wrap: anywhere; white-space: break-spaces; }
 .standings-points { color: var(--teal); font-weight: 800; }
+.avatar-option { position: relative; }
+.avatar-option small { position: absolute; inset: auto 2px 2px auto; font-size: 11px; }
 .start-confirmation { margin-top: 24px; line-height: 1.6; }
 @media (max-width: 740px) {
   .site-header { align-items: flex-start; }

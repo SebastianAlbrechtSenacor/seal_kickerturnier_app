@@ -32,8 +32,8 @@ function fixture(): Tournament {
 
 function running(overrides: Partial<ComponentProps<typeof RunningMatch>> = {}) {
   const props = {
-    tournament: startMatch(fixture(), lineup, now), whistle: audio, audioBusy: false,
-    onTestAudio: vi.fn(), onAudioError: vi.fn(), onWhistle: vi.fn(async () => true),
+    tournament: startMatch(fixture(), lineup, now), whistle: audio,
+    onAudioError: vi.fn(), onWhistle: vi.fn(async () => true),
     onAbort: vi.fn(async () => {}), onSave: vi.fn(async () => {}), onBack: vi.fn(), onExport: vi.fn(),
     ...overrides,
   }
@@ -215,10 +215,10 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     unmount()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
-    await user.click(screen.getByRole('button', { name: 'Mehr Infos: Vollständiger Ergebnisverlauf' }))
+    await user.click(screen.getByRole('button', { name: 'Vollständiger Ergebnisverlauf' }))
     expect(await screen.findByRole('region', { name: 'Spielergebnisse' })).toHaveTextContent('Weiß 7 : 5 Schwarz')
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Schließen' }))
-    await user.click(screen.getByRole('button', { name: 'Mehr Infos: Vollständige Vorrundentabelle' }))
+    await user.click(screen.getByRole('button', { name: 'Vollständige Vorrundentabelle' }))
     const tableDialog = screen.getByRole('dialog')
     const rows = within(tableDialog).getAllByRole('row')
     expect(within(rows[1]).getAllByRole('cell').map((cell) => cell.textContent)).toEqual(['1', '1', '1', '0', '7', '5', '2', '3'])
@@ -245,7 +245,7 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     await user.click(screen.getByRole('button', { name: 'Weiß Angriff: frei' }))
     await user.click(screen.getByRole('button', { name: 'Alex auswählen' }))
     const recentPanel = screen.getByRole('region', { name: 'Letzte 3 Ergebnisse' })
-    await user.click(within(recentPanel).getByRole('button', { name: 'Mehr Infos: Vollständiger Ergebnisverlauf' }))
+    await user.click(within(recentPanel).getByRole('button', { name: 'Vollständiger Ergebnisverlauf' }))
     const all = within(await screen.findByRole('region', { name: 'Spielergebnisse' })).getAllByRole('listitem')
     expect(all).toHaveLength(4)
     expect(all.map((item) => within(item).getByText(/Weiß 10 :/).textContent)).toEqual([
@@ -259,7 +259,7 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     expect(finishedAt).toBeVisible()
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Schließen' }))
     expect(screen.queryByRole('complementary', { name: 'Zeitplanung' })).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Mehr Infos: Weitere Turnierinfos' }))
+    await user.click(screen.getByRole('button', { name: 'Weitere Turnierinfos' }))
     expect(screen.getByRole('complementary', { name: 'Zeitplanung' })).toBeVisible()
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Schließen' }))
     expect(screen.getByRole('button', { name: 'Weiß Angriff: Alex' })).toBeVisible()
@@ -320,7 +320,7 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     ])
     expect(parseBackup(serializeBackup(corrected))).toEqual(corrected)
 
-    await user.click(screen.getByRole('button', { name: 'Mehr Infos: Vollständige Vorrundentabelle' }))
+    await user.click(screen.getByRole('button', { name: 'Vollständige Vorrundentabelle' }))
     let table = within(screen.getByRole('dialog', { name: 'Vorrundentabelle' }))
     expect(within(table.getByRole('row', { name: /Alex/ })).getAllByRole('cell').map((cell) => cell.textContent))
       .toEqual(['1', '4', '3', '1', '32', '12', '20', '10'])
@@ -344,7 +344,7 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
     expect(screen.queryByText('Weiß 2 : 9 Schwarz')).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Mehr Infos: Vollständige Vorrundentabelle' }))
+    await user.click(screen.getByRole('button', { name: 'Vollständige Vorrundentabelle' }))
     table = within(screen.getByRole('dialog', { name: 'Vorrundentabelle' }))
     expect(within(table.getByRole('row', { name: /Alex/ })).getAllByRole('cell').map((cell) => cell.textContent))
       .toEqual(['1', '3', '3', '0', '30', '3', '27', '9'])
@@ -411,6 +411,7 @@ describe('Spielstart in der Turnierverwaltung', () => {
       new Promise<void>((resolve) => { release = resolve }))
     await Promise.resolve()
     audio.activate.mockRejectedValueOnce(new Error('Audio blockiert'))
+    audio.ready.mockReturnValue(false)
     await user.dblClick(screen.getByRole('button', { name: 'Spiel starten' }))
     expect(screen.queryByRole('timer')).not.toBeInTheDocument()
     expect(readTournament(tournament.id).activeMatch).toBeUndefined()
@@ -423,9 +424,9 @@ describe('Spielstart in der Turnierverwaltung', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Audio blockiert')
     const started = readTournament(tournament.id)
     expect(started.activeMatch?.lineup).toEqual(lineup)
-    await user.click(screen.getByRole('button', { name: 'Zur Turnierübersicht' }))
+    await user.click(screen.getByRole('button', { name: 'Turnier verlassen' }))
     expect(screen.queryByRole('region', { name: 'Partieaufstellung' })).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Offene Partie anzeigen' }))
+    await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
     await user.click(screen.getByRole('button', { name: 'Partie abbrechen' }))
     await user.click(screen.getByRole('button', { name: 'Weiter spielen' }))
     expect(readTournament(tournament.id)).toEqual(started)

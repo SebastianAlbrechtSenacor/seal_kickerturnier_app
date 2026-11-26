@@ -10,6 +10,7 @@ interface Props {
   compact?: boolean
   showHeading?: boolean
   headingAction?: ReactNode
+  showQualification?: boolean
 }
 
 const statistics = [
@@ -17,7 +18,7 @@ const statistics = [
   ['GT', 'Gegentore'], ['TD', 'Tordifferenz'], ['Pkt.', 'Punkte'],
 ] as const
 
-export default function StandingsTable({ tournament, renderPlayer, compact = false, showHeading = true, headingAction }: Props) {
+export default function StandingsTable({ tournament, renderPlayer, compact = false, showHeading = true, headingAction, showQualification = false }: Props) {
   const standings = tournament.knockout?.standings ?? calculateStandings(tournament.players ?? [], tournament.completedMatches ?? [], tournament.settings)
   const id = useId()
   const heading = `${id}-heading`
@@ -47,10 +48,11 @@ export default function StandingsTable({ tournament, renderPlayer, compact = fal
           </thead>
           <tbody>
             {standings.map((standing, index) => (
-              <tr key={standing.player.id}>
+              <tr key={standing.player.id} className={showQualification && index < 8 ? 'qualified-row' : undefined}>
                 <td>{index + 1}</td>
                 <th scope="row">{renderPlayer ? renderPlayer(standing.player) :
-                  <><span aria-hidden="true">{standing.player.avatar} </span>{standing.player.nickname}</>}</th>
+                  <><span aria-hidden="true">{standing.player.avatar} </span>{standing.player.nickname}</>}
+                  {showQualification && index < 8 && <span className="qualification-badge">Qualifiziert</span>}</th>
                 {!compact && <>
                   <td>{standing.played}</td><td>{standing.wins}</td><td>{standing.losses}</td>
                   <td>{standing.goalsFor}</td><td>{standing.goalsAgainst}</td><td>{standing.goalDifference}</td>

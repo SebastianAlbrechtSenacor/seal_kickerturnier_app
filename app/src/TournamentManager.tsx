@@ -2,14 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import TournamentForm from './TournamentForm'
 import TournamentImport from './TournamentImport'
 import PlayerManager from './PlayerManager'
-import StandingsTable from './StandingsTable'
 import MatchPreparation from './MatchPreparation'
 import RunningMatch from './RunningMatch'
 import KnockoutBoard from './KnockoutBoard'
 import TournamentCompletion from './TournamentCompletion'
-import { finishKnockoutMatch, knockoutStartError, startKnockout, startKnockoutMatch } from './knockout'
-import MatchHistory from './MatchHistory'
-import { MatchInfo } from './MatchPresentation'
+import { finishKnockoutMatch, startKnockout, startKnockoutMatch } from './knockout'
+import WorkspaceDialog from './WorkspaceDialog'
 import { WorkspaceNavigation } from './WorkspaceNavigation'
 import { abortMatch, finishMatch, startMatch } from './matches'
 import type { ActiveTournament, PreliminaryResultChange } from './matches'
@@ -26,7 +24,7 @@ type View =
   | { kind: 'list' }
   | { kind: 'create' }
   | { kind: 'import' }
-  | { kind: 'details'; tournament: Tournament }
+  | { kind: 'preparation'; tournament: Tournament }
   | { kind: 'edit'; tournament: Tournament }
   | { kind: 'players'; tournament: Tournament }
   | { kind: 'start'; tournament: Tournament }
@@ -54,7 +52,6 @@ export default function TournamentManager() {
   const heading = useRef<HTMLHeadingElement>(null)
   const [whistle] = useState(createWhistle)
   const [audioError, setAudioError] = useState('')
-  const [audioBusy, setAudioBusy] = useState(false)
   const audioPending = useRef(false)
   const mounted = useRef(false)
   const headingTarget = (view.kind === 'live' || view.kind === 'knockout') && view.tournament.activeMatch ?
@@ -74,6 +71,7 @@ export default function TournamentManager() {
 
   function backToList() {
     setError('')
+    setAudioError('')
     setNotice('')
     setView({ kind: 'list' })
     setList(readList())
@@ -85,7 +83,7 @@ export default function TournamentManager() {
       const tournament = readTournament(id)
       setView(tournament.phase === 'knockout' ? { kind: 'knockout', tournament } : tournament.activeMatch ?
         { kind: 'live', tournament: { ...tournament, activeMatch: tournament.activeMatch } } :
-        { kind: tournament.phase === 'preliminary' ? 'match' : 'details', tournament })
+        { kind: tournament.phase === 'preliminary' ? 'match' : 'preparation', tournament })
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Das Turnier konnte nicht geöffnet werden.')
     }
@@ -106,7 +104,7 @@ export default function TournamentManager() {
       players: existing?.players ?? [],
     }
     await saveTournament(tournament, existing?.revision ?? null)
-    setView({ kind: 'details', tournament })
+    setView({ kind: 'preparation', tournament })
   }
 
   async function savePlayers(players: Player[]) {
@@ -142,32 +140,16 @@ export default function TournamentManager() {
     }
   }
 
-  function prepareMatch(tournament: Tournament) {
-    setError('')
-    try {
-      assertCurrentTournament(tournament)
-      if (tournament.phase !== 'preliminary') throw new Error('Partien können nur in der Vorrunde vorbereitet werden.')
-      setView(tournament.activeMatch ?
-        { kind: 'live', tournament: { ...tournament, activeMatch: tournament.activeMatch } } :
-        { kind: 'match', tournament })
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Die Partievorbereitung konnte nicht geöffnet werden.')
-    }
-  }
-
-  async function activateAudio(test = false) {
-    if (audioPending.current) return
+  async function activateAudio() {
+    if (audioPending.current || whistle.ready()) return
     audioPending.current = true
-    setAudioBusy(true)
     setAudioError('')
     try {
       await whistle.activate()
-      if (test && mounted.current) whistle.play()
     } catch (error) {
       if (mounted.current) setAudioError(error instanceof Error ? error.message : 'Audio konnte nicht aktiviert werden.')
     } finally {
       audioPending.current = false
-      if (mounted.current) setAudioBusy(false)
     }
   }
 
@@ -206,17 +188,6 @@ export default function TournamentManager() {
     setView({ kind: 'match', tournament })
   }
 
-  function showKnockout(tournament: Tournament) {
-    setError('')
-    try {
-      assertCurrentTournament(tournament)
-      if (tournament.phase !== 'knockout') throw new Error('Die K.-o.-Phase wurde noch nicht gestartet.')
-      setView({ kind: 'knockout', tournament })
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Die K.-o.-Phase konnte nicht geöffnet werden.')
-    }
-  }
-
   async function confirmKnockout() {
     if (view.kind !== 'match') throw new Error('Bitte das Turnier erneut öffnen.')
     setError('')
@@ -248,6 +219,9 @@ export default function TournamentManager() {
 
   const expanded = view.kind !== 'list'
   const completed = 'tournament' in view && view.tournament.knockout?.results.length === 4
+  const infoLink = 'tournament' in view ? <WorkspaceDialog inline label="Turnierinfos" title="Turnierinfos">
+    <TournamentInformation tournament={view.tournament} />
+  </WorkspaceDialog> : null
   const title = view.kind === 'list' ? 'Deine Turniere.' :
     view.kind === 'create' ? 'Neues Turnier' :
     view.kind === 'import' ? 'JSON-Sicherung importieren' :
@@ -263,12 +237,17 @@ export default function TournamentManager() {
       data-phase={'tournament' in view ? view.tournament.phase : undefined} aria-labelledby="entry-title">
       <div className="card-stripe" aria-hidden="true" />
       <div className="card-content">
-        <p className="card-eyebrow">{completed ? 'TURNIERABSCHLUSS' : view.kind === 'details' ?
-          view.tournament.phase === 'knockout' ? 'K.-O.-PHASE' :
-            view.tournament.phase === 'preliminary' ? 'VORRUNDE' : 'VORBEREITUNG' : 'EUER NÄCHSTES MATCH'}</p>
+        <p className="card-eyebrow">{completed ? 'TURNIERABSCHLUSS' :
+          view.kind === 'preparation' ? 'TURNIER VORBEREITEN' : 'EUER NÄCHSTES MATCH'}</p>
         <h2 id="entry-title" ref={heading} tabIndex={-1}>{title}</h2>
+        {(view.kind === 'edit' || view.kind === 'players' || view.kind === 'start') && (
+          <WorkspaceNavigation>
+            <button className="secondary-button" type="button" disabled={starting} onClick={backToList}>Turnier verlassen</button>
+            <button className="secondary-button" type="button" onClick={() => exportBackup(view.tournament)}>JSON-Sicherung herunterladen</button>
+          </WorkspaceNavigation>
+        )}
+        {(view.kind === 'edit' || view.kind === 'players') && error && <p className="error-message" role="alert">{error}</p>}
         {(view.kind === 'match' || view.kind === 'live' || view.kind === 'knockout') && error && <p className="error-message" role="alert">{error}</p>}
-        {(view.kind === 'match' || view.kind === 'live' || view.kind === 'knockout') && audioError && <p className="error-message" role="alert">{audioError}</p>}
         {view.kind === 'list' && (
           <>
             <p className="card-description">Turnier vorbereiten oder ein gespeichertes Turnier öffnen.</p>
@@ -287,7 +266,7 @@ export default function TournamentManager() {
                   <li key={tournament.id}>
                     <span><strong>{tournament.settings.name}</strong>
                       <time dateTime={tournament.settings.startsAt}>{formatBerlinTime(tournament.settings.startsAt)}</time></span>
-                    <button className="secondary-button" type="button"
+                    <button className="action-button" type="button"
                       aria-label={`${tournament.settings.name} öffnen`}
                       onClick={() => open(tournament.id)}>Öffnen</button>
                   </li>
@@ -301,7 +280,7 @@ export default function TournamentManager() {
               </div>
             )}
             <div className="form-actions">
-              <button className="action-button" type="button" disabled={Boolean(list.error)}
+              <button className={list.tournaments.length ? 'secondary-button' : 'action-button'} type="button" disabled={Boolean(list.error)}
                 onClick={() => setView({ kind: 'create' })}>Turnier anlegen</button>
               <button className="secondary-button" type="button" disabled={Boolean(list.error)}
                 onClick={() => setView({ kind: 'import' })}>JSON-Sicherung importieren</button>
@@ -318,12 +297,12 @@ export default function TournamentManager() {
           <TournamentForm
             tournament={view.kind === 'edit' ? view.tournament : undefined}
             onSave={save}
-            onCancel={() => view.kind === 'edit' ? setView({ kind: 'details', tournament: view.tournament }) : backToList()}
+            onCancel={() => view.kind === 'edit' ? setView({ kind: 'preparation', tournament: view.tournament }) : backToList()}
           />
         )}
         {view.kind === 'players' && (
           <PlayerManager players={view.tournament.players ?? []} onSave={savePlayers}
-            onBack={() => setView({ kind: 'details', tournament: view.tournament })} />
+            onBack={() => setView({ kind: 'preparation', tournament: view.tournament })} />
         )}
         {view.kind === 'match' && (
           <MatchPreparation tournament={view.tournament}
@@ -333,16 +312,16 @@ export default function TournamentManager() {
         )}
         {(view.kind === 'live' || view.kind === 'knockout') && view.tournament.activeMatch &&
           <RunningMatch key={view.tournament.activeMatch.id} tournament={{ ...view.tournament, activeMatch: view.tournament.activeMatch }}
-          whistle={whistle} audioBusy={audioBusy} onTestAudio={() => void activateAudio(true)}
+          whistle={whistle} onActivateAudio={() => void activateAudio()} tournamentInfo={infoLink} audioError={audioError}
           onAudioError={setAudioError} onWhistle={() => notifyExpiry(view.tournament)}
           onAbort={endMatch} onSave={saveResult} onExport={() => exportBackup(view.tournament)}
-          onBack={() => { setError(''); setView({ kind: 'details', tournament: view.tournament }) }} />}
+          onBack={backToList} />}
         {view.kind === 'knockout' && completed && <TournamentCompletion tournament={view.tournament}
           celebrate={Boolean(view.celebrate)} onExport={() => exportBackup(view.tournament)}
-          onBack={() => { setError(''); setView({ kind: 'details', tournament: view.tournament }) }} />}
+          onBack={backToList} tournamentInfo={infoLink} />}
         {view.kind === 'knockout' && !completed && !view.tournament.activeMatch && <KnockoutBoard tournament={view.tournament}
           onStart={beginKnockoutMatch} onExport={() => exportBackup(view.tournament)}
-          onBack={() => { setError(''); setView({ kind: 'details', tournament: view.tournament }) }} />}
+          onBack={backToList} tournamentInfo={infoLink} />}
         {view.kind === 'start' && (
           <div className="start-confirmation">
             <p className="card-description">{view.tournament.settings.name} · {view.tournament.players?.length ?? 0} Spielende</p>
@@ -354,73 +333,29 @@ export default function TournamentManager() {
                 {starting ? 'Wird gestartet ...' : 'Vorrunde verbindlich starten'}</button>
               <button className="secondary-button" type="button" disabled={starting} onClick={() => {
                 setError('')
-                setView({ kind: 'details', tournament: view.tournament })
+                setView({ kind: 'preparation', tournament: view.tournament })
               }}>Abbrechen</button>
             </div>
           </div>
         )}
-        {view.kind === 'details' && (
+        {view.kind === 'preparation' && (
           <>
             <WorkspaceNavigation>
-              <button className="secondary-button" type="button" onClick={backToList}>Zur Turnierauswahl</button>
+              <button className="secondary-button" type="button" onClick={backToList}>Turnier verlassen</button>
               <button className="secondary-button" type="button"
                 onClick={() => exportBackup(view.tournament)}>JSON-Sicherung herunterladen</button>
             </WorkspaceNavigation>
-            <p className="card-description">{view.tournament.phase === 'preparation' ?
-              'Einstellungen und Spielende können vor dem Turnierstart geändert werden.' :
-              completed ? 'Das Turnier ist abgeschlossen. Beide Wertungen und alle Ergebnisse bleiben unverändert.' :
-              view.tournament.phase === 'knockout' ? 'Der Vorrundenstand ist eingefroren. Teams, Einstellungen und Spielende stehen fest.' :
-              'Die Vorrunde läuft. Einstellungen und Spielende sind gesperrt.'}</p>
-            <p>{view.tournament.players?.length ?? 0} Spielende angemeldet.</p>
-            {view.tournament.phase !== 'preparation' ? <>
-              <div className="overview-results">
-                <div>
-              <StandingsTable tournament={view.tournament} />
-              <div className="form-actions">
-                <button className="action-button" type="button"
-                  onClick={() => view.tournament.phase === 'knockout' ? showKnockout(view.tournament) : prepareMatch(view.tournament)}>
-                  {completed ? 'Turnierabschluss anzeigen' : view.tournament.phase === 'knockout' ? 'K.-o.-Phase anzeigen' :
-                    'Offene Partie anzeigen'}
-                </button>
-                {view.tournament.phase === 'preliminary' &&
-                  <button className="secondary-button" type="button" disabled
-                    aria-describedby="knockout-requirement">K.O. Runde starten</button>}
-              </div>
-              {view.tournament.phase === 'preliminary' && <>
-                <p className="form-note" id="knockout-requirement">{knockoutStartError(view.tournament) ??
-                  'Die besten acht bilden vier feste Teams. Der Wechsel ist unumkehrbar.'}</p>
-              </>}
-                </div>
-                <details className="overview-history">
-                  <summary>Vollständiger Ergebnisverlauf</summary>
-                  <MatchHistory tournament={view.tournament} />
-                </details>
-              </div>
-              <MatchInfo tournament={view.tournament}>
-                <details>
-                  <summary>Weitere Turnierinfos</summary>
-                  <div className="turnierinfo-content" role="region" aria-label="Turnierdetails" tabIndex={0}>
-                    <TournamentInformation tournament={view.tournament} />
-                  </div>
-                </details>
-              </MatchInfo>
-            </> : <>
-              <dl className="tournament-details preparation-summary">
-                <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(view.tournament.settings.startsAt)}</dd></div>
-                <div><dt>Spielort</dt><dd>{view.tournament.settings.location}</dd></div>
-              </dl>
-              <details className="preparation-info">
-                <summary>Turnierinfos</summary>
-                <div className="turnierinfo-content" role="region" aria-label="Turnierdetails" tabIndex={0}>
-                  <TournamentInformation tournament={view.tournament} omitBasics />
-                </div>
-              </details>
-            </>}
+            <p className="card-description">Einstellungen und Spielende können vor dem Turnierstart geändert werden.</p>
+            <p className="preparation-players">{view.tournament.players?.length
+            ? <><strong>Angemeldete Spielende:</strong> {view.tournament.players.map(({ nickname }) => nickname).join(', ')}</>
+            : 'Noch keine Spielenden angemeldet.'}</p>
+            <section className="preparation-info" aria-label="Turnierinfos">
+            <TournamentInformation tournament={view.tournament} />
+            </section>
             {error && <p className="error-message" role="alert">{error}</p>}
-            {view.tournament.phase === 'preparation' && (view.tournament.players?.length ?? 0) < 4 && (
+            {(view.tournament.players?.length ?? 0) < 4 && (
               <p className="form-note" id="start-requirement">Für den Turnierstart sind mindestens vier Spielende erforderlich.</p>
             )}
-            {view.tournament.phase === 'preparation' && (
             <div className="form-actions">
               <button className="secondary-button" type="button"
                 onClick={() => setView({ kind: 'players', tournament: view.tournament })}>Spielende verwalten</button>
@@ -429,7 +364,7 @@ export default function TournamentManager() {
                   <button className="action-button" type="button" disabled={(view.tournament.players?.length ?? 0) < 4}
                     aria-describedby={(view.tournament.players?.length ?? 0) < 4 ? 'start-requirement' : undefined}
                     onClick={() => { setError(''); setView({ kind: 'start', tournament: view.tournament }) }}>Turnier starten</button>
-            </div>)}
+            </div>
           </>
         )}
       </div>
@@ -437,14 +372,12 @@ export default function TournamentManager() {
   )
 }
 
-function TournamentInformation({ tournament, omitBasics = false }: { tournament: Tournament; omitBasics?: boolean }) {
+function TournamentInformation({ tournament }: { tournament: Tournament }) {
   return (
     <>
       <dl className="tournament-details">
-        {!omitBasics && <>
-          <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(tournament.settings.startsAt)}</dd></div>
-          <div><dt>Spielort</dt><dd>{tournament.settings.location}</dd></div>
-        </>}
+        <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(tournament.settings.startsAt)}</dd></div>
+        <div><dt>Spielort</dt><dd>{tournament.settings.location}</dd></div>
         <div className="full-width"><dt>Beschreibung</dt><dd className="description" tabIndex={0}>{tournament.settings.description || 'Keine Beschreibung angegeben.'}</dd></div>
         <div><dt>Dauer je Partie</dt><dd>{tournament.settings.matchMinutes} Minuten</dd></div>
         <div><dt>Punkte</dt><dd>Sieg: {tournament.settings.winPoints} · Niederlage: {tournament.settings.lossPoints}</dd></div>

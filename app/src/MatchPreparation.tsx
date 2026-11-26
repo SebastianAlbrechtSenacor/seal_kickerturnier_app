@@ -175,11 +175,11 @@ export default function MatchPreparation({ tournament, onStart, onChangeResult, 
 
   return (
     <>
-      <p className="card-description" id="lineup-instructions">
+      <p className="card-description pitch-description" id="lineup-instructions">
         Ziehe Name oder Avatar aus der Tabelle auf eine Position.
         Alternativ: Position anklicken oder antippen, dann eine freie Person auswählen.
       </p>
-      <div className="match-layout preparation-layout">
+      <div className="match-layout pitch-workspace preparation-layout">
         <StandingsTable compact tournament={tournament} headingAction={
           <WorkspaceDialog inline label="Vollständige Vorrundentabelle" title="Vorrundentabelle">
             <StandingsTable tournament={tournament} showHeading={false} />
@@ -203,11 +203,12 @@ export default function MatchPreparation({ tournament, onStart, onChangeResult, 
           )
         }} />
         <section className="lineup-panel" aria-label="Partieaufstellung">
+            <div className="pitch-header">
               <div className="section-heading preparation-heading">
                 <h3>Dein Tisch. Deine Aufstellung.</h3>
                 <div className="form-actions">
                   <button className="action-button lineup-start" type="button" disabled={missing !== 0 || starting}
-                    aria-describedby="lineup-progress" onClick={() => void beginMatch()}>{starting ? 'Wird gestartet ...' : 'Spiel starten'}</button>
+                    onClick={() => void beginMatch()}>{starting ? 'Wird gestartet ...' : 'Spiel starten'}</button>
                   <WorkspaceDialog label="K.O. Runde starten" title="K.-o.-Phase starten?"
                     disabled={starting || Boolean(knockoutProblem)} busy={switchingPhase}
                     onOpen={() => setPhaseError('')}
@@ -218,8 +219,7 @@ export default function MatchPreparation({ tournament, onStart, onChangeResult, 
                   </WorkspaceDialog>
                 </div>
               </div>
-              <p id="lineup-progress">{missing ? `Noch ${missing} von 4 Positionen frei.` : 'Alle vier Positionen belegt.'}</p>
-              {knockoutProblem && <p className="form-note" id="knockout-requirement">{knockoutProblem}</p>}
+            </div>
               <LineupPitch players={players} lineup={lineup} selected={selected} dropTarget={drag?.over}
                 onSelect={starting ? undefined : (position) => {
                   setSelected(position)
@@ -232,6 +232,7 @@ export default function MatchPreparation({ tournament, onStart, onChangeResult, 
                   setNotice(`${positions.find((item) => item.id === position)?.label} ist wieder frei.`)
                 }} />
               <p role="status" className="lineup-notice">{notice}</p>
+              {knockoutProblem && <p className="form-note" id="knockout-requirement">{knockoutProblem}</p>}
               {error && <p role="alert" className="error-message">{error}</p>}
               <MatchHistory tournament={tournament} recent onChangeResult={starting || switchingPhase ? undefined : onChangeResult} headingAction={
                 <WorkspaceDialog inline label="Vollständiger Ergebnisverlauf" title="Ergebnisverlauf">
@@ -245,7 +246,7 @@ export default function MatchPreparation({ tournament, onStart, onChangeResult, 
         {drag.player.avatar} {drag.player.nickname}
       </div>}
       <MatchInfo tournament={tournament}>
-        <div className="section-heading preparation-info-row">
+        <div className="match-info-actions">
           <p>Ungespeicherter Entwurf. Verlassen oder Neuladen verwirft die Aufstellung.</p>
           <WorkspaceDialog inline label="Weitere Turnierinfos" title="Turnierinfos">{tournamentInfo}</WorkspaceDialog>
         </div>

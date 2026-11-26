@@ -7,7 +7,7 @@
 .preparation-heading > h3 { font-size: 23px; }
 .preparation-heading > .form-actions { margin-top: 0; }
 .preparation-layout .lineup-panel > .form-note { margin: 0 0 4px; }
-.preparation-info-row > p { margin: 0; }
+.match-info-actions > p { margin: 0; }
 .preparation-layout .lineup-player { flex-direction: row; align-items: baseline; flex-wrap: wrap; gap: 0 8px; }
 .preparation-layout .standings-compact :is(td, th) { padding-block: 1px; }
 .match-layout .standings { margin-top: 0; }
@@ -102,7 +102,6 @@
   .arena:has(.tournament-workspace.match-workspace) { padding-inline: 16px; }
   .match-workspace .card-content { padding-inline: 18px; }
   .lineup-pitch { --slot-height: 156px; padding: 14px 6px; gap: 24px 6px; }
-  .preparation-layout #lineup-progress { min-height: 2lh; }
   .lineup-slot:has(.position-remove) .position-select { padding-bottom: 30px; }
   .lineup-slot:has(.position-remove) .position-label { padding-inline-end: 0; }
   .position-remove { inset: auto 4px 2px auto; }

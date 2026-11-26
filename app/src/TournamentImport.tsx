@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function TournamentImport({ onImported, onCancel }: Props) {
-  const [preview, setPreview] = useState<{ incoming: Tournament; existing: Tournament | null } | null>(null)
+  const [preview, setPreview] = useState<{ incoming: Tournament; existing: Tournament | null; filename: string } | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -25,7 +25,7 @@ export default function TournamentImport({ onImported, onCancel }: Props) {
     try {
       const incoming = await readBackupFile(file)
       const existing = loadTournaments().find((item) => item.id === incoming.id) ?? null
-      setPreview({ incoming, existing })
+      setPreview({ incoming, existing, filename: file.name })
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Importfehler: Die Sicherung konnte nicht gelesen werden.')
     } finally {
@@ -63,7 +63,7 @@ export default function TournamentImport({ onImported, onCancel }: Props) {
           }} />
         {preview && (
           <div className="schedule-preview">
-            <h3>Importvorschau</h3>
+            <h3>Importvorschau · {preview.filename}</h3>
             <p><strong>{preview.incoming.settings.name}</strong> · {formatBerlinTime(preview.incoming.settings.startsAt)}</p>
             {preview.existing ? (
               <>

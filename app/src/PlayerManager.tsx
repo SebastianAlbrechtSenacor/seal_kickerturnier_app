@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { avatars, retiredAvatar, validatePlayerDraft } from './players'
 import type { Player, PlayerErrors } from './players'
-import { WorkspaceNavigation } from './WorkspaceNavigation'
 
 interface Props {
   players: Player[]
@@ -84,9 +83,7 @@ export default function PlayerManager({ players, onSave, onBack }: Props) {
       <div className="form-actions">
         <button className="action-button" type="button" disabled={full}
           onClick={() => setAction({ kind: 'add' })}>Person hinzufügen</button>
-        <WorkspaceNavigation>
-          <button className="secondary-button" type="button" onClick={onBack}>Zur Turnierübersicht</button>
-        </WorkspaceNavigation>
+        <button className="secondary-button" type="button" onClick={onBack}>Zur Turniervorbereitung</button>
       </div>
     </div>
   )
@@ -143,7 +140,7 @@ function PlayerForm({ players, player, onSave, onCancel }: FormProps) {
         {errors.nickname && <p className="error-message" id="player-name-error" role="alert">{errors.nickname}</p>}
         <fieldset className="avatar-fieldset" aria-describedby={errors.avatar ? 'player-avatar-error' : undefined}>
           <legend>Emoji-Avatar</legend>
-          <p className="form-note">Einen freien Avatar auswählen. Ausgegraute Avatare sind bereits belegt.</p>
+          <p className="form-note">Einen freien Avatar auswählen. Ein Schloss kennzeichnet belegte Avatare.</p>
           {previousAvatar && <p className="form-note">Dein bisheriger Avatar bleibt erhalten, solange du keinen neuen speicherst.</p>}
           <div className="avatar-palette">
             {options.map((option) => (
@@ -152,6 +149,8 @@ function PlayerForm({ players, player, onSave, onCancel }: FormProps) {
                 title={option.label} aria-pressed={avatar === option.emoji} disabled={occupied.has(option.emoji)}
                 onClick={() => { setAvatar(option.emoji); setErrors({}); setSaveError('') }}>
                 <span aria-hidden="true">{option.emoji}</span>
+                {occupied.has(option.emoji) && <small aria-hidden="true">🔒</small>}
+                {avatar === option.emoji && <small aria-hidden="true">✓</small>}
               </button>
             ))}
           </div>
