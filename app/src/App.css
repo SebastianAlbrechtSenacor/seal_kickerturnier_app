@@ -338,6 +338,7 @@ form input[aria-invalid='true'] { border-color: #a42b20; }
     .app-shell .preparation-layout > .standings > .standings-scroll { margin-block: 3px; }
     .app-shell .preparation-layout .lineup-pitch { padding: 8px; gap: 8px; }
     .app-shell .preparation-layout .history-result > summary { min-height: 32px; padding-block: 3px; }
+    .app-shell .preparation-layout .history-edit { min-height: 32px; padding-block: 3px; }
     .app-shell .preparation-layout .lineup-panel > #lineup-progress,
     .app-shell .preparation-layout .lineup-notice { margin-block: 2px; }
   }

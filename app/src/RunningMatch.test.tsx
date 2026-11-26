@@ -8,8 +8,9 @@ import TournamentManager from './TournamentManager'
 import MatchPreparation from './MatchPreparation'
 import { finishMatch, startMatch } from './matches'
 import type { Tournament } from './tournament'
-import { readTournament, saveTournament } from './tournament-storage'
+import { readTournament, saveTournament, updatePreliminaryResult, updateTournament } from './tournament-storage'
 import { avatars } from './players'
+import { parseBackup, serializeBackup } from './tournament-backup'
 
 const audio = vi.hoisted(() => ({
   activate: vi.fn(async () => {}), play: vi.fn(), ready: vi.fn(() => true), close: vi.fn(async () => {}),
@@ -33,7 +34,7 @@ function running(overrides: Partial<ComponentProps<typeof RunningMatch>> = {}) {
   const props = {
     tournament: startMatch(fixture(), lineup, now), whistle: audio, audioBusy: false,
     onTestAudio: vi.fn(), onAudioError: vi.fn(), onWhistle: vi.fn(async () => true),
-    onAbort: vi.fn(async () => {}), onSave: vi.fn(async () => {}), onCheckCurrent: vi.fn(), onBack: vi.fn(), onExport: vi.fn(),
+    onAbort: vi.fn(async () => {}), onSave: vi.fn(async () => {}), onBack: vi.fn(), onExport: vi.fn(),
     ...overrides,
   }
   return { ...render(<RunningMatch {...props} />), ...props }
@@ -106,15 +107,14 @@ describe('Laufende Partie', () => {
     await user.click(screen.getByRole('button', { name: '10 Tore erreicht' }))
     await user.type(screen.getByLabelText('Tore Weiß'), '7')
     await user.type(screen.getByLabelText('Tore Schwarz'), '5')
-    await user.click(screen.getByRole('button', { name: 'Ergebnis prüfen' }))
+    await user.click(screen.getByRole('button', { name: 'Ergebnis speichern' }))
     expect(screen.getByRole('alert')).toHaveTextContent('10 Tore')
+    expect(props.onSave).not.toHaveBeenCalled()
     vi.setSystemTime(now + 60_000)
     await act(async () => { fireEvent.focus(window) })
-    await user.click(screen.getByRole('button', { name: 'Ergebnis prüfen' }))
-    expect(screen.getByRole('region', { name: 'Ergebnisprüfung' })).toHaveTextContent('Weiß 7 : 5 Schwarz')
-    expect(screen.getByRole('button', { name: 'Ergebnis verbindlich speichern' })).toBeEnabled()
-    expect(screen.getByRole('region', { name: 'Ergebnisprüfung' })).toHaveTextContent('unveränderlich')
-    await user.click(screen.getByRole('button', { name: 'Ergebnis ändern' }))
+    await user.click(screen.getByRole('button', { name: 'Ergebnis speichern' }))
+    expect(props.onSave).toHaveBeenCalledExactlyOnceWith('7', '5')
+    expect(screen.queryByRole('region', { name: 'Ergebnisprüfung' })).not.toBeInTheDocument()
     expect(screen.getByLabelText('Tore Weiß')).toHaveValue(7)
     await user.click(screen.getByRole('button', { name: 'Zur Partie' }))
     expect(screen.getByRole('timer')).toHaveTextContent('00:00')
@@ -179,26 +179,20 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     await user.click(await screen.findByRole('button', { name: 'Ergebnis eingeben' }))
     await user.type(screen.getByLabelText('Tore Weiß'), '7')
     await user.type(screen.getByLabelText('Tore Schwarz'), '5')
-    await user.click(screen.getByRole('button', { name: 'Ergebnis prüfen' }))
-    expect(screen.getByRole('region', { name: 'Ergebnisprüfung' })).toHaveTextContent('unveränderlich')
-    await user.click(screen.getByRole('button', { name: 'Ergebnis ändern' }))
     expect(screen.getByLabelText('Tore Weiß')).toHaveValue(7)
     expect(readTournament(started.id)).toEqual(started)
-    await user.click(screen.getByRole('button', { name: 'Ergebnis prüfen' }))
     vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => { throw new DOMException('Full', 'QuotaExceededError') })
-    await user.click(screen.getByRole('button', { name: 'Ergebnis verbindlich speichern' }))
+    await user.click(screen.getByRole('button', { name: 'Ergebnis speichern' }))
     expect(screen.getByRole('alert')).toHaveTextContent('nicht gespeichert')
     expect(readTournament(started.id)).toEqual(started)
-    await user.click(screen.getByRole('button', { name: 'Ergebnis ändern' }))
     expect(screen.getByLabelText('Tore Schwarz')).toHaveValue(5)
-    await user.click(screen.getByRole('button', { name: 'Ergebnis prüfen' }))
     let release: (() => void) | undefined
     const hold = navigator.locks.request(`seal-kickerturnier:tournament:${started.id}`, () =>
       new Promise<void>((resolve) => { release = resolve }))
     await Promise.resolve()
-    await user.dblClick(screen.getByRole('button', { name: 'Ergebnis verbindlich speichern' }))
+    await user.dblClick(screen.getByRole('button', { name: 'Ergebnis speichern' }))
     expect(screen.getByRole('button', { name: 'Wird gespeichert ...' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Ergebnis ändern' })).toBeDisabled()
+    expect(screen.getByLabelText('Tore Weiß')).toBeDisabled()
     expect(readTournament(started.id)).toEqual(started)
     const releaseLock = release
     if (!releaseLock) throw new Error('Testsperre fehlt.')
@@ -230,13 +224,13 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     expect(within(rows[1]).getAllByRole('cell').map((cell) => cell.textContent)).toEqual(['1', '1', '1', '0', '7', '5', '2', '3'])
     await user.click(within(tableDialog).getByRole('button', { name: 'Schließen' }))
     expect(readTournament(started.id)).toEqual(saved)
-    expect(screen.queryByRole('button', { name: 'Ergebnis ändern' })).not.toBeInTheDocument()
     for (const [position, player] of [['Weiß Angriff', 'Alex'], ['Weiß Verteidigung', 'Bea'], ['Schwarz Angriff', 'Chris'], ['Schwarz Verteidigung', 'Dana']]) {
       await user.click(screen.getByRole('button', { name: `${position}: frei` }))
       await user.click(screen.getByRole('button', { name: `${player} auswählen` }))
     }
     await user.click(screen.getByRole('button', { name: 'Spiel starten' }))
     expect(await screen.findByRole('timer')).toHaveTextContent('01:00')
+    expect(screen.queryByRole('button', { name: /Ergebnis \d bearbeiten/ })).not.toBeInTheDocument()
     const liveRows = within(screen.getByRole('table')).getAllByRole('row')
     expect(within(liveRows[1]).getAllByRole('cell').at(-1)).toHaveTextContent('3')
     expect(readTournament(started.id).completedMatches).toEqual(saved.completedMatches)
@@ -285,6 +279,94 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     if (count === 0) expect(history.getByText('Noch keine abgeschlossene Partie.')).toBeVisible()
   })
 
+  it('korrigiert und löscht eines der jüngsten drei Spiele mit Neuwertung, unveränderter Historie und JSON-Rundlauf', async () => {
+    const user = userEvent.setup()
+    const original = withResults(4)
+    const matches = original.completedMatches!
+    await saveTournament(original, null)
+    const first = render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
+    const history = within(screen.getByRole('region', { name: 'Letzte 3 Ergebnisse' }))
+    const edit = () => history.getByRole('button', { name: /^Ergebnis 1 bearbeiten/ })
+    expect(history.getAllByRole('button', { name: /Ergebnis \d bearbeiten/ })).toHaveLength(3)
+    expect(history.queryByRole('button', { name: /10 : 0/ })).not.toBeInTheDocument()
+    await user.click(edit())
+    const dialog = within(screen.getByRole('dialog', { name: 'Vorrundenergebnis bearbeiten' }))
+    const white = dialog.getByLabelText('Tore Weiß')
+    const black = dialog.getByLabelText('Tore Schwarz')
+    expect(white).toHaveValue(10)
+    expect(black).toHaveValue(3)
+    await user.clear(white)
+    await user.type(white, '3')
+    await user.click(dialog.getByRole('button', { name: 'Korrektur speichern' }))
+    expect(dialog.getByRole('alert')).toHaveTextContent('Gleichstand')
+    expect(white).toHaveValue(3)
+    expect(readTournament(original.id)).toEqual(original)
+    await user.clear(white)
+    await user.type(white, '2')
+    await user.clear(black)
+    await user.type(black, '9')
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => { throw new DOMException('Full', 'QuotaExceededError') })
+    await user.click(dialog.getByRole('button', { name: 'Korrektur speichern' }))
+    expect(dialog.getByRole('alert')).toHaveTextContent('nicht gespeichert')
+    expect(white).toHaveValue(2)
+    expect(readTournament(original.id)).toEqual(original)
+    await user.click(dialog.getByRole('button', { name: 'Korrektur speichern' }))
+    expect(await history.findByText('Weiß 2 : 9 Schwarz')).toBeVisible()
+    expect(edit()).toHaveFocus()
+    const corrected = readTournament(original.id)
+    expect(corrected.completedMatches).toEqual([
+      ...matches.slice(0, 3), { ...matches[3], whiteGoals: 2, blackGoals: 9, corrected: true },
+    ])
+    expect(parseBackup(serializeBackup(corrected))).toEqual(corrected)
+
+    await user.click(screen.getByRole('button', { name: 'Mehr Infos: Vollständige Vorrundentabelle' }))
+    let table = within(screen.getByRole('dialog', { name: 'Vorrundentabelle' }))
+    expect(within(table.getByRole('row', { name: /Alex/ })).getAllByRole('cell').map((cell) => cell.textContent))
+      .toEqual(['1', '4', '3', '1', '32', '12', '20', '10'])
+    await user.click(table.getByRole('button', { name: 'Schließen' }))
+
+    await user.click(edit())
+    await user.click(dialog.getByRole('button', { name: 'Spiel löschen' }))
+    let confirmation = within(screen.getByRole('dialog', { name: 'Vorrundenspiel löschen?' }))
+    await user.click(confirmation.getByRole('button', { name: 'Abbrechen' }))
+    expect(readTournament(original.id)).toEqual(corrected)
+    await user.click(edit())
+    await user.click(dialog.getByRole('button', { name: 'Spiel löschen' }))
+    confirmation = within(screen.getByRole('dialog', { name: 'Vorrundenspiel löschen?' }))
+    await user.click(confirmation.getByRole('button', { name: 'Spiel endgültig löschen' }))
+    expect(await history.findByRole('button', { name: /Ergebnis 3 bearbeiten: Weiß 10 : 0/ })).toBeVisible()
+    const deleted = readTournament(original.id)
+    expect(deleted.completedMatches).toEqual(matches.slice(0, 3))
+    expect(parseBackup(serializeBackup(deleted))).toEqual(deleted)
+
+    first.unmount()
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
+    expect(screen.queryByText('Weiß 2 : 9 Schwarz')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Mehr Infos: Vollständige Vorrundentabelle' }))
+    table = within(screen.getByRole('dialog', { name: 'Vorrundentabelle' }))
+    expect(within(table.getByRole('row', { name: /Alex/ })).getAllByRole('cell').map((cell) => cell.textContent))
+      .toEqual(['1', '3', '3', '0', '30', '3', '27', '9'])
+  })
+
+  it('schützt alte Ergebnisse und lehnt Löschungen aus veralteten Tabs sowie bei offener Partie ab', async () => {
+    const user = userEvent.setup()
+    const original = withResults(4)
+    const matches = original.completedMatches!
+    await saveTournament(original, null)
+    await expect(updatePreliminaryResult(original, matches[0].id, { kind: 'delete' })).rejects.toThrow('letzten drei')
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
+    await user.click(screen.getByRole('button', { name: /^Ergebnis 1 bearbeiten/ }))
+    const active = await updateTournament(original, (current) => startMatch(current, lineup, now + 480_000))
+    await user.click(screen.getByRole('button', { name: 'Spiel löschen' }))
+    await user.click(screen.getByRole('button', { name: 'Spiel endgültig löschen' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('zwischenzeitlich geändert')
+    await expect(updatePreliminaryResult(active, matches[3].id, { kind: 'delete' })).rejects.toThrow('offene Partie')
+    expect(readTournament(original.id)).toEqual(active)
+  })
+
   it('beendet bei bestaetigten 10 Toren die Partie vorzeitig ohne spaeteren Endpfiff', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(now + 1000)
@@ -296,8 +378,7 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     await user.click(await screen.findByRole('button', { name: '10 Tore erreicht' }))
     await user.type(screen.getByLabelText('Tore Weiß'), '10')
     await user.type(screen.getByLabelText('Tore Schwarz'), '9')
-    await user.click(screen.getByRole('button', { name: 'Ergebnis prüfen' }))
-    await user.click(screen.getByRole('button', { name: 'Ergebnis verbindlich speichern' }))
+    await user.click(screen.getByRole('button', { name: 'Ergebnis speichern' }))
     expect(await screen.findByRole('region', { name: 'Partieaufstellung' })).toBeVisible()
     const saved = readTournament(started.id)
     expect(saved.completedMatches?.[0]).toMatchObject({

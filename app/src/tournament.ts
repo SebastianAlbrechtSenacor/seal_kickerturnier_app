@@ -183,7 +183,7 @@ export function isTournament(value: unknown): value is Tournament {
       (value.phase === 'preparation' && value.activeMatch !== null)) return false
   if (value.version === 3) return !('completedMatches' in value)
   const activeMatch = value.activeMatch
-  if (!isCompletedMatches(value.completedMatches, value.players, result.settings.matchMinutes) ||
+  if (!isCompletedMatches(value.completedMatches, value.players, result.settings.matchMinutes, true) ||
       (value.phase === 'preparation' && value.completedMatches.length > 0) ||
       (activeMatch !== null && value.completedMatches.some((match) => match.id === activeMatch.id))) return false
   const standings = calculateStandings(value.players, value.completedMatches, result.settings)
@@ -192,7 +192,8 @@ export function isTournament(value: unknown): value is Tournament {
   if (!('knockout' in value)) return false
   if (value.phase !== 'knockout') return value.knockout === null
   return isKnockoutState(value.knockout, standings, value.players, result.settings.matchMinutes, activeMatch) &&
-    isCompletedMatches([...value.completedMatches, ...value.knockout.results], value.players, result.settings.matchMinutes)
+    new Set([...value.completedMatches, ...value.knockout.results].map((match) => match.id)).size ===
+      value.completedMatches.length + value.knockout.results.length
 }
 
 export function withoutLegacyCode(tournament: Tournament): Tournament {

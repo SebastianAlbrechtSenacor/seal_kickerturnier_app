@@ -1,6 +1,7 @@
 import { isTournament, withoutLegacyCode } from './tournament'
 import type { Tournament } from './tournament'
-import type { ActiveTournament } from './matches'
+import { changePreliminaryResult } from './matches'
+import type { ActiveTournament, PreliminaryResultChange } from './matches'
 
 const prefix = 'seal-kickerturnier:tournament:'
 
@@ -73,6 +74,15 @@ export function updateTournament<T extends Tournament>(tournament: Tournament, u
   })
 }
 
+export function updatePreliminaryResult(tournament: Tournament, matchId: string, change: PreliminaryResultChange): Promise<Tournament> {
+  return withTournamentLock(tournament.id, () => {
+    const current = assertCurrentTournament(tournament)
+    const next = changePreliminaryResult(current, matchId, change)
+    writeTournament(next, current.revision, 'preliminary-result')
+    return next
+  })
+}
+
 export function claimWhistle(id: string, matchId: string): Promise<{ tournament: ActiveTournament; claimed: boolean }> {
   return withTournamentLock(id, () => {
     const tournament = readTournament(id)
@@ -88,7 +98,7 @@ export function claimWhistle(id: string, matchId: string): Promise<{ tournament:
   })
 }
 
-function writeTournament(tournament: Tournament, expectedRevision: number | null, operation: 'update' | 'restore'): void {
+function writeTournament(tournament: Tournament, expectedRevision: number | null, operation: 'update' | 'restore' | 'preliminary-result'): void {
   if (!isTournament(tournament)) throw new Error('Ungültige Turnierdaten können nicht gespeichert werden.')
   let raw: string | null
   try {
@@ -112,11 +122,12 @@ function writeTournament(tournament: Tournament, expectedRevision: number | null
     if (JSON.stringify(next.slice(0, previous.length)) !== JSON.stringify(previous) ||
         next.length > previous.length + 1 ||
         (next.length > previous.length &&
-          (current.phase !== 'preliminary' || !current.activeMatch || tournament.activeMatch !== null || next.at(-1)?.id !== current.activeMatch.id))) {
+          (current.phase !== 'preliminary' || !current.activeMatch || tournament.activeMatch !== null ||
+            next.at(-1)?.id !== current.activeMatch.id || next.at(-1)?.corrected))) {
       throw new Error('Gespeicherte Ergebnisse sind unveränderlich. Bitte das Turnier erneut öffnen.')
     }
   }
-  if (operation === 'update' && current?.knockout) {
+  if (operation !== 'restore' && current?.knockout) {
     const previous = current.knockout.results
     const next = tournament.knockout
     if (!next || JSON.stringify(current.knockout.standings) !== JSON.stringify(next.standings) ||
@@ -128,7 +139,7 @@ function writeTournament(tournament: Tournament, expectedRevision: number | null
       throw new Error('K.-o.-Teams, Vorrundenstand und gespeicherte Ergebnisse sind unveränderlich.')
     }
   }
-  if (operation === 'update' && current && current.phase !== 'preparation' &&
+  if (operation !== 'restore' && current && current.phase !== 'preparation' &&
       (tournament.phase === 'preparation' || (current.phase === 'knockout' && tournament.phase !== 'knockout') ||
        JSON.stringify(tournament.settings) !== JSON.stringify(current.settings) ||
        JSON.stringify(tournament.players) !== JSON.stringify(current.players))) {
@@ -142,8 +153,10 @@ function writeTournament(tournament: Tournament, expectedRevision: number | null
 
 }
 
-export function assertCurrentTournament(tournament: Tournament): void {
-  if (readTournament(tournament.id).revision !== tournament.revision) {
+export function assertCurrentTournament(tournament: Tournament): Tournament {
+  const current = readTournament(tournament.id)
+  if (current.revision !== tournament.revision) {
     throw new Error('Das Turnier wurde zwischenzeitlich geändert. Bitte den aktuellen Stand über die Turnierauswahl neu öffnen.')
   }
+  return current
 }

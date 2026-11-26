@@ -18,19 +18,17 @@ interface Props {
   onWhistle: () => Promise<boolean>
   onAbort: () => Promise<void>
   onSave: (white: string, black: string) => Promise<void>
-  onCheckCurrent: () => void
   onBack: () => void
   onExport: () => void
 }
 
 export default function RunningMatch({ tournament, whistle, audioBusy, onTestAudio, onAudioError, onWhistle,
-  onAbort, onSave, onCheckCurrent, onBack, onExport }: Props) {
+  onAbort, onSave, onBack, onExport }: Props) {
   const match = tournament.activeMatch
   const fixture = tournament.knockout ? nextKnockoutFixture(tournament.knockout) : null
   const labels = { white: fixture ? `Team ${fixture.first.id}` : 'Weiß', black: fixture ? `Team ${fixture.second.id}` : 'Schwarz' }
   const [now, setNow] = useState(Date.now)
   const [entry, setEntry] = useState(false)
-  const [preview, setPreview] = useState(false)
   const [white, setWhite] = useState('')
   const [black, setBlack] = useState('')
   const [confirmAbort, setConfirmAbort] = useState(false)
@@ -73,23 +71,15 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
 
   useEffect(() => {
     if (confirmAbort) abortHeading.current?.focus()
-    else if (entry || preview) entryHeading.current?.focus()
-  }, [confirmAbort, entry, preview])
-
-  function checkResult() {
-    setError('')
-    const problem = resultError(white, black, Date.now() >= Date.parse(match.endsAt))
-    if (problem) { setError(problem); return }
-    try {
-      onCheckCurrent()
-      setPreview(true)
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Der Turnierstand konnte nicht geprüft werden.')
-    }
-  }
+    else if (entry) entryHeading.current?.focus()
+  }, [confirmAbort, entry])
 
   async function commit(action: 'save' | 'abort') {
     if (actionPending.current) return
+    if (action === 'save') {
+      const problem = resultError(white, black, Date.now() >= Date.parse(match.endsAt))
+      if (problem) { setError(problem); return }
+    }
     actionPending.current = true
     setPending(action)
     setError('')
@@ -147,35 +137,23 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
                   onClick={() => { setConfirmAbort(false); setError('') }}>Weiter spielen</button>
               </div>
             </section>
-          ) : preview ? (
-            <section className="match-result" aria-label="Ergebnisprüfung">
-              <h3 ref={entryHeading} tabIndex={-1}>Ergebnis prüfen</h3>
-              <p><strong>{labels.white} {white} : {black} {labels.black}</strong></p>
-              <p>{labels.white}: {team('white')}</p><p>{labels.black}: {team('black')}</p>
-              {fixture && <p>Keine Vorrundenpunkte. Dieses Ergebnis entscheidet den K.-o.-Spielplan.</p>}
-              <p role="status">Noch nicht gespeichert. Nach der Bestätigung sind Ergebnis und Wertung unveränderlich.</p>
-              <div className="form-actions">
-                <button className="action-button" type="button" disabled={busy} onClick={() => void commit('save')}>
-                  {pending === 'save' ? 'Wird gespeichert ...' : 'Ergebnis verbindlich speichern'}</button>
-                <button className="secondary-button" type="button" disabled={busy} onClick={() => setPreview(false)}>Ergebnis ändern</button>
-              </div>
-            </section>
           ) : entry ? (
             <form className="match-result" aria-label="Ergebniseingabe" noValidate onSubmit={(event) => {
               event.preventDefault()
-              checkResult()
+              void commit('save')
             }}>
               <h3 ref={entryHeading} tabIndex={-1}>Ergebnis eingeben</h3>
               <p>{expired ? 'Kein Unentschieden: gegebenenfalls bis zum nächsten Tor weiterspielen.' : 'Vor Ablauf muss genau ein Team 10 Tore erreicht haben. Die Zeit läuft weiter.'}</p>
               <div className="score-inputs">
-                <label>Tore {labels.white}{fixture && ` (${team('white')})`}<input type="number" min="0" max="10" step="1" inputMode="numeric" value={white}
+                <label>Tore {labels.white}{fixture && ` (${team('white')})`}<input type="number" min="0" max="10" step="1" inputMode="numeric" value={white} disabled={busy}
                   onChange={(event) => { setWhite(event.target.value); setError('') }} /></label>
-                <label>Tore {labels.black}{fixture && ` (${team('black')})`}<input type="number" min="0" max="10" step="1" inputMode="numeric" value={black}
+                <label>Tore {labels.black}{fixture && ` (${team('black')})`}<input type="number" min="0" max="10" step="1" inputMode="numeric" value={black} disabled={busy}
                   onChange={(event) => { setBlack(event.target.value); setError('') }} /></label>
               </div>
               <div className="form-actions">
-                <button className="action-button" type="submit">Ergebnis prüfen</button>
-                <button className="secondary-button" type="button" onClick={() => { setEntry(false); setError('') }}>Zur Partie</button>
+                <button className="action-button" type="submit" disabled={busy}>
+                  {pending === 'save' ? 'Wird gespeichert ...' : 'Ergebnis speichern'}</button>
+                <button className="secondary-button" type="button" disabled={busy} onClick={() => { setEntry(false); setError('') }}>Zur Partie</button>
               </div>
             </form>
           ) : (

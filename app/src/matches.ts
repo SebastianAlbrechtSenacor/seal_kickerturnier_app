@@ -18,7 +18,12 @@ export interface CompletedMatch extends OpenMatch {
   whiteGoals: number
   blackGoals: number
   finishedAt: string
+  corrected?: true
 }
+
+export type PreliminaryResultChange =
+  | { kind: 'correct'; white: string; black: string }
+  | { kind: 'delete' }
 
 function isInstant(value: unknown): value is string {
   return typeof value === 'string' && Number.isFinite(Date.parse(value)) &&
@@ -46,25 +51,49 @@ export function isOpenMatch(value: unknown, players: readonly Player[], minutes:
     && Date.parse(value.endsAt) > Date.parse(value.startedAt)
 }
 
-function isCompletedMatch(value: unknown, players: readonly Player[], minutes: number): value is CompletedMatch {
+function isCompletedMatch(value: unknown, players: readonly Player[], minutes: number, allowCorrection: boolean): value is CompletedMatch {
   if (typeof value !== 'object' || value === null || Array.isArray(value) ||
       !('whiteGoals' in value) || typeof value.whiteGoals !== 'number' ||
       !('blackGoals' in value) || typeof value.blackGoals !== 'number' ||
       !('finishedAt' in value) || !isInstant(value.finishedAt)) return false
-  const { whiteGoals, blackGoals, finishedAt, ...match } = value
+  if ('corrected' in value && (!allowCorrection || value.corrected !== true)) return false
+  const { whiteGoals, blackGoals, finishedAt, ...details } = value
+  const { corrected, ...match } = 'corrected' in details ? details : { ...details, corrected: undefined }
   return isOpenMatch(match, players, minutes) &&
     Date.parse(finishedAt) >= Date.parse(match.startedAt) &&
-    resultError(String(whiteGoals), String(blackGoals), Date.parse(finishedAt) >= Date.parse(match.endsAt)) === null
+    resultError(String(whiteGoals), String(blackGoals), corrected === true || Date.parse(finishedAt) >= Date.parse(match.endsAt)) === null
 }
 
-export function isCompletedMatches(value: unknown, players: readonly Player[], minutes: number): value is CompletedMatch[] {
+export function isCompletedMatches(value: unknown, players: readonly Player[], minutes: number, allowCorrection = false): value is CompletedMatch[] {
   if (!Array.isArray(value)) return false
   const ids = new Set<string>()
   return value.every((match: unknown) => {
-    if (!isCompletedMatch(match, players, minutes) || ids.has(match.id)) return false
+    if (!isCompletedMatch(match, players, minutes, allowCorrection) || ids.has(match.id)) return false
     ids.add(match.id)
     return true
   })
+}
+
+export function editablePreliminaryResults(tournament: Tournament): CompletedMatch[] {
+  if (tournament.phase !== 'preliminary' || tournament.activeMatch || tournament.knockout) return []
+  return tournament.completedMatches?.slice(-3) ?? []
+}
+
+export function changePreliminaryResult(tournament: Tournament, matchId: string, change: PreliminaryResultChange): Tournament {
+  if (!editablePreliminaryResults(tournament).some((match) => match.id === matchId)) {
+    throw new Error('Nur die letzten drei Vorrundenergebnisse sind ohne offene Partie und vor dem K.-o.-Start bearbeitbar.')
+  }
+  const matches = tournament.completedMatches ?? []
+  if (change.kind === 'delete') {
+    return { ...tournament, revision: tournament.revision + 1, completedMatches: matches.filter((match) => match.id !== matchId) }
+  }
+  const problem = resultError(change.white, change.black, true)
+  if (problem) throw new Error(problem)
+  return {
+    ...tournament, revision: tournament.revision + 1,
+    completedMatches: matches.map((match) => match.id === matchId ?
+      { ...match, whiteGoals: Number(change.white), blackGoals: Number(change.black), corrected: true } : match),
+  }
 }
 
 export function finishMatch(tournament: Tournament, matchId: string, white: string, black: string, now = Date.now()): Tournament {

@@ -6,7 +6,11 @@ Regressionstest und Produktions-Build sind bestanden; das Deployment
 steht aus. Baut auf [Epic 1](./epic-1-DONE.md) auf.
 Paket 2: Alle fünf Stories (2.3–2.7) wurden am 26.11.2026
 abgenommen, einschließlich der Layout-Ergänzungen. Die gemeinsame
-Browser-Regression und das Deployment stehen noch aus.
+Browser-Regression ist am 26.11.2026 bestanden. Das Deployment wurde
+am selben Tag vom Entwickler durchgeführt und bestätigt.
+Paket 3: Story 2.8 wurde am 26.11.2026 abgenommen. Die Regression für
+Ergebnisverwaltung, der lokale Browsercheck und der Praxischeck im
+Firefox am Turnierlaptop sind bestanden. Das separate Deployment steht aus.
 
 ## Ziel
 
@@ -80,7 +84,7 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 5. [Vorrundentabellen verdichten](./story-2_5-DONE.md)
 6. [Kickertisch stabil darstellen und Stangen ergänzen](./story-2_6-DONE.md)
 7. [Emoji-Avatare vielfältiger gestalten](./story-2_7-DONE.md)
-8. [Ergebnisse direkt speichern und jüngste Vorrundenspiele korrigieren](./story-2_8.md)
+8. [Ergebnisse direkt speichern und jüngste Vorrundenspiele korrigieren](./story-2_8-DONE.md)
 9. [Farbschema mit Turnierphase wechseln](./story-2_9.md)
 10. [Anwendung durch Design-Fachperson prüfen und verfeinern](./story-2_10.md)
 11. [Neuen An- und Abpfiff abspielen](./story-2_11.md)
@@ -110,6 +114,19 @@ ein gemeinsames Deployment und gebündeltes Feedback zum Zusammenspiel. Diese
 Paketprüfung ersetzt keine Story-Abnahme. Bereits abgenommene Kriterien,
 insbesondere zur Darstellung im Querformat, werden bei späteren Änderungen
 erneut geprüft.
+
+**Paket 2 – Browser-Regression vom 26.11.2026:** Im lokalen
+Produktions-Build ein Testturnier mit zwölf Spielenden angelegt,
+die Sperre belegter Emojis geprüft und die Vorrunde gestartet. Drei
+Partien per Drag-and-drop bzw. Tastatur aufgestellt und gewertet.
+Eine laufende Partie ließ sich nach dem Neuladen wieder öffnen.
+Die Tisch- und Ablageflächen blieben beim Ziehen und Ablegen stabil.
+Bei 1280 × 720 und 1485 × 871 CSS-Pixeln waren zwölf Zeilen in Vorschau
+und Overlay sowie drei Ergebnisse unter dem Tisch ohne Scrollen
+sichtbar. Alle drei Overlays gaben den Fokus zurück und erhielten die
+Aufstellung. Nach Abbruch des K.-o.-Dialogs blieb der Entwurf erhalten;
+nach Bestätigung zeigte das K.-o.-Archiv die eingefrorene Wertung und
+alle drei Vorrundenergebnisse. Lint und Produktions-Build bestanden.
 
 Fehlt die freigegebene Audiodatei, kann Paket 6 getrennt ausgeliefert werden.
 Damit das Konfetti nicht auf die Datei warten muss, kann Story 2.12 nach

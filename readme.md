@@ -247,17 +247,16 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    Beim Wiederoeffnen einer bereits abgelaufenen Partie ertont kein
    nachtraeglicher automatischer Pfiff.
 4. **10 Tore erreicht** oeffnet die Eingabe vorzeitig, ohne den Timer
-   anzuhalten. **Ergebnis pruefen** verlangt zwei ganze Zahlen von 0 bis 10,
+   anzuhalten. **Ergebnis speichern** verlangt zwei ganze Zahlen von 0 bis 10,
    keinen Gleichstand und vor Zeitablauf genau ein Team mit 10 Toren.
    Nach Zeitablauf ist beispielsweise auch 7:5 gueltig, selbst wenn die
    Eingabe vorher geoeffnet wurde.
-5. Die Pruefung zeigt beide Teams, den Endstand und den Hinweis, dass
-   Ergebnis und Wertung nach Bestaetigung unveraenderlich sind.
-   **Ergebnis aendern** behaelt den Entwurf zur Korrektur bei.
-   **Ergebnis verbindlich speichern** beendet die Partie und wertet sie
-   genau einmal. Erst nach erfolgreichem Speichern wird sofort die
+5. **Ergebnis speichern** beendet und wertet die Partie ohne Vorschau
+   oder zweite Bestaetigung genau einmal. Bei ungueltiger Eingabe bleiben
+   die Partie offen und der Entwurf erhalten. Nach erfolgreichem Speichern
+   wird sofort die
    Vorbereitung der naechsten Partie mit vier leeren Positionen angezeigt.
-   Neuladen vor Bestaetigung verwirft nur den Toreentwurf,
+   Neuladen vor dem Speichern verwirft nur den Toreentwurf,
    nicht die offene Partie.
 6. **Partie abbrechen** erfordert eine Bestaetigung. Verwerfen behaelt die
    Partie samt urspruenglichem Endzeitpunkt; Bestaetigen beendet sie ohne
@@ -284,9 +283,16 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
 - **Mehr Infos** an der Turnierinfo unten oeffnet Beschreibung, geplante
   Phasendauern und Zeitplanung auf. Vor Vorrundenstart bleibt die
   bisherige ausfuehrliche Vorbereitungsansicht erhalten.
-- Ergebnisse koennen weder einzeln korrigiert noch geloescht werden.
-  Das bewusste Ersetzen des ganzen Turniers durch eine Sicherung bleibt
-  davon getrennt moeglich, einschliesslich des gesamten Ergebnisverlaufs.
+- **✎ Bearbeiten** neben einem der letzten drei Vorrundenergebnisse ist
+  verfuegbar, solange keine Partie offen ist und die K.-o.-Phase noch nicht
+  begonnen hat. **Korrektur speichern** aendert nur den Torstand: Ganze Tore
+  von 0 bis 10 ohne Gleichstand sind hier auch dann erlaubt, wenn das Spiel
+  vor Zeitablauf endete. Teams, Zeit und Position im Verlauf bleiben gleich.
+  **Spiel loeschen** entfernt das Ergebnis und seine Wertung erst nach
+  Bestaetigung. Gegebenenfalls rueckt ein aelteres Spiel nach. Rang, Punkte
+  und Statistik werden neu berechnet. Neuladen und neue JSON-Sicherungen
+  behalten den erfolgreich gespeicherten Stand. K.-o.-Ergebnisse sind
+  nicht bearbeitbar.
 
 ### K.-o.-Phase spielen
 
@@ -309,9 +315,9 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    Unbekannte spaetere Paarungen zeigen Sieger-/Verlierer-Platzhalter.
 5. **Spiel starten** speichert die Partie und startet den bekannten
    Countdown mit derselben Partiedauer und denselben Audio-/Ergebnisregeln.
-   Die Torefelder und Vorschau nennen beide Teams samt Personen.
+   Die Torefelder nennen beide Teams samt Personen.
    K.-o.-Ergebnisse veraendern keine Vorrundenpunkte oder -statistiken.
-6. Nach **Ergebnis verbindlich speichern** ist die naechste feste Begegnung
+6. Nach **Ergebnis speichern** ist die naechste feste Begegnung
    sofort vorbereitet, startet aber erst nach erneutem **Spiel starten**.
    Bestaetigtes Abbrechen laesst dieselbe Begegnung ungewertet zum Neustart
    bereit. Neuladen behaelt eine offene Partie samt urspruenglichem Endzeitpunkt.

@@ -12,14 +12,14 @@ import MatchHistory from './MatchHistory'
 import { MatchInfo } from './MatchPresentation'
 import { WorkspaceNavigation } from './WorkspaceNavigation'
 import { abortMatch, finishMatch, startMatch } from './matches'
-import type { ActiveTournament } from './matches'
+import type { ActiveTournament, PreliminaryResultChange } from './matches'
 import type { Lineup } from './lineup'
 import { createWhistle } from './whistle'
 import type { Player } from './players'
 import { downloadBackup } from './tournament-backup'
 import { assertPreparation, formatBerlinTime, planTimes, startPreliminary } from './tournament'
 import type { Tournament, TournamentSettings } from './tournament'
-import { assertCurrentTournament, claimWhistle, loadTournaments, readTournament, saveTournament, updateTournament } from './tournament-storage'
+import { assertCurrentTournament, claimWhistle, loadTournaments, readTournament, saveTournament, updatePreliminaryResult, updateTournament } from './tournament-storage'
 import './TournamentManager.css'
 
 type View =
@@ -58,7 +58,7 @@ export default function TournamentManager() {
   const audioPending = useRef(false)
   const mounted = useRef(false)
   const headingTarget = (view.kind === 'live' || view.kind === 'knockout') && view.tournament.activeMatch ?
-    view.tournament.activeMatch.id : view
+    view.tournament.activeMatch.id : view.kind === 'match' ? `match:${view.tournament.id}` : view
 
   useEffect(() => {
     mounted.current = true
@@ -199,6 +199,13 @@ export default function TournamentManager() {
       { kind: 'match', tournament })
   }
 
+  async function changeResult(matchId: string, change: PreliminaryResultChange) {
+    if (view.kind !== 'match') throw new Error('Bitte das Turnier erneut öffnen.')
+    const tournament = await updatePreliminaryResult(view.tournament, matchId, change)
+    setError('')
+    setView({ kind: 'match', tournament })
+  }
+
   function showKnockout(tournament: Tournament) {
     setError('')
     try {
@@ -319,7 +326,7 @@ export default function TournamentManager() {
         )}
         {view.kind === 'match' && (
           <MatchPreparation tournament={view.tournament}
-            onStart={beginMatch}
+            onStart={beginMatch} onChangeResult={changeResult}
             onBack={backToList} onExport={() => exportBackup(view.tournament)} onKnockout={confirmKnockout}
             tournamentInfo={<TournamentInformation tournament={view.tournament} />} />
         )}
@@ -327,7 +334,6 @@ export default function TournamentManager() {
           <RunningMatch key={view.tournament.activeMatch.id} tournament={{ ...view.tournament, activeMatch: view.tournament.activeMatch }}
           whistle={whistle} audioBusy={audioBusy} onTestAudio={() => void activateAudio(true)}
           onAudioError={setAudioError} onWhistle={() => notifyExpiry(view.tournament)}
-          onCheckCurrent={() => assertCurrentTournament(view.tournament)}
           onAbort={endMatch} onSave={saveResult} onExport={() => exportBackup(view.tournament)}
           onBack={() => { setError(''); setView({ kind: 'details', tournament: view.tournament }) }} />}
         {view.kind === 'knockout' && completed && <TournamentCompletion tournament={view.tournament}

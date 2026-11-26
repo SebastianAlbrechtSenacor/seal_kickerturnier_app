@@ -1,6 +1,7 @@
 # Story 2.8: Ergebnisse direkt speichern und jüngste Vorrundenspiele korrigieren
 
-Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Status: Abgenommen am 26.11.2026 einschließlich der Ergänzung zur
+Korrekturregel. Epic: [Epic 2](./epic-2.md).
 Lieferpaket 3 – Ergebnisverwaltung: eigener Regressionstest für Wertung,
 Speicherfehler und veraltete Tabs; separates Deployment.
 Bediengrundlage: [Story 2.4](./story-2_4-DONE.md).
@@ -26,6 +27,13 @@ noch vor dem Phasenwechsel berichtigen können.
   haben keine solche Aktion. Nach einer gültigen Korrektur werden Rang,
   Punkte und Statistik neu berechnet. Teams, ursprüngliche Spielzeit und
   Position in der chronologischen Historie bleiben unverändert.
+- **Korrektur unabhängig vom ursprünglichen Zeitablauf:** Gegeben ist ein
+  bearbeitbares Vorrundenspiel, das vor Zeitablauf als 10:8 gespeichert
+  wurde. Wenn ich es auf 9:8 korrigiere, wird 9:8 mit dem ursprünglichen
+  Abschlusszeitpunkt gespeichert. Neuladen und Export mit anschließendem
+  Import behalten beides bei. Bei Korrekturen bleiben nur ganze Torzahlen
+  von 0 bis 10 ohne Gleichstand zulässig. Eine laufende Vorrunden- oder
+  K.-o.-Partie lässt sich vor Zeitablauf weiterhin nicht mit 9:8 abschließen.
 - **Bewusst löschen:** Gegeben ist ein bearbeitbares Vorrundenspiel.
   Wenn ich Löschen wähle und bestätige, verschwindet es aus dem Verlauf,
   seine Wertung entfällt und gegebenenfalls rückt der nächste ältere

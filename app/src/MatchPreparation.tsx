@@ -11,10 +11,12 @@ import { WorkspaceNavigation } from './WorkspaceNavigation'
 import WorkspaceDialog from './WorkspaceDialog'
 import { KnockoutConfirmation } from './KnockoutBoard'
 import { knockoutStartError } from './knockout'
+import type { PreliminaryResultChange } from './matches'
 
 interface Props {
   tournament: Tournament
   onStart: (lineup: Lineup) => Promise<void>
+  onChangeResult?: (matchId: string, change: PreliminaryResultChange) => Promise<void>
   onBack: () => void
   onExport: () => void
   onKnockout: () => Promise<void>
@@ -37,7 +39,7 @@ function positionAt(x: number, y: number): Position | null {
   return isPosition(target?.dataset.lineupPosition) ? target.dataset.lineupPosition : null
 }
 
-export default function MatchPreparation({ tournament, onStart, onBack, onExport, onKnockout, tournamentInfo }: Props) {
+export default function MatchPreparation({ tournament, onStart, onChangeResult, onBack, onExport, onKnockout, tournamentInfo }: Props) {
   const players = tournament.players ?? []
   const [lineup, setLineup] = useState(emptyLineup)
   const [selected, setSelected] = useState<Position | null>(null)
@@ -231,7 +233,7 @@ export default function MatchPreparation({ tournament, onStart, onBack, onExport
                 }} />
               <p role="status" className="lineup-notice">{notice}</p>
               {error && <p role="alert" className="error-message">{error}</p>}
-              <MatchHistory tournament={tournament} recent headingAction={
+              <MatchHistory tournament={tournament} recent onChangeResult={starting || switchingPhase ? undefined : onChangeResult} headingAction={
                 <WorkspaceDialog inline label="Vollständiger Ergebnisverlauf" title="Ergebnisverlauf">
                   <MatchHistory tournament={tournament} />
                 </WorkspaceDialog>
