@@ -4,6 +4,7 @@ import './WorkspaceDialog.css'
 
 interface Props {
   label: string
+  inline?: boolean
   title: string
   disabled?: boolean
   busy?: boolean
@@ -13,7 +14,7 @@ interface Props {
   confirm?: { label: string; onClick: () => void }
 }
 
-export default function WorkspaceDialog({ label, title, disabled, busy, descriptionId, children, confirm, onOpen }: Props) {
+export default function WorkspaceDialog({ label, inline, title, disabled, busy, descriptionId, children, confirm, onOpen }: Props) {
   const id = useId()
   const dialog = useRef<HTMLDialogElement>(null)
   const opener = useRef<HTMLButtonElement>(null)
@@ -27,12 +28,13 @@ export default function WorkspaceDialog({ label, title, disabled, busy, descript
   }
 
   return <>
-    <button className="secondary-button" ref={opener} type="button" aria-haspopup="dialog"
+    <button className={inline ? 'dialog-info-link' : 'secondary-button'} ref={opener} type="button" aria-haspopup="dialog"
+      aria-label={inline ? `Mehr Infos: ${label}` : undefined}
       aria-describedby={descriptionId} disabled={disabled || busy} onClick={() => {
         onOpen?.()
         dialog.current?.showModal()
         setOpen(true)
-      }}>{label}</button>
+      }}>{inline ? 'Mehr Infos' : label}</button>
     <dialog className="workspace-dialog" ref={dialog} aria-labelledby={id}
       onKeyDown={(event) => {
         if (event.key !== 'Escape') return

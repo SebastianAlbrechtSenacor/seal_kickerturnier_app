@@ -1,4 +1,15 @@
 html:has(.workspace-dialog[open]) { overflow: hidden; }
+.dialog-info-link {
+  min-height: 28px;
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
+  color: #00575d;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.dialog-info-link:hover { background: #e3eeea; }
 .workspace-dialog {
   box-sizing: border-box;
   width: min(940px, calc(100% - 32px));

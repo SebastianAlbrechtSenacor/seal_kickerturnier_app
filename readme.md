@@ -189,7 +189,7 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
 ### Eine Partie besetzen
 
 1. Links steht die kompakte Tabelle mit **Rang**, **Spielende** und **Punkte**,
-   rechts der groessere Tisch. **Vollständige Vorrundentabelle** oeffnet alle
+   rechts der groessere Tisch. **Mehr Infos** an der Vorrundentabelle oeffnet alle
    neun Spalten im Overlay. **Schließen** oder Escape kehrt zum Ausloeser
    zurueck; die Aufstellung bleibt erhalten. Auf schmalen Bildschirmen stehen
    Tabelle und Tisch untereinander.
@@ -209,7 +209,7 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
 4. Eingesetzte Personen sind mit ihrer Position markiert und gegen erneutes
    Einsetzen gesperrt. Eine freie Person auf eine belegte Position ziehen
    oder fuer sie auswaehlen ersetzt die Belegung; die bisherige Person wird frei.
-   **Entfernen** leert eine einzelne Position, **Aufstellung leeren** alle vier.
+   **Entfernen** leert die jeweilige Position direkt am Tisch.
    Ungueltiges oder abgebrochenes Ziehen laesst den Entwurf mit Hinweis bestehen.
 5. Erst mit vier verschiedenen Personen ist **Spiel starten** aktiv und
    hervorgehoben. Vier Belegungen allein sperren die Bearbeitung nicht.
@@ -269,14 +269,14 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
   Wechselnde Teampartner aendern daran nichts; Unbeteiligte bleiben unveraendert.
   Tabellen in Uebersicht, Vorbereitung und laufender Partie verwenden
   denselben berechneten Stand und dieselben Rangentscheidungen.
-- Unter der kompakten Tabelle links in der Partievorbereitung stehen
-  hoechstens die **letzten drei Ergebnisse**. **Vollständiger Ergebnisverlauf**
-  oeffnet alle Spielergebnisse im Overlay, ohne die Aufstellung zu verwerfen.
+- Unter dem Spieltisch stehen hoechstens die **letzten drei Ergebnisse**.
+  **Mehr Infos** an der Ergebnisliste oeffnet den vollstaendigen Verlauf
+  im Overlay, ohne die Aufstellung zu verwerfen.
   Zuletzt gespeicherte Partien stehen zuerst, mit Endstand, Teams samt
   Namen/Avataren und Abschlusszeit in Eschborner Ortszeit.
 - Ohne Ergebnisse erscheint ein Leerhinweis. Offene oder abgebrochene
   Partien erscheinen nicht im Verlauf und bringen keine Punkte.
-- **Weitere Turnierinfos** oeffnet Beschreibung, geplante
+- **Mehr Infos** an der Turnierinfo unten oeffnet Beschreibung, geplante
   Phasendauern und Zeitplanung auf. Vor Vorrundenstart bleibt die
   bisherige ausfuehrliche Vorbereitungsansicht erhalten.
 - Ergebnisse koennen weder einzeln korrigiert noch geloescht werden.
@@ -285,7 +285,7 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
 
 ### K.-o.-Phase spielen
 
-1. In der Aufstellung **K.O. Runde starten** waehlen. Erforderlich
+1. Ueber dem Tisch **K.O. Runde starten** waehlen. Erforderlich
    sind mindestens acht angemeldete Personen und keine offene Partie.
    Eine Mindestspielzahl gibt es nicht; bei mehr als acht Personen
    qualifizieren sich genau die ersten acht der aktuellen Tabelle.

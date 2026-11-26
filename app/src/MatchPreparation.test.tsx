@@ -2,7 +2,6 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import MatchPreparation from './MatchPreparation'
-import { positions } from './lineup'
 import type { Tournament } from './tournament'
 import { avatars } from './players'
 
@@ -84,11 +83,11 @@ describe('Partieaufstellung', () => {
     expect(screen.queryByRole('heading', { name: 'Aufstellung prüfen' })).not.toBeInTheDocument()
     expect(tournament).toEqual(original)
     expect(screen.getByRole('button', { name: 'Weiß Angriff: Alex' })).toBeVisible()
-    await user.click(screen.getByRole('button', { name: 'Aufstellung leeren' }))
+    expect(screen.queryByRole('button', { name: 'Aufstellung leeren' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Weiß Angriff leeren' }))
     expect(screen.getByRole('button', { name: 'Spiel starten' })).toBeDisabled()
-    for (const position of positions) {
-      expect(screen.getByRole('button', { name: `${position.label}: frei` })).toBeVisible()
-    }
+    expect(screen.getByRole('button', { name: 'Weiß Angriff: frei' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Weiß Verteidigung: Bea' })).toBeVisible()
   })
 
   it.each(['mouse', 'touch'])('ordnet per Pointer-Drag mit %s zu und laesst ungueltiges Ablegen unveraendert', (pointerType) => {

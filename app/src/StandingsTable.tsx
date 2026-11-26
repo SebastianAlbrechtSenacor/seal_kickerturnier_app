@@ -9,6 +9,7 @@ interface Props {
   renderPlayer?: (player: Player) => ReactNode
   compact?: boolean
   showHeading?: boolean
+  headingAction?: ReactNode
 }
 
 const statistics = [
@@ -16,14 +17,17 @@ const statistics = [
   ['GT', 'Gegentore'], ['TD', 'Tordifferenz'], ['Pkt.', 'Punkte'],
 ] as const
 
-export default function StandingsTable({ tournament, renderPlayer, compact = false, showHeading = true }: Props) {
+export default function StandingsTable({ tournament, renderPlayer, compact = false, showHeading = true, headingAction }: Props) {
   const standings = tournament.knockout?.standings ?? calculateStandings(tournament.players ?? [], tournament.completedMatches ?? [], tournament.settings)
   const id = useId()
   const heading = `${id}-heading`
   const hint = `${id}-hint`
   return (
     <section className="standings" aria-labelledby={heading}>
-      <h3 id={heading} className={showHeading ? undefined : 'sr-only'}>{tournament.knockout ? 'Vorrunde (eingefroren)' : 'Vorrundentabelle'}</h3>
+      <div className="section-heading">
+        <h3 id={heading} className={showHeading ? undefined : 'sr-only'}>{tournament.knockout ? 'Vorrunde (eingefroren)' : 'Vorrundentabelle'}</h3>
+        {headingAction}
+      </div>
       {tournament.knockout && <p className="form-note" id={hint}>Dieser Stand bleibt während der K.-o.-Phase unverändert.</p>}
       <div className="standings-scroll" role="region" aria-label="Vorrundentabelle scrollen"
         aria-describedby={tournament.knockout ? hint : undefined} tabIndex={0}>
@@ -63,7 +67,7 @@ export default function StandingsTable({ tournament, renderPlayer, compact = fal
           <div key={full}><dt>{short}</dt><dd>{full}</dd></div>
         ))}</dl>
       </details>}
-      <p className="form-note">Reihenfolge: Punkte, Siege, Tordifferenz, erzielte Tore, dann deutscher Spielername.</p>
+      {(!compact || !headingAction) && <p className="form-note">Reihenfolge: Punkte, Siege, Tordifferenz, erzielte Tore, dann deutscher Spielername.</p>}
     </section>
   )
 }

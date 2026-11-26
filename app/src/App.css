@@ -264,8 +264,6 @@ form input[aria-invalid='true'] { border-color: #a42b20; }
   .app-shell .avatar-palette { max-height: 230px; overflow: auto; padding: 6px; }
   .app-shell .match-layout .standings-scroll { max-height: max(175px, calc(100svh - 490px)); }
   .app-shell .match-layout .result-list { max-height: max(120px, calc(100svh - 585px)); }
-  .app-shell .preparation-summary-panel > .standings .standings-scroll { max-height: max(120px, calc(100svh - 575px)); }
-  .app-shell .preparation-summary-panel > .match-history .result-list { max-height: max(108px, calc(100svh - 650px)); }
   .app-shell .standings-scroll { margin-block: 6px; }
   .app-shell .knockout-plan .match-history-list { max-height: 225px; }
   .app-shell .match-layout { gap: 16px; }
@@ -305,6 +303,58 @@ form input[aria-invalid='true'] { border-color: #a42b20; }
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     gap: 8px 18px;
     align-items: start;
+  }
+
+  @media (min-width: 1280px) and (min-height: 720px) and (orientation: landscape) {
+    .app-shell .card-content:has(> .preparation-layout),
+    .preparation-layout > :is(.standings, .lineup-panel),
+    .preparation-layout .lineup-panel > .match-history {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .app-shell .card-content:has(> .preparation-layout) { flex: 1; }
+    .app-shell .card-content:has(> .preparation-layout) > :not(.preparation-layout),
+    .preparation-layout > .standings > .section-heading,
+    .preparation-layout .lineup-panel > :not(.match-history),
+    .preparation-layout .match-history > .section-heading { flex: none; }
+    .app-shell .preparation-layout {
+      flex: 1;
+      min-height: 0;
+      grid-template-rows: minmax(0, 1fr);
+    }
+    .app-shell .preparation-layout > :is(.standings, .lineup-panel) { max-height: 100%; }
+    .app-shell .preparation-layout > .standings > .standings-scroll,
+    .app-shell .preparation-layout .lineup-panel > .match-history > .result-list {
+      min-height: 0;
+      max-height: none;
+    }
+    .app-shell .preparation-layout .lineup-player { min-height: 31px; }
+    .app-shell .preparation-heading > .form-actions { margin-top: 0; gap: 8px; }
+    .preparation-heading .form-actions > button { min-height: 36px; padding: 6px 12px; }
+    .app-shell .preparation-layout .lineup-panel > .match-history { margin-top: 4px; }
+  }
+
+  @media (min-width: 1280px) and (min-height: 720px) and (max-height: 900px) and (orientation: landscape) {
+    .app-shell .card-content > #lineup-instructions { margin-block: 4px; }
+    .app-shell .preparation-layout { margin-top: 4px; }
+    .app-shell .preparation-layout > .standings > .standings-scroll { margin-block: 3px; }
+    .app-shell .preparation-layout .lineup-slot { position: relative; }
+    .app-shell .preparation-layout .lineup-slot:has(.position-remove) .position-label { padding-inline-end: 78px; }
+    .app-shell .preparation-layout .position-remove {
+      position: absolute;
+      inset: 3px 4px auto auto;
+      width: auto;
+      min-height: 28px;
+      padding: 3px 6px;
+      border: 0;
+      text-decoration: underline;
+    }
+    .app-shell .preparation-layout .lineup-pitch { padding: 8px; gap: 8px; }
+    .app-shell .preparation-layout .position-select { min-height: 84px; }
+    .app-shell .preparation-layout .history-result > summary { min-height: 32px; padding-block: 3px; }
+    .app-shell .preparation-layout .lineup-panel > #lineup-progress,
+    .app-shell .preparation-layout .lineup-notice { margin-block: 2px; }
   }
   .app-shell .completion-banner,
   .app-shell .tournament-completion > .match-info { grid-column: 1 / -1; }

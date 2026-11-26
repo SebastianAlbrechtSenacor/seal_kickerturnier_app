@@ -1,13 +1,14 @@
 import { formatBerlinTime } from './tournament'
 import type { Tournament } from './tournament'
+import type { ReactNode } from 'react'
 import './MatchHistory.css'
 
-export default function MatchHistory({ tournament, recent = false }: { tournament: Tournament; recent?: boolean }) {
+export default function MatchHistory({ tournament, recent = false, headingAction }: { tournament: Tournament; recent?: boolean; headingAction?: ReactNode }) {
   const matches = (tournament.completedMatches ?? []).slice(recent ? -3 : 0).reverse()
   const title = recent ? 'Letzte 3 Ergebnisse' : 'Spielergebnisse'
   return (
     <section className="match-history" aria-label={title}>
-      <h3>{title}</h3>
+      {headingAction ? <div className="section-heading"><h3>{title}</h3>{headingAction}</div> : <h3>{title}</h3>}
       {matches.length === 0 ? <p className="form-note">Noch keine abgeschlossene Partie.</p> : (
         <ol className="match-history-list result-list" aria-label={title} tabIndex={0}>
           {matches.map((match) => (

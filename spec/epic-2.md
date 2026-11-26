@@ -6,8 +6,8 @@ Regressionstest und Produktions-Build sind bestanden; das Deployment
 steht aus. Baut auf [Epic 1](./epic-1-DONE.md) auf.
 Paket 2 läuft: Story 2.3 wurde am 26.11.2026 nach erfolgreicher
 Praxisprüfung einschließlich der Design-Ergänzung abgenommen.
-Story 2.4 wurde ebenfalls am 26.11.2026 nach erfolgreichem Praxistest
-abgenommen. Als Nächstes folgt Story 2.5.
+Stories 2.4 und 2.5 wurden ebenfalls am 26.11.2026 nach erfolgreichen
+Praxistests abgenommen. Als Nächstes folgt Story 2.6.
 
 ## Ziel
 
@@ -35,6 +35,9 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 - Partievorbereitung als Standardansicht der laufenden Vorrunde, mit
   Turniername, **Turnier verlassen**, vollständiger Tabelle im Overlay und
   **K.O. Runde starten**. Kompakte Zeilen in beiden Tabellenversionen.
+- Abgenommene Layout-Ergänzung zu [Story 2.5](./story-2_5-DONE.md): Die
+  Vorrundenvorschau erhält mehr Höhe durch kontextbezogene **Mehr Infos**-
+  Auslöser, Ergebnisse unter dem Spieltisch und Startaktionen darüber.
 - Stabil dimensionierter Kickertisch mit seitlich herausragenden Stangen
   und eine vielfältigere Emoji-Palette.
 - Direktes Speichern von Ergebnissen ohne Prüfansicht. Korrektur oder
@@ -75,7 +78,7 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 2. [Turnier-Code vollständig entfernen](./story-2_2-DONE.md)
 3. [Hauptansichten ohne Seitenscrollen im Querformat](./story-2_3-DONE.md)
 4. [Partievorbereitung als Standardansicht](./story-2_4-DONE.md)
-5. [Vorrundentabellen verdichten](./story-2_5.md)
+5. [Vorrundentabellen verdichten](./story-2_5-DONE.md)
 6. [Kickertisch stabil darstellen und Stangen ergänzen](./story-2_6.md)
 7. [Emoji-Avatare vielfältiger gestalten](./story-2_7.md)
 8. [Ergebnisse direkt speichern und jüngste Vorrundenspiele korrigieren](./story-2_8.md)

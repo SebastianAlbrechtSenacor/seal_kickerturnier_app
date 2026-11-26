@@ -60,7 +60,7 @@ wird zusätzlich mit seinen üblichen Einstellungen geprüft.
   Turnierinfos auf Abruf. Die Änderung der Standardansicht, der
   Tabellen-Overlay und die neuen Aktionen am Tisch folgen mit
   [Story 2.4](./story-2_4-DONE.md); zwölf gleichzeitig sichtbare Tabellenzeilen
-  folgen mit [Story 2.5](./story-2_5.md).
+  folgen mit [Story 2.5](./story-2_5-DONE.md).
 - **Laufende Partie und Ergebniseingabe:** Gegeben ist ein laufendes oder
   abgelaufenes Spiel. Wenn ich Ergebnis oder Bestätigung aufrufe,
   bleiben der Countdown bzw. Ablaufstatus, die Teams, die Eingabe
@@ -123,7 +123,7 @@ drängen. Die Phasenfarben bleiben Gegenstand von [Story 2.9](./story-2_9.md).
   kompakte Ansicht, ohne die Spielendenauswahl schwerer bedienbar zu
   machen. Bei Überlauf scrollt nur die Tabelle. Der verbindliche Test
   mit zwölf sichtbaren Zeilen in Vorschau und Overlay bleibt in
-  [Story 2.5](./story-2_5.md).
+  [Story 2.5](./story-2_5-DONE.md).
 - **Ergebnisse schnell erfassen:** Gegeben sind mehrere abgeschlossene
   Partien. Wenn ich Vorschau oder Verlauf öffne, sehe ich pro Partie
   eine kompakte Zeile mit beiden Teams und hervorgehobenem Spielstand.
