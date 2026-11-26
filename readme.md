@@ -203,6 +203,9 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    Angriff und gegnerische Verteidigung stehen sich damit gegenueber.
    Besetzte Positionen zeigen den Avatar deutlich vergroessert,
    weiterhin mit Positionsbezeichnung und Spitzname.
+   Tisch und Ablageflaechen behalten beim Besetzen und Entfernen ihre
+   Groesse. Die seitlichen Kickerstangen sind rein dekorativ; sie
+   verdecken keine Bedienelemente.
 3. Alternativ zuerst eine Position anklicken/antippen, dann eine freie Person
    in der Tabelle auswaehlen. Beide Schritte funktionieren auch mit
    Tabulator und Enter/Leertaste. Die ausgewaehlte Position ist markiert.

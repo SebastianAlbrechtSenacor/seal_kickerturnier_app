@@ -7,7 +7,8 @@ steht aus. Baut auf [Epic 1](./epic-1-DONE.md) auf.
 Paket 2 läuft: Story 2.3 wurde am 26.11.2026 nach erfolgreicher
 Praxisprüfung einschließlich der Design-Ergänzung abgenommen.
 Stories 2.4 und 2.5 wurden ebenfalls am 26.11.2026 nach erfolgreichen
-Praxistests abgenommen. Als Nächstes folgt Story 2.6.
+Praxistests abgenommen. Story 2.6 wurde ebenfalls am 26.11.2026
+abgenommen. Als Nächstes folgt Story 2.7.
 
 ## Ziel
 
@@ -79,7 +80,7 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 3. [Hauptansichten ohne Seitenscrollen im Querformat](./story-2_3-DONE.md)
 4. [Partievorbereitung als Standardansicht](./story-2_4-DONE.md)
 5. [Vorrundentabellen verdichten](./story-2_5-DONE.md)
-6. [Kickertisch stabil darstellen und Stangen ergänzen](./story-2_6.md)
+6. [Kickertisch stabil darstellen und Stangen ergänzen](./story-2_6-DONE.md)
 7. [Emoji-Avatare vielfältiger gestalten](./story-2_7.md)
 8. [Ergebnisse direkt speichern und jüngste Vorrundenspiele korrigieren](./story-2_8.md)
 9. [Farbschema mit Turnierphase wechseln](./story-2_9.md)

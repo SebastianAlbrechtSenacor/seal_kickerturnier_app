@@ -269,11 +269,8 @@ form input[aria-invalid='true'] { border-color: #a42b20; }
   .app-shell .match-layout { gap: 16px; }
   .app-shell .lineup-panel > h3 { margin-bottom: 6px; }
   .app-shell .lineup-panel > p { margin-bottom: 6px; }
-  .app-shell .lineup-pitch { padding: 10px; gap: 12px; }
-  .app-shell .position-select { min-height: 94px; padding: 5px; gap: 4px; }
-  .app-shell .position-avatar { font-size: 44px; }
-  .app-shell .position-player { max-height: 3em; overflow: auto; }
-  .app-shell .position-remove { min-height: 36px; }
+  .app-shell .lineup-pitch { --slot-height: 108px; padding: 10px; gap: 12px; }
+  .app-shell .position-avatar { font-size: 34px; }
   .app-shell .lineup-notice { min-height: 20px; margin-block: 6px; }
   .app-shell .running-status .match-clock [role="timer"] { font-size: 54px; }
   .app-shell .running-audio > p { margin-bottom: 0; }
@@ -339,19 +336,7 @@ form input[aria-invalid='true'] { border-color: #a42b20; }
     .app-shell .card-content > #lineup-instructions { margin-block: 4px; }
     .app-shell .preparation-layout { margin-top: 4px; }
     .app-shell .preparation-layout > .standings > .standings-scroll { margin-block: 3px; }
-    .app-shell .preparation-layout .lineup-slot { position: relative; }
-    .app-shell .preparation-layout .lineup-slot:has(.position-remove) .position-label { padding-inline-end: 78px; }
-    .app-shell .preparation-layout .position-remove {
-      position: absolute;
-      inset: 3px 4px auto auto;
-      width: auto;
-      min-height: 28px;
-      padding: 3px 6px;
-      border: 0;
-      text-decoration: underline;
-    }
     .app-shell .preparation-layout .lineup-pitch { padding: 8px; gap: 8px; }
-    .app-shell .preparation-layout .position-select { min-height: 84px; }
     .app-shell .preparation-layout .history-result > summary { min-height: 32px; padding-block: 3px; }
     .app-shell .preparation-layout .lineup-panel > #lineup-progress,
     .app-shell .preparation-layout .lineup-notice { margin-block: 2px; }

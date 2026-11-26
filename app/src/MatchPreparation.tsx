@@ -216,7 +216,7 @@ export default function MatchPreparation({ tournament, onStart, onBack, onExport
                   </WorkspaceDialog>
                 </div>
               </div>
-              <p id="lineup-progress">{missing ? `Noch ${missing} von 4 Positionen frei.` : 'Alle vier Positionen sind belegt. Auswahl bleibt bearbeitbar.'}</p>
+              <p id="lineup-progress">{missing ? `Noch ${missing} von 4 Positionen frei.` : 'Alle vier Positionen belegt.'}</p>
               {knockoutProblem && <p className="form-note" id="knockout-requirement">{knockoutProblem}</p>}
               <LineupPitch players={players} lineup={lineup} selected={selected} dropTarget={drag?.over}
                 onSelect={starting ? undefined : (position) => {

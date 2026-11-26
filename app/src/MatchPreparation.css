@@ -26,19 +26,60 @@
 .lineup-player small { font-size: 11px; font-weight: 400; }
 .lineup-panel > h3 { font-size: 23px; margin-bottom: 12px; }
 .lineup-panel > p { font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
-.lineup-pitch { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 14px; padding: 20px 14px; border: 7px solid #133b40; border-radius: 14px; background: #12675e; }
+.lineup-pitch {
+  --rod-space: clamp(14px, 2.6vw, 36px);
+  --slot-height: 146px;
+  position: relative;
+  display: grid;
+  grid-template: repeat(2, var(--slot-height)) / repeat(2, minmax(0, 1fr));
+  gap: 26px 14px;
+  padding: 20px 14px;
+  margin-inline: var(--rod-space);
+  border: 7px solid #133b40;
+  border-radius: 14px;
+  background: #12675e;
+}
+.pitch-rods {
+  position: absolute;
+  inset: 0 -7px;
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  align-items: center;
+  pointer-events: none;
+}
+.pitch-rods > span { position: relative; }
+.pitch-rods > span::before, .pitch-rods > span::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  width: var(--rod-space);
+  height: 6px;
+  background: linear-gradient(#edf4f3, #587277);
+}
+.pitch-rods > span::before { right: 100%; }
+.pitch-rods > span::after { left: 100%; }
+.pitch-rods > span:nth-child(odd)::before, .pitch-rods > span:nth-child(even)::after {
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px #133b40;
+  background: linear-gradient(90deg, #133b40 0 58%, transparent 58%), linear-gradient(#edf4f3, #587277);
+}
+.pitch-rods > span:nth-child(even)::after {
+  background: linear-gradient(270deg, #133b40 0 58%, transparent 58%), linear-gradient(#edf4f3, #587277);
+}
 .pitch-centre { position: absolute; top: 50%; left: 0; right: 0; border-top: 2px solid #ffffff65; }
 .pitch-centre::after { content: ''; position: absolute; left: calc(50% - 24px); top: -25px; width: 48px; height: 48px; border: 2px solid #ffffff65; border-radius: 50%; }
-.lineup-slot { display: flex; flex-direction: column; z-index: 1; min-width: 0; border: 3px solid transparent; border-radius: 8px; padding: 3px; }
+.lineup-slot { position: relative; display: flex; z-index: 1; min-width: 0; min-height: 0; border: 3px solid transparent; border-radius: 8px; padding: 3px; }
 .team-white { color: #123b40; background: #f7f6ef; }
 .team-black { color: #fff; background: #12282e; }
 .lineup-slot.is-selected { border-color: #ffba26; }
 .lineup-slot.is-drop-target { outline: 4px solid #ffba26; outline-offset: 2px; }
-.position-select { display: flex; flex-direction: column; flex: 1; gap: 12px; min-height: 120px; width: 100%; text-align: left; padding: 10px; border: 0; background: transparent; color: inherit; overflow-wrap: anywhere; }
-.position-label { font-size: 12px; font-weight: 700; }
-.position-avatar { align-self: center; font-size: 64px; line-height: 1.2; white-space: nowrap; }
-.position-player { font-size: 15px; line-height: 1.4; white-space: break-spaces; text-align: center; }
-.position-remove { width: 100%; min-height: 44px; padding: 8px 4px; border: 0; border-top: 1px solid currentColor; background: transparent; color: inherit; font-size: 12px; }
+.position-select { display: flex; flex-direction: column; gap: 2px; min-height: 0; width: 100%; text-align: left; padding: 4px; border: 0; background: transparent; color: inherit; overflow-wrap: anywhere; }
+.position-label { font-size: 12px; font-weight: 700; line-height: 1.2; }
+.position-avatar { align-self: center; flex: none; font-size: 56px; line-height: 1; white-space: nowrap; }
+.position-player { min-height: 0; overflow: auto; font-size: 14px; line-height: 1.25; white-space: break-spaces; text-align: center; }
+.position-select:not(:has(.position-avatar)) .position-player { margin-block: auto; }
+.lineup-slot:has(.position-remove) .position-label { padding-inline-end: 78px; }
+.position-remove { position: absolute; inset: 3px 4px auto auto; min-height: 28px; padding: 3px 6px; border: 0; background: transparent; color: inherit; font-size: 12px; text-decoration: underline; }
 .lineup-notice { min-height: 42px; margin: 16px 0 0; font-size: 13px; line-height: 1.6; }
 .lineup-start:not(:disabled) { box-shadow: 0 0 0 3px #ffb31c40; }
 .lineup-drag-preview { position: fixed; z-index: 10000; pointer-events: none; width: 168px; max-height: 64px; overflow: hidden; padding: 12px; background: #ffba26; color: #123b40; border: 2px solid #123b40; border-radius: 6px; box-shadow: 0 4px 16px #0004; font-weight: 700; overflow-wrap: anywhere; }
@@ -57,8 +98,11 @@
 @media (max-width: 740px) {
   .arena:has(.tournament-workspace.match-workspace) { padding-inline: 16px; }
   .match-workspace .card-content { padding-inline: 18px; }
-  .lineup-pitch { padding: 14px 6px; gap: 24px 6px; border-width: 5px; }
-  .position-select { padding: 6px; min-height: 130px; }
+  .lineup-pitch { --slot-height: 156px; padding: 14px 6px; gap: 24px 6px; }
+  .preparation-layout #lineup-progress { min-height: 2lh; }
+  .lineup-slot:has(.position-remove) .position-select { padding-bottom: 30px; }
+  .lineup-slot:has(.position-remove) .position-label { padding-inline-end: 0; }
+  .position-remove { inset: auto 4px 2px auto; }
   .position-avatar { font-size: 48px; }
   .match-info .secondary-button { width: 100%; }
 }

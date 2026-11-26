@@ -20,6 +20,9 @@ export function LineupPitch({ players, lineup, selected, dropTarget, onSelect, o
   return (
     <div className="lineup-pitch" role="group" aria-label="Kickertisch">
       <span className="pitch-centre" aria-hidden="true" />
+      <div className="pitch-rods" aria-hidden="true">
+        <span /><span /><span /><span />
+      </div>
       {positions.map((position) => {
         const player = players.find((person) => person.id === lineup[position.id])
         const label = teamLabels?.[position.team] ?? position.label
@@ -27,7 +30,7 @@ export function LineupPitch({ players, lineup, selected, dropTarget, onSelect, o
           <div key={position.id} data-lineup-position={position.id}
             className={`lineup-slot team-${position.team}${selected === position.id ? ' is-selected' : ''}${dropTarget === position.id ? ' is-drop-target' : ''}`}>
             <button className="position-select" type="button" aria-pressed={selected === position.id}
-              disabled={!onSelect} aria-label={`${label}: ${player ? player.nickname : 'frei'}`}
+              disabled={!onSelect} aria-label={`${label}: ${player ? player.nickname : 'frei'}`} title={player?.nickname}
               onClick={() => onSelect?.(position.id)}>
               <span className="position-label">{label}</span>
               {player ? <>

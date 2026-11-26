@@ -1,6 +1,7 @@
 # Story 2.6: Kickertisch stabil darstellen und Stangen ergänzen
 
-Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Status: Am 26.11.2026 ausdrücklich abgenommen.
+Epic: [Epic 2](./epic-2.md).
 Lieferpaket 2 – Turnieransicht und Aufstellung (2.3–2.7): gemeinsame
 Browser-Regression und gemeinsames Deployment; eigene Abnahme.
 
@@ -20,3 +21,14 @@ ziehen und die Aufstellung auf Anhieb als Kickertisch erkennen.
   Sie verdecken keine Karten oder Bedienflächen. Drag-and-drop sowie die
   bisherigen Alternativen per Klick/Touch oder Tastatur bleiben nutzbar;
   schmalere Ansichten erzeugen keinen seitlichen Seitenüberlauf.
+
+## Prüfergebnisse
+
+- 28 gezielte UI-Tests, Lint und Produktions-Build bestanden.
+- Im integrierten Browser bei 1280 × 720 und 1485 × 871 CSS-Pixeln
+  blieben Tisch und alle vier Drop-Zonen beim Ziehen, Ablegen, Umsetzen
+  und Entfernen unverändert. Geprüft wurde auch ein langer Spitzname.
+- Bei 320 × 680 blieb die Geometrie bei Zuweisung und Entfernen stabil,
+  ohne horizontalen Seitenüberlauf. In der K.-o.-Ansicht bei
+  1280 × 720 waren die Stangen und die vier festen Positionen sichtbar.
+- Der Entwickler hat die Story am 26.11.2026 ausdrücklich abgenommen.
