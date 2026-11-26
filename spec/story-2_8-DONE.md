@@ -1,7 +1,7 @@
 # Story 2.8: Ergebnisse direkt speichern und jüngste Vorrundenspiele korrigieren
 
 Status: Abgenommen am 26.11.2026 einschließlich der Ergänzung zur
-Korrekturregel. Epic: [Epic 2](./epic-2.md).
+Korrekturregel. Epic: [Epic 2](./epic-2-DONE.md).
 Lieferpaket 3 – Ergebnisverwaltung: eigener Regressionstest für Wertung,
 Speicherfehler und veraltete Tabs; separates Deployment.
 Bediengrundlage: [Story 2.4](./story-2_4-DONE.md).

@@ -2,7 +2,7 @@
 
 Status: Am 26.11.2026 einschließlich der vier Screenshot-Nachträge
 ausdrücklich abgenommen. Das separate Deployment steht aus.
-Epic: [Epic 2](./epic-2.md).
+Epic: [Epic 2](./epic-2-DONE.md).
 Lieferpaket 5 – Design-Feinschliff: separater Fachreview, visuelle
 Abnahme und separates Deployment.
 Startbedingung: Stories 2.1 bis 2.9 sind umgesetzt und abgenommen.

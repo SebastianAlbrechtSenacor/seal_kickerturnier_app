@@ -52,7 +52,8 @@ export default function TournamentManager() {
   const heading = useRef<HTMLHeadingElement>(null)
   const [whistle] = useState(createWhistle)
   const [audioError, setAudioError] = useState('')
-  const audioPending = useRef(false)
+  const audioPending = useRef<Promise<void> | null>(null)
+  const audioSession = useRef(0)
   const mounted = useRef(false)
   const headingTarget = (view.kind === 'live' || view.kind === 'knockout') && view.tournament.activeMatch ?
     view.tournament.activeMatch.id : view.kind === 'match' ? `match:${view.tournament.id}` : view
@@ -70,6 +71,7 @@ export default function TournamentManager() {
   }, [headingTarget])
 
   function backToList() {
+    audioSession.current++
     setError('')
     setAudioError('')
     setNotice('')
@@ -140,45 +142,70 @@ export default function TournamentManager() {
     }
   }
 
-  async function activateAudio() {
-    if (audioPending.current || whistle.ready()) return
-    audioPending.current = true
+  function activateAudio() {
+    if (audioPending.current) return audioPending.current
+    if (whistle.ready()) return Promise.resolve()
+    const session = audioSession.current
     setAudioError('')
-    try {
-      await whistle.activate()
-    } catch (error) {
-      if (mounted.current) setAudioError(error instanceof Error ? error.message : 'Audio konnte nicht aktiviert werden.')
-    } finally {
-      audioPending.current = false
-    }
+    const activation = whistle.activate().finally(() => { audioPending.current = null })
+    audioPending.current = activation
+    void activation.catch((error: unknown) => {
+      if (mounted.current && session === audioSession.current) {
+        setAudioError(error instanceof Error ? error.message : 'Audio konnte nicht aktiviert werden.')
+      }
+    })
+    return activation
+  }
+
+  function playWhistle(activation: Promise<void>) {
+    const session = audioSession.current
+    void activation.then(async () => {
+      if (!mounted.current || session !== audioSession.current) return
+      try {
+        await whistle.play()
+      } catch (error) {
+        if (mounted.current && session === audioSession.current) {
+          setAudioError(error instanceof Error ? error.message : 'Der automatische Pfiff konnte nicht ausgelöst werden.')
+        }
+      }
+    }, () => {})
   }
 
   async function beginMatch(lineup: Lineup) {
     if (view.kind !== 'match') throw new Error('Bitte das Turnier erneut öffnen.')
     setError('')
-    void activateAudio()
+    setAudioError('')
+    const activation = activateAudio()
     const tournament = await updateTournament(view.tournament, (current) => startMatch(current, lineup))
     setView({ kind: 'live', tournament })
+    playWhistle(activation)
   }
 
   async function endMatch() {
     if (view.kind !== 'live' && view.kind !== 'knockout') throw new Error('Bitte das Turnier erneut öffnen.')
     const tournament = await updateTournament(view.tournament, abortMatch)
     setError('')
+    setAudioError('')
     setView({ kind: tournament.phase === 'knockout' ? 'knockout' : 'match', tournament })
   }
 
   async function saveResult(white: string, black: string) {
     if ((view.kind !== 'live' && view.kind !== 'knockout') || !view.tournament.activeMatch) throw new Error('Bitte das Turnier erneut öffnen.')
     const matchId = view.tournament.activeMatch.id
+    const activation = audioPending.current ?? Promise.resolve()
     const tournament = await updateTournament(view.tournament,
       (current) => current.phase === 'knockout' ? finishKnockoutMatch(current, matchId, white, black) :
         finishMatch(current, matchId, white, black))
     setError('')
-    setAudioError('')
     setView(tournament.phase === 'knockout' ?
       { kind: 'knockout', tournament, celebrate: tournament.knockout?.results.length === 4 } :
       { kind: 'match', tournament })
+    const result = (tournament.knockout?.results ?? tournament.completedMatches)?.at(-1)
+    if (result?.id === matchId && Date.parse(result.finishedAt) < Date.parse(result.endsAt)) {
+      playWhistle(activation)
+    } else {
+      setAudioError('')
+    }
   }
 
   async function changeResult(matchId: string, change: PreliminaryResultChange) {
@@ -198,9 +225,11 @@ export default function TournamentManager() {
   async function beginKnockoutMatch() {
     if (view.kind !== 'knockout') throw new Error('Bitte das Turnier erneut öffnen.')
     setError('')
-    void activateAudio()
+    setAudioError('')
+    const activation = activateAudio()
     const tournament = await updateTournament(view.tournament, (current) => startKnockoutMatch(current))
     setView({ kind: 'knockout', tournament })
+    playWhistle(activation)
   }
 
   async function notifyExpiry(tournament: Tournament) {
@@ -322,6 +351,8 @@ export default function TournamentManager() {
         {view.kind === 'knockout' && !completed && !view.tournament.activeMatch && <KnockoutBoard tournament={view.tournament}
           onStart={beginKnockoutMatch} onExport={() => exportBackup(view.tournament)}
           onBack={backToList} tournamentInfo={infoLink} />}
+        {audioError && (view.kind === 'match' || (view.kind === 'knockout' && !view.tournament.activeMatch)) &&
+          <p className="error-message" role="alert">{audioError}</p>}
         {view.kind === 'start' && (
           <div className="start-confirmation">
             <p className="card-description">{view.tournament.settings.name} · {view.tournament.players?.length ?? 0} Spielende</p>

@@ -67,7 +67,7 @@ export default function RunningMatch({ tournament, whistle, onActivateAudio, aud
     if (!expired || !armed.current || attempted.current || match.whistleAttempted) return
     attempted.current = true
     void onWhistle().then((claimed) => {
-      if (claimed && mounted.current) whistle.play()
+      if (claimed && mounted.current) return whistle.play()
     }).catch((error: unknown) => {
       if (mounted.current) onAudioError(error instanceof Error ? error.message : 'Der automatische Pfiff konnte nicht ausgelöst werden.')
     })

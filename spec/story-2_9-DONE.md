@@ -1,7 +1,7 @@
 # Story 2.9: Farbschema mit Turnierphase wechseln
 
 Status: Abgenommen am 26.11.2026 einschließlich des kräftigeren
-K.-o.-Hintergrunds. Epic: [Epic 2](./epic-2.md).
+K.-o.-Hintergrunds. Epic: [Epic 2](./epic-2-DONE.md).
 Lieferpaket 4 – Phasenfarben: eigener Browser-Durchlauf über beide
 Farbschemata und separates Deployment.
 Bediengrundlage: [Story 2.4](./story-2_4-DONE.md).

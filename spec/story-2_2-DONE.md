@@ -1,6 +1,6 @@
 # Story 2.2: Turnier-Code vollständig entfernen
 
-Status: Am 25.11.2026 abgenommen. Epic: [Epic 2](./epic-2.md).
+Status: Am 25.11.2026 abgenommen. Epic: [Epic 2](./epic-2-DONE.md).
 Lieferpaket 1 – Zugang und Import: gemeinsamer Browser-Regressionstest
 und gemeinsames Deployment mit [Story 2.1](./story-2_1-DONE.md); eigene Abnahme.
 

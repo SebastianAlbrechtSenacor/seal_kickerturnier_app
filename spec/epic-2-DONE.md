@@ -1,6 +1,7 @@
 # Epic 2: Kickerturnier nach dem MVP optimieren
 
-Status: Spezifikation für Stories 2.1 bis 2.12 am 25.11.2026 freigegeben.
+Status: Alle Stories 2.1 bis 2.12 sind abgenommen. Epic abgeschlossen
+am 26.11.2026. Offene Deployments sind bei den Paketen vermerkt.
 Paket 1: Stories 2.1 und 2.2 sind abgenommen. Lokaler Browser-
 Regressionstest und Produktions-Build sind bestanden; das Deployment
 steht aus. Baut auf [Epic 1](./epic-1-DONE.md) auf.
@@ -17,6 +18,9 @@ Farbschemata ist bestanden. Das separate Deployment steht aus.
 Paket 5: Story 2.10 wurde am 26.11.2026 einschließlich der vier
 Screenshot-Nachträge abgenommen. Der lokale Browsercheck in beiden
 Referenzgrößen ist bestanden. Das separate Deployment steht aus.
+Paket 6: Stories 2.11 und 2.12 sind seit dem 26.11.2026 abgenommen,
+einschließlich des Nachtrags zur Konfettidichte. Das gemeinsame Deployment
+steht aus.
 
 ## Ziel
 
@@ -93,8 +97,8 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 8. [Ergebnisse direkt speichern und jüngste Vorrundenspiele korrigieren](./story-2_8-DONE.md)
 9. [Farbschema mit Turnierphase wechseln](./story-2_9-DONE.md)
 10. [Anwendung durch Design-Fachperson prüfen und verfeinern](./story-2_10-DONE.md)
-11. [Neuen An- und Abpfiff abspielen](./story-2_11.md)
-12. [Konfetti-Kanonen für die Siegerehrung](./story-2_12.md)
+11. [Neuen An- und Abpfiff abspielen](./story-2_11-DONE.md)
+12. [Konfetti-Kanonen für die Siegerehrung](./story-2_12-DONE.md)
 
 ## Lieferpakete für Test und Deployment
 

@@ -1,9 +1,11 @@
 # Story 2.11: Neuen An- und Abpfiff abspielen
 
-Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Status: Am 26.11.2026 nach der Praxisprüfung abgenommen. Das gemeinsame
+Deployment mit Story 2.12 steht aus.
+Epic: [Epic 2](./epic-2-DONE.md).
 Lieferpaket 6 – Pfiff und Konfetti: eigener Story-Test und eigene Abnahme;
 gemeinsamer Praxislauf und gemeinsames Deployment mit
-[Story 2.12](./story-2_12.md), wenn die freigegebene Audiodatei vorliegt.
+[Story 2.12](./story-2_12-DONE.md), wenn die freigegebene Audiodatei vorliegt.
 Startbedingung: [Story 2.10](./story-2_10-DONE.md) ist abgenommen. Die
 Audiodatei muss mit Nutzungsfreigabe für die öffentliche App vorliegen.
 
@@ -14,6 +16,8 @@ einer Partie auch hören, ohne den Countdown beobachten zu müssen.
 [YouTube-Referenz](https://www.youtube.com/watch?v=OzPkiXq7lzM) als
 Audiodatei mit Nutzungsfreigabe bereit. Die App liefert die Datei lokal
 mit aus und ruft YouTube weder zum Laden noch zum Abspielen auf.
+Die öffentliche Auslieferung der bereitgestellten MP3 wurde am
+26.11.2026 freigegeben.
 
 ## Akzeptanzszenarien
 
@@ -39,3 +43,15 @@ mit aus und ruft YouTube weder zum Laden noch zum Abspielen auf.
   zeigt sie einen Hinweis; Countdown, sichtbare Ablaufanzeige und
   Ergebniseingabe bleiben nutzbar. Eine nach Zeitablauf neu geöffnete
   Partie zeigt den Ablaufhinweis ohne nachträglichen Pfiff.
+
+## Prüfnachweis
+
+- 29 betroffene Tests bestanden, einschließlich gesperrter Aktivierung,
+  fehlender Datei, Doppelklick, Schreibfehler, vorzeitigem Ergebnis,
+  Zeitablauf und erneutem Öffnen. TypeScript, Linter und Build sind
+  erfolgreich; der Build enthält die unveränderte Aufnahme.
+- Der lokale Browser hat die MP3 dekodiert und im Vorrundendurchlauf
+  genau einmal nach dem Start und genau einmal nach gültigem vorzeitigem
+  Speichern abgespielt. Beim Öffnen der Eingabe und beim ungültigen
+  Speicherversuch wurde keine Wiedergabe gestartet. Der hörbare Pfiff
+  am Turnierlaptop ist Teil der Praxisabnahme.

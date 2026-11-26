@@ -236,15 +236,17 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    Bereiche untereinander. Die Restzeit folgt dem gespeicherten Endzeitpunkt:
    Neuladen, Tabwechsel oder Verlassen halten die Partie nicht an.
    Nach erneutem Zugang wird dieselbe offene Partie angezeigt.
-2. Der Start aktiviert den Ton im Rahmen des Klicks. Nach erneutem Oeffnen
-   versucht die App bei der naechsten geeigneten Bedieninteraktion, Audio
-   zu aktivieren. Wenn der Browser die Aktivierung blockiert, bleibt der
-   sichtbare Ablaufhinweis massgeblich. Eine bereits abgelaufene Partie
-   pfeift nicht nachtraeglich.
+2. Der Start aktiviert den Ton im Rahmen des Klicks. Sobald die Partie
+   erfolgreich gespeichert ist, ertont einmal der Anpfiff. Die App
+   liefert die freigegebene MP3 lokal aus und kontaktiert YouTube nicht.
+   Beim Wiedereroeffnen einer laufenden Partie gibt es keinen Anpfiff.
+   Die naechste geeignete Bedieninteraktion kann den Ton fuer den
+   Abpfiff aktivieren. Bei einem Audiofehler bleibt der sichtbare
+   Ablaufhinweis massgeblich.
 3. Bei Zeitablauf steht der Timer auf `00:00`; ein deutlicher Hinweis und
    **Ergebnis eingeben** erscheinen. Bei Gleichstand entscheidet das naechste
-   Tor. Die App versucht hoechstens einmal je gespeicherter Partie automatisch
-   zu pfeifen; ausdrueckliche Testpfiffe sind davon unabhaengig.
+   Tor. Beim Ablauf pfeift dieselbe Aufnahme einmal ab. Das spaetere
+   Speichern des Ergebnisses loest keinen weiteren Pfiff aus.
    Ein Pfiff im Hintergrund oder Ruhezustand ist nicht garantiert.
    Beim Wiederoeffnen einer bereits abgelaufenen Partie ertont kein
    nachtraeglicher automatischer Pfiff.
@@ -252,7 +254,9 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    anzuhalten. **Ergebnis speichern** verlangt zwei ganze Zahlen von 0 bis 10,
    keinen Gleichstand und vor Zeitablauf genau ein Team mit 10 Toren.
    Nach Zeitablauf ist beispielsweise auch 7:5 gueltig, selbst wenn die
-   Eingabe vorher geoeffnet wurde.
+   Eingabe vorher geoeffnet wurde. Wird ein gueltiges Ergebnis vor
+   Ablauf erfolgreich gespeichert, ertont der Abpfiff stattdessen
+   beim Speichern. Ein Abbruch hat keinen Abpfiff.
 5. **Ergebnis speichern** beendet und wertet die Partie ohne Vorschau
    oder zweite Bestaetigung genau einmal. Bei ungueltiger Eingabe bleiben
    die Partie offen und der Entwurf erhalten. Nach erfolgreichem Speichern
@@ -364,11 +368,15 @@ Konfliktmeldung abgewiesen, statt einen neueren Stand zu ueberschreiben.
   sowie den gesamten Vorrundenverlauf. Diese Wertung ist von den Teamplaetzen
   getrennt und wird durch K.-o.-Ergebnisse nicht veraendert.
   **K.-o.-Spielplan und Ergebnisse** oeffnet das separate Overlay mit den vier Begegnungen.
-- Nur direkt nach dem erfolgreich gespeicherten Finale laeuft einmal
-  eine kurze Konfettianimation von hoechstens zwei Sekunden. Archivaktionen,
-  Export und Navigation funktionieren waehrenddessen sofort.
-  Bei reduzierter Bewegung entfaellt die Animation; zusaetzliche Sounds
-  gibt es nicht. Ein Speicherfehler zeigt noch keinen Abschluss.
+- Nur direkt nach dem erfolgreich gespeicherten Finale startet Konfetti
+  von links, rechts und unten ueber den ganzen Bildschirm. In den
+  ersten 20 Sekunden verdeckt dichtes Konfetti die App. Danach
+  feuert keine Kanone mehr und die App wird wieder sichtbar.
+  Bereits in der Luft befindliche Teile regnen noch rund 40 Sekunden
+  von oben herunter. Spaetestens nach 65 Sekunden ist die Feier vorbei.
+  **Konfetti stoppen** beendet den Effekt sofort. Archiv, Export und
+  Navigation bleiben bedienbar. Bei reduzierter Bewegung entfaellt
+  die Animation. Das Konfetti hat keinen eigenen Ton.
 - Neuladen, Import und erneutes Oeffnen zeigen dieselbe Siegerehrung
   ohne erneute Animation. Auch bereits vorher abgeschlossene
   Schema-5-Turniere funktionieren ohne Datenmigration oder erneutes

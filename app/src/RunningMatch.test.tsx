@@ -54,7 +54,7 @@ beforeEach(() => {
   vi.stubGlobal('crypto', webcrypto)
   vi.clearAllMocks()
   audio.activate.mockResolvedValue(undefined)
-  audio.play.mockImplementation(() => {})
+  audio.play.mockResolvedValue(undefined)
   audio.ready.mockReturnValue(true)
   audio.close.mockResolvedValue(undefined)
   Object.defineProperty(HTMLElement.prototype, 'setPointerCapture', { configurable: true, value: vi.fn() })
@@ -147,7 +147,7 @@ describe('Laufende Partie', () => {
   it('meldet einen fehlgeschlagenen Pfiff ohne Zeitablauf oder Ergebniszugang zu verbergen', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(now)
-    audio.play.mockImplementationOnce(() => { throw new Error('Audio blockiert') })
+    audio.play.mockRejectedValueOnce(new Error('Audio blockiert'))
     const props = running()
     await act(async () => { await vi.advanceTimersByTimeAsync(60_000) })
     expect(props.onAudioError).toHaveBeenCalledWith('Audio blockiert')
@@ -234,7 +234,7 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     const liveRows = within(screen.getByRole('table')).getAllByRole('row')
     expect(within(liveRows[1]).getAllByRole('cell').at(-1)).toHaveTextContent('3')
     expect(readTournament(started.id).completedMatches).toEqual(saved.completedMatches)
-    expect(audio.play).not.toHaveBeenCalled()
+    expect(audio.play).toHaveBeenCalledOnce()
   })
 
   it('zeigt alle Ergebnisse in der Uebersicht, nur die letzten drei unter der Auswahltabelle und Turnierinfos aufklappbar', async () => {
@@ -367,7 +367,7 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     expect(readTournament(original.id)).toEqual(active)
   })
 
-  it('beendet bei bestaetigten 10 Toren die Partie vorzeitig ohne spaeteren Endpfiff', async () => {
+  it('pfeift nach dem Speichern der zehn Tore einmal und nicht erneut nach Zeitablauf', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(now + 1000)
     const user = userEvent.setup()
@@ -388,7 +388,7 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     vi.setSystemTime(now + 120_000)
     await act(async () => { fireEvent.focus(window) })
     expect(screen.queryByRole('timer')).not.toBeInTheDocument()
-    expect(audio.play).not.toHaveBeenCalled()
+    expect(audio.play).toHaveBeenCalledOnce()
     expect(readTournament(started.id)).toEqual(saved)
   })
 })
@@ -435,6 +435,7 @@ describe('Spielstart in der Turnierverwaltung', () => {
     expect(readTournament(tournament.id).activeMatch).toBeNull()
     expect(screen.getByRole('button', { name: 'Spiel starten' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Weiß Angriff: frei' })).toBeVisible()
+    expect(audio.play).not.toHaveBeenCalled()
   })
 
   it('oeffnet eine gespeicherte Partie nach Codeeingabe direkt statt eine neue Aufstellung anzubieten', async () => {
@@ -449,5 +450,6 @@ describe('Spielstart in der Turnierverwaltung', () => {
     expect(await screen.findByRole('timer')).toHaveTextContent('00:30')
     expect(screen.queryByRole('button', { name: 'Spiel starten' })).not.toBeInTheDocument()
     expect(readTournament(tournament.id).activeMatch?.endsAt).toBe(tournament.activeMatch.endsAt)
+    expect(audio.play).not.toHaveBeenCalled()
   })
 })

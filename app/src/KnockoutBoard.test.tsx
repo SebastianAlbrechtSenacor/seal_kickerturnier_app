@@ -3,6 +3,8 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import TournamentManager from './TournamentManager'
+import TournamentCompletion from './TournamentCompletion'
+import { confettiFlight, confettiFrame, fallingProgress } from './completion-confetti'
 import type { Tournament } from './tournament'
 import { finishMatch, startMatch } from './matches'
 import { finishKnockoutMatch, startKnockout, startKnockoutMatch } from './knockout'
@@ -11,6 +13,10 @@ import { avatars } from './players'
 
 const audio = vi.hoisted(() => ({ activate: vi.fn(async () => {}), play: vi.fn(), ready: () => true, close: vi.fn(async () => {}) }))
 vi.mock('./whistle', () => ({ createWhistle: () => audio }))
+vi.mock('./completion-confetti', async (importOriginal) => ({
+  ...await importOriginal<typeof import('./completion-confetti')>(),
+  playConfetti: () => vi.fn(),
+}))
 const now = Date.parse('2026-11-25T15:00:00.000Z')
 function fixture(): Tournament {
   const tournament: Tournament = {
@@ -38,6 +44,19 @@ async function open(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('Vertraute K.-o.-Bedienung', () => {
+  it('lässt nach der dichten Phase nur zuvor gestartete Teile von oben nachfallen', () => {
+    let seed = 7
+    const particles = confettiFlight(2800, () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32))
+    expect(confettiFrame(0)).toEqual({ firing: true, cover: 1 })
+    expect(confettiFrame(19.99)).toEqual({ firing: true, cover: 1 })
+    expect(confettiFrame(20).firing).toBe(false)
+    expect(confettiFrame(21)).toEqual({ firing: false, cover: 0 })
+    expect(particles.every(({ launch }) => launch < 20)).toBe(true)
+    const falling = (time: number) => particles.filter((particle) => fallingProgress(particle, time) !== null)
+    expect(falling(24).length).toBeGreaterThan(falling(45).length)
+    expect(falling(60).length).toBeGreaterThan(0)
+    expect(falling(65)).toEqual([])
+  })
   it.each(['ready', 'running', 'complete'])('zeigt die Vorrunde ausschliesslich im Archiv (%s)', async (state) => {
     const user = userEvent.setup()
     let tournament = startKnockout(fixture())
@@ -95,7 +114,7 @@ describe('Vertraute K.-o.-Bedienung', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('nicht gespeichert')
     expect(readTournament(active.id)).toEqual(active)
     expect(screen.queryByRole('region', { name: 'Turnierabschluss' })).not.toBeInTheDocument()
-    expect(first.container.querySelector('.completion-confetti')).not.toBeInTheDocument()
+    expect(document.querySelector('.completion-confetti')).not.toBeInTheDocument()
     await user.dblClick(screen.getByRole('button', { name: 'Ergebnis speichern' }))
     expect(await screen.findByRole('heading', { name: 'Turnier abgeschlossen' })).toHaveFocus()
     const ranking = screen.getByRole('list', { name: 'K.-o.-Teamplatzierungen' })
@@ -104,7 +123,12 @@ describe('Vertraute K.-o.-Bedienung', () => {
     ])
     expect(within(ranking).getByText('Berta')).toBeVisible()
     expect(within(ranking).getByText('Gabi')).toBeVisible()
-    expect(first.container.querySelector('.completion-confetti')).toHaveAttribute('aria-hidden', 'true')
+    expect(document.querySelector('.completion-confetti')).toHaveAttribute('aria-hidden', 'true')
+    const stop = screen.getByRole('button', { name: 'Konfetti stoppen' })
+    stop.focus()
+    await user.keyboard('{Enter}')
+    expect(document.querySelector('.completion-confetti')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Siegerehrung' })).toHaveFocus()
     expect(screen.getByRole('button', { name: 'JSON-Sicherung herunterladen' })).toBeEnabled()
     const completed = readTournament(active.id)
     expect(completed.knockout?.results).toHaveLength(4)
@@ -112,16 +136,43 @@ describe('Vertraute K.-o.-Bedienung', () => {
     await user.click(screen.getByRole('button', { name: 'Turnier verlassen' }))
     await open(user)
     expect(await screen.findByRole('heading', { name: 'Turnier abgeschlossen' })).toBeVisible()
-    expect(first.container.querySelector('.completion-confetti')).not.toBeInTheDocument()
+    expect(document.querySelector('.completion-confetti')).not.toBeInTheDocument()
     first.unmount()
     const write = vi.spyOn(Storage.prototype, 'setItem').mockClear()
-    const reloaded = render(<TournamentManager />)
+    render(<TournamentManager />)
     await open(user)
     expect(await screen.findByRole('heading', { name: 'Turnier abgeschlossen' })).toBeVisible()
-    expect(reloaded.container.querySelector('.completion-confetti')).not.toBeInTheDocument()
+    expect(document.querySelector('.completion-confetti')).not.toBeInTheDocument()
     expect(readTournament(active.id)).toEqual(completed)
     expect(write).not.toHaveBeenCalled()
-    expect(audio.play).not.toHaveBeenCalled()
+    expect(audio.play).toHaveBeenCalledOnce()
+  })
+
+  it.each([false, true])('beendet die Feier bis Sekunde 65 oder überspringt sie bei reduzierter Bewegung (%s)', (reduce) => {
+    vi.useRealTimers()
+    vi.useFakeTimers()
+    vi.stubGlobal('matchMedia', () => ({ matches: reduce, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+    try {
+      let completed = startKnockout(fixture())
+      for (let index = 0; index < 4; index++) {
+        const active = startKnockoutMatch(completed, now)
+        completed = finishKnockoutMatch(active, active.activeMatch.id, '10', '9', now)
+      }
+      const { unmount } = render(<TournamentCompletion tournament={completed} celebrate onBack={vi.fn()} onExport={vi.fn()} />)
+      const stop = () => screen.queryByRole('button', { name: 'Konfetti stoppen' })
+      if (!reduce) {
+        expect(stop()).toBeVisible()
+        act(() => vi.advanceTimersByTime(60_000))
+        expect(stop()).toBeVisible()
+      }
+      act(() => vi.advanceTimersByTime(5000))
+      expect(stop()).not.toBeInTheDocument()
+      expect(document.querySelector('.completion-confetti')).not.toBeInTheDocument()
+      expect(screen.getByRole('list', { name: 'K.-o.-Teamplatzierungen' })).toBeVisible()
+      unmount()
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it.each([7, 10])('zeigt die Startsperre bei sieben Personen oder offener Vorrundenpartie (%i)', async (count) => {
@@ -209,6 +260,7 @@ describe('Vertraute K.-o.-Bedienung', () => {
     await user.click(screen.getByRole('button', { name: 'Partie verbindlich abbrechen' }))
     expect(await screen.findByRole('heading', { name: 'Halbfinale 1: Team A gegen Team D' })).toBeVisible()
     expect(readTournament(started.id).knockout?.results).toEqual([])
+    expect(audio.play).toHaveBeenCalledOnce()
     await user.click(screen.getByRole('button', { name: 'Spiel starten' }))
     expect(await screen.findByRole('timer')).toHaveTextContent('01:00')
     expect(readTournament(started.id).activeMatch?.id).not.toBe(started.activeMatch?.id)
@@ -226,7 +278,7 @@ describe('Vertraute K.-o.-Bedienung', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('10 Tore')
     vi.setSystemTime(now + 60_000)
     await act(async () => { fireEvent.focus(window) })
-    expect(audio.play).toHaveBeenCalledOnce()
+    expect(audio.play).toHaveBeenCalledTimes(3)
     vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => { throw new DOMException('Full', 'QuotaExceededError') })
     await user.click(screen.getByRole('button', { name: 'Ergebnis speichern' }))
     expect(screen.getByRole('alert')).toHaveTextContent('nicht gespeichert')
@@ -236,6 +288,7 @@ describe('Vertraute K.-o.-Bedienung', () => {
     expect(await screen.findByRole('heading', { name: 'Halbfinale 2: Team B gegen Team C' })).toBeVisible()
     expect(screen.queryByRole('timer')).not.toBeInTheDocument()
     expect(readTournament(started.id).knockout?.results).toHaveLength(1)
+    expect(audio.play).toHaveBeenCalledTimes(3)
   })
 
   it('fuehrt den kompletten Spielplan durch und bleibt nach dem Finale dauerhaft ohne neue Startaktion', async () => {
@@ -259,7 +312,7 @@ describe('Vertraute K.-o.-Bedienung', () => {
     const saved = readTournament(original.id)
     expect(saved.knockout?.results).toHaveLength(4)
     expect(saved.completedMatches).toEqual(original.completedMatches)
-    expect(audio.play).not.toHaveBeenCalled()
+    expect(audio.play).toHaveBeenCalledTimes(8)
     await user.click(screen.getByRole('button', { name: 'Vorrundenstand und Ergebnisse' }))
     expect(screen.getByRole('region', { name: 'Spielergebnisse' })).toHaveTextContent('Weiß 7 : 5 Schwarz')
     expect(screen.queryByRole('button', { name: /Ergebnis \d bearbeiten/ })).not.toBeInTheDocument()

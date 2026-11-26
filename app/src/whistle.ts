@@ -1,12 +1,13 @@
 export interface Whistle {
   activate: () => Promise<void>
-  play: () => void
+  play: () => Promise<void>
   ready: () => boolean
   close: () => Promise<void>
 }
 
 export function createWhistle(): Whistle {
   let context: AudioContext | null = null
+  let recording: Promise<AudioBuffer> | undefined
   return {
     async activate() {
       if (!window.AudioContext) throw new Error('Dieser Browser unterstützt keine Audioausgabe. Bitte die Zeit sichtbar beobachten.')
@@ -23,32 +24,26 @@ export function createWhistle(): Whistle {
         clearTimeout(timeout)
       }
     },
-    play() {
+    async play() {
       if (!context || context.state !== 'running') throw new Error('Kein automatischer Pfiff: Audio ist nicht aktiviert.')
       const audio = context
-      const gain = audio.createGain()
-      const time = audio.currentTime
-      gain.gain.setValueAtTime(0, time)
-      gain.gain.linearRampToValueAtTime(0.06, time + 0.025)
-      gain.gain.setValueAtTime(0.06, time + 0.65)
-      gain.gain.linearRampToValueAtTime(0, time + 0.8)
-      gain.connect(audio.destination)
-      let remaining = 2
-      for (const frequency of [2800, 3350]) {
-        const oscillator = audio.createOscillator()
-        oscillator.type = 'sine'
-        oscillator.frequency.setValueCurveAtTime(
-          Float32Array.from({ length: 128 }, (_, index) => frequency + 65 * Math.sin(index / 127 * Math.PI * 2 * 24)),
-          time, 0.8,
-        )
-        oscillator.connect(gain)
-        oscillator.onended = () => {
-          oscillator.disconnect()
-          if (--remaining === 0) gain.disconnect()
-        }
-        oscillator.start(time)
-        oscillator.stop(time + 0.8)
-      }
+      recording ??= fetch(`${import.meta.env.BASE_URL}match-whistle.mp3`, { signal: AbortSignal.timeout(5000) })
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`)
+          return response.arrayBuffer()
+        })
+        .then((bytes) => audio.decodeAudioData(bytes))
+        .catch((cause: unknown) => {
+          recording = undefined
+          throw new Error('Die Pfiffaufnahme konnte nicht geladen oder gelesen werden.', { cause })
+        })
+      const buffer = await recording
+      if (audio.state !== 'running') throw new Error('Kein automatischer Pfiff: Audio ist nicht aktiviert.')
+      const source = audio.createBufferSource()
+      source.buffer = buffer
+      source.connect(audio.destination)
+      source.onended = () => source.disconnect()
+      source.start()
     },
     ready: () => context?.state === 'running',
     async close() {

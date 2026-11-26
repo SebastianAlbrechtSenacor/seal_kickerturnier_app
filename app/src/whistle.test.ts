@@ -11,7 +11,7 @@ describe('Lokaler Schiedsrichterpfiff', () => {
     vi.stubGlobal('AudioContext', undefined)
     const whistle = createWhistle()
     await expect(whistle.activate()).rejects.toThrow('keine Audioausgabe')
-    expect(() => whistle.play()).toThrow('nicht aktiviert')
+    await expect(whistle.play()).rejects.toThrow('nicht aktiviert')
   })
 
   it('gibt eine blockierte Aktivierung als Fehler weiter', async () => {
@@ -21,7 +21,7 @@ describe('Lokaler Schiedsrichterpfiff', () => {
     })
     const whistle = createWhistle()
     await expect(whistle.activate()).rejects.toThrow('Audio blockiert')
-    expect(() => whistle.play()).toThrow('nicht aktiviert')
+    await expect(whistle.play()).rejects.toThrow('nicht aktiviert')
   })
 
   it('beendet auch eine haengende Aktivierung mit sichtbarer Fehlermeldung', async () => {
@@ -36,39 +36,45 @@ describe('Lokaler Schiedsrichterpfiff', () => {
     await result
   })
 
-  it('plant einen begrenzten Pfiff und gibt danach Audionodes und Kontext frei', async () => {
-    const gain = {
-      gain: { setValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn() },
-      connect: vi.fn(), disconnect: vi.fn(),
-    }
+  it('meldet eine fehlende Datei und spielt danach dieselbe lokale Aufnahme für beide Pfiffe', async () => {
+    const bytes = new ArrayBuffer(16)
+    const fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: false, status: 404 })
+      .mockResolvedValue({ ok: true, arrayBuffer: async () => bytes })
+    vi.stubGlobal('fetch', fetch)
+    const recording = {}
+    const decode = vi.fn(async () => recording)
     const nodes = Array.from({ length: 2 }, () => ({
-      type: '', frequency: { setValueCurveAtTime: vi.fn() },
-      connect: vi.fn(), disconnect: vi.fn(), start: vi.fn(), stop: vi.fn(), onended: () => {},
+      buffer: null, connect: vi.fn(), disconnect: vi.fn(), start: vi.fn(), onended: () => {},
     }))
     let index = 0
     const close = vi.fn()
+    const destination = {}
     vi.stubGlobal('AudioContext', class {
       state = 'suspended'
-      currentTime = 20
-      destination = {}
+      destination = destination
       async resume() { this.state = 'running' }
-      createGain() { return gain }
-      createOscillator() { return nodes[index++] }
+      decodeAudioData = decode
+      createBufferSource() { return nodes[index++] }
       async close() { this.state = 'closed'; close() }
     })
     const whistle = createWhistle()
     await whistle.activate()
-    whistle.play()
+    await expect(whistle.play()).rejects.toThrow('konnte nicht geladen')
+    await whistle.play()
+    await whistle.play()
+    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(fetch).toHaveBeenLastCalledWith(`${import.meta.env.BASE_URL}match-whistle.mp3`, expect.any(Object))
+    expect(decode).toHaveBeenCalledExactlyOnceWith(bytes)
     for (const node of nodes) {
-      expect(node.connect).toHaveBeenCalledWith(gain)
+      expect(node.buffer).toBe(recording)
+      expect(node.connect).toHaveBeenCalledWith(destination)
       expect(node.start).toHaveBeenCalledOnce()
-      expect(node.stop).toHaveBeenCalledOnce()
       node.onended()
       expect(node.disconnect).toHaveBeenCalledOnce()
     }
-    expect(gain.disconnect).toHaveBeenCalledOnce()
     await whistle.close()
     expect(close).toHaveBeenCalledOnce()
-    expect(() => whistle.play()).toThrow('nicht aktiviert')
+    await expect(whistle.play()).rejects.toThrow('nicht aktiviert')
   })
 })

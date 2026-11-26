@@ -5,7 +5,10 @@ import { MatchInfo } from './MatchPresentation'
 import { WorkspaceNavigation } from './WorkspaceNavigation'
 import './TournamentCompletion.css'
 import WorkspaceDialog from './WorkspaceDialog'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+import { playConfetti, confettiEnd, reducedMotion } from './completion-confetti'
 
 interface Props {
   tournament: Tournament
@@ -16,22 +19,63 @@ interface Props {
 }
 
 const medals = ['🏆', '🥈', '🥉', '👏']
-const confettiColors = ['#ffc63c', '#ee7b00', '#007b80', '#b2d8d5']
 
 export default function TournamentCompletion({ tournament, celebrate, onBack, onExport, tournamentInfo }: Props) {
+  const [confetti, setConfetti] = useState(() => celebrate && !window.matchMedia?.(reducedMotion).matches)
+  const canvas = useRef<HTMLCanvasElement>(null)
+  const heading = useRef<HTMLHeadingElement>(null)
+  const stopButton = useRef<HTMLButtonElement>(null)
+  const [confettiError, setConfettiError] = useState('')
+
+  useEffect(() => {
+    if (!confetti) return
+    const preference = window.matchMedia?.(reducedMotion)
+    const stop = () => {
+      if (document.activeElement === stopButton.current) heading.current?.focus({ preventScroll: true })
+      setConfetti(false)
+    }
+    const stopOnReducedMotion = () => { if (preference?.matches) stop() }
+    const timer = window.setTimeout(stop, confettiEnd)
+    preference?.addEventListener('change', stopOnReducedMotion)
+    stopOnReducedMotion()
+    return () => {
+      window.clearTimeout(timer)
+      preference?.removeEventListener('change', stopOnReducedMotion)
+    }
+  }, [confetti])
+
+  useEffect(() => {
+    const layer = canvas.current
+    if (!confetti || !layer) return
+    let cancelPlayback: (() => void) | undefined
+    const frame = requestAnimationFrame(() => {
+      try {
+        cancelPlayback = playConfetti(layer)
+      } catch (error) {
+        setConfettiError(error instanceof Error ? error.message : 'Die Konfetti-Animation konnte nicht gestartet werden.')
+        setConfetti(false)
+      }
+    })
+    return () => {
+      cancelAnimationFrame(frame)
+      cancelPlayback?.()
+    }
+  }, [confetti])
+
   if (!tournament.knockout || tournament.activeMatch) throw new Error('Das Turnier ist noch nicht abgeschlossen.')
   const teams = knockoutPlacements(tournament.knockout)
   return (
     <section className="tournament-completion" aria-label="Turnierabschluss">
-      {celebrate && <div className="completion-confetti" aria-hidden="true">
-        {Array.from({ length: 20 }, (_, index) => <span key={index}
-          style={{ left: `${index * 5 + 2}%`, animationDelay: `${index % 4 * 50}ms`,
-            backgroundColor: confettiColors[index % confettiColors.length] }} />)}
-      </div>}
+      {confetti && createPortal(<canvas ref={canvas} className="completion-confetti" aria-hidden="true" />, document.body)}
       <div className="completion-banner">
         <p className="card-eyebrow">GUTE LEUTE. GROSSES FINALE.</p>
-        <h3>Siegerehrung</h3>
+        <h3 ref={heading} tabIndex={-1}>Siegerehrung</h3>
+        {confetti && <button className="secondary-button completion-stop" type="button" ref={stopButton} onClick={() => {
+          heading.current?.focus({ preventScroll: true })
+          setConfetti(false)
+        }}>Konfetti stoppen</button>}
         <p>Vier Teams. Ein Podest. Danke an alle, die mitgekickt haben!</p>
+        {confettiError && <p className="error-message" role="status">{confettiError}</p>}
       </div>
       <h3 className="completion-heading">K.-o.-Teamwertung</h3>
       <ol className="completion-podium" aria-label="K.-o.-Teamplatzierungen">

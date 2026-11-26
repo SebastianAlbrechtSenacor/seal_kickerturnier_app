@@ -1,7 +1,7 @@
 # Story 2.4: Partievorbereitung als Standardansicht
 
 Status: Am 26.11.2026 nach erfolgreichem Praxistest ausdrücklich abgenommen.
-Epic: [Epic 2](./epic-2.md).
+Epic: [Epic 2](./epic-2-DONE.md).
 Lieferpaket 2 – Turnieransicht und Aufstellung (2.3–2.7): gemeinsame
 Browser-Regression und gemeinsames Deployment; eigene Abnahme.
 Layoutgrundlage: [Story 2.3](./story-2_3-DONE.md).
