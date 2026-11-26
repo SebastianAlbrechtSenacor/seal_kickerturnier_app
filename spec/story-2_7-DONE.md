@@ -1,6 +1,7 @@
 # Story 2.7: Emoji-Avatare vielfältiger gestalten
 
-Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Status: Am 26.11.2026 nach erfolgreicher Praxisprüfung abgenommen.
+Epic: [Epic 2](./epic-2.md).
 Lieferpaket 2 – Turnieransicht und Aufstellung (2.3–2.7): gemeinsame
 Browser-Regression und gemeinsames Deployment; eigene Abnahme.
 
@@ -24,3 +25,14 @@ wählen können, statt überwiegend Tieravatare angeboten zu bekommen.
   bleiben gespeicherte Zuordnungen und der übrige Stand erhalten. Auch
   gestartete Turniere und deren Ergebnisverläufe zeigen weiterhin die
   ursprünglichen Avatare.
+
+## Prüfergebnisse
+
+- 71 gezielte Tests, Lint und Produktions-Build bestanden. Geprüft wurden
+  unter anderem die 64 benannten Optionen, doppelte Vergaben, das
+  Umbenennen mit einem alten Avatar und der Import sowie erneute Export
+  eines gestarteten Turniers einschließlich Ergebnisverlauf.
+- Im integrierten Browser bei 1280 × 720: Auswahldialog mit 64 Optionen,
+  gesperrtem Pizza-Avatar und Tastaturauswahl geprüft. Ein ausgemusterter
+  Biber-Avatar blieb beim Umbenennen ausgewählt und gespeichert.
+- Die erfolgreiche Praxisabnahme wurde am 26.11.2026 bestätigt.

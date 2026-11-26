@@ -348,11 +348,39 @@ describe('Turniere vorbereiten', () => {
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
     await user.click(await screen.findByRole('button', { name: 'Spielende verwalten' }))
-    expect(screen.getByRole('status')).toHaveTextContent('Alle 64 Avatare sind belegt')
+    expect(screen.getByRole('status')).toHaveTextContent('Alle 64 Plätze sind belegt')
     expect(screen.getByRole('button', { name: 'Person hinzufügen' })).toBeDisabled()
     await user.click(screen.getByRole('button', { name: 'Person 0 bearbeiten' }))
-    expect(screen.getByRole('button', { name: 'Avatar Hund' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Avatar Raumfahrtperson' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Avatar Katze (belegt)' })).toBeDisabled()
+  })
+
+  it('bietet eine gemischte Palette an und bewahrt alte Avatare beim Umbenennen', async () => {
+    const user = userEvent.setup()
+    const id = await seed()
+    await saveTournament({ ...readTournament(id), version: 2, revision: 2,
+      players: [{ id: 'legacy', nickname: 'Alex', avatar: '🦫' }] }, 1)
+    render(<TournamentManager />)
+    await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
+    await user.click(screen.getByRole('button', { name: 'Spielende verwalten' }))
+    await user.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
+    const options = screen.getAllByRole('button', { name: /^Avatar / })
+    expect(options).toHaveLength(64)
+    expect(new Set(options.map((option) => option.getAttribute('aria-label'))).size).toBe(64)
+    for (const motif of ['Raumfahrtperson', 'Hund', 'Pizza', 'Fußball']) {
+      expect(options.slice(0, 8)).toContain(screen.getByRole('button', { name: `Avatar ${motif}` }))
+    }
+    expect(screen.queryByRole('button', { name: /Avatar Biber/ })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Abbrechen' }))
+    await user.click(screen.getByRole('button', { name: 'Alex bearbeiten' }))
+    expect(screen.getByRole('button', { name: 'Avatar Biber (bisheriger Avatar)' })).toHaveAttribute('aria-pressed', 'true')
+    await user.type(screen.getByLabelText('Spitzname'), 'a')
+    await user.click(screen.getByRole('button', { name: 'Person speichern' }))
+    expect(readTournament(id).players).toEqual([{ id: 'legacy', nickname: 'Alexa', avatar: '🦫' }])
+    await user.click(screen.getByRole('button', { name: 'Alexa bearbeiten' }))
+    await user.click(screen.getByRole('button', { name: 'Avatar Pizza' }))
+    await user.click(screen.getByRole('button', { name: 'Person speichern' }))
+    expect(readTournament(id).players).toEqual([{ id: 'legacy', nickname: 'Alexa', avatar: '🍕' }])
   })
 
   it('weist Aenderungen an einer veralteten Spielendenliste ohne Verlust des Entwurfs ab', async () => {

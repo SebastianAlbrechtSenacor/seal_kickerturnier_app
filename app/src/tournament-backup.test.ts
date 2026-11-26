@@ -5,6 +5,7 @@ import { loadTournaments, readTournament, saveTournament } from './tournament-st
 import type { Tournament } from './tournament'
 import { startPreliminary } from './tournament'
 import { avatars } from './players'
+import { finishMatch, startMatch } from './matches'
 
 async function fixture(): Promise<Tournament> {
   return {
@@ -23,6 +24,21 @@ beforeEach(() => {
 })
 
 describe('JSON-Sicherungen', () => {
+  it('stellt eine alte gestartete Sicherung samt ausgemusterten Avataren und Ergebnis unverändert wieder her', async () => {
+    const tournament = startPreliminary({
+      ...await fixture(), version: 2,
+      players: ['🦫', '🐿️', '🦁', '🐊'].map((avatar, index) => ({ id: `p-${index}`, nickname: `Person ${index}`, avatar })),
+    })
+    const now = Date.parse(tournament.settings.startsAt)
+    const active = startMatch(tournament, { whiteAttack: 'p-0', whiteDefence: 'p-1', blackAttack: 'p-2', blackDefence: 'p-3' }, now)
+    const finished = finishMatch(active, active.activeMatch.id, '10', '7', now + 1000)
+    const oldBackup = JSON.stringify({ format: 'seal-kickerturnier-backup', version: 1, tournament: finished })
+    await restoreBackup(parseBackup(oldBackup), null)
+    const reopened = readTournament(finished.id)
+    expect(reopened).toEqual(finished)
+    expect(parseBackup(serializeBackup(reopened))).toEqual(finished)
+  })
+
   it('uebertraegt alle aktuellen Turnierdaten verlustfrei ohne Zugangssitzung oder Klartext-Code', async () => {
     const original = await fixture()
     const text = serializeBackup(original)

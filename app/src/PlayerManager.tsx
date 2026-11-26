@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { avatars, validatePlayerDraft } from './players'
+import { avatars, retiredAvatar, validatePlayerDraft } from './players'
 import type { Player, PlayerErrors } from './players'
 import { WorkspaceNavigation } from './WorkspaceNavigation'
 
@@ -49,7 +49,7 @@ export default function PlayerManager({ players, onSave, onBack }: Props) {
       <div className="player-removal">
         <h3>Person entfernen?</h3>
         <p><strong>{action.player.avatar} {action.player.nickname}</strong> wird aus diesem Turnier entfernt.
-          Der Avatar wird wieder frei.</p>
+          {!retiredAvatar(action.player.avatar) && ' Der Avatar wird wieder frei.'}</p>
         {error && <p className="error-message" role="alert">{error}</p>}
         <div className="form-actions">
           <button className="action-button" type="button" disabled={removing} onClick={() => void remove()}>
@@ -80,7 +80,7 @@ export default function PlayerManager({ players, onSave, onBack }: Props) {
           ))}
         </ul>
       ) : <p>Noch niemand angemeldet. Wer ist dabei?</p>}
-      {full && <p role="status">Alle 64 Avatare sind belegt. Entferne eine Person, um einen Platz freizugeben.</p>}
+      {full && <p role="status">Alle {avatars.length} Plätze sind belegt. Entferne eine Person, um einen Platz freizugeben.</p>}
       <div className="form-actions">
         <button className="action-button" type="button" disabled={full}
           onClick={() => setAction({ kind: 'add' })}>Person hinzufügen</button>
@@ -107,6 +107,9 @@ function PlayerForm({ players, player, onSave, onCancel }: FormProps) {
   const [saving, setSaving] = useState(false)
   const input = useRef<HTMLInputElement>(null)
   const occupied = new Set(players.filter((existing) => existing.id !== player?.id).map((existing) => existing.avatar))
+  const previousAvatar = player ? retiredAvatar(player.avatar) : undefined
+  const options = previousAvatar ? [previousAvatar, ...avatars] : avatars
+  const selectedAvatar = options.find((option) => option.emoji === avatar)
 
   useEffect(() => { input.current?.focus() }, [])
 
@@ -141,10 +144,11 @@ function PlayerForm({ players, player, onSave, onCancel }: FormProps) {
         <fieldset className="avatar-fieldset" aria-describedby={errors.avatar ? 'player-avatar-error' : undefined}>
           <legend>Emoji-Avatar</legend>
           <p className="form-note">Einen freien Avatar auswählen. Ausgegraute Avatare sind bereits belegt.</p>
+          {previousAvatar && <p className="form-note">Dein bisheriger Avatar bleibt erhalten, solange du keinen neuen speicherst.</p>}
           <div className="avatar-palette">
-            {avatars.map((option) => (
+            {options.map((option) => (
               <button key={option.emoji} className="avatar-option" type="button"
-                aria-label={`Avatar ${option.label}${occupied.has(option.emoji) ? ' (belegt)' : ''}`}
+                aria-label={`Avatar ${option.label}${option === previousAvatar ? ' (bisheriger Avatar)' : occupied.has(option.emoji) ? ' (belegt)' : ''}`}
                 title={option.label} aria-pressed={avatar === option.emoji} disabled={occupied.has(option.emoji)}
                 onClick={() => { setAvatar(option.emoji); setErrors({}); setSaveError('') }}>
                 <span aria-hidden="true">{option.emoji}</span>
@@ -152,7 +156,7 @@ function PlayerForm({ players, player, onSave, onCancel }: FormProps) {
             ))}
           </div>
           <p className="avatar-selection" aria-live="polite">
-            {avatar ? `Ausgewählt: ${avatars.find((option) => option.emoji === avatar)?.label} ${avatar}` : 'Noch kein Avatar ausgewählt.'}
+            {selectedAvatar ? `Ausgewählt: ${selectedAvatar.label} ${selectedAvatar.emoji}` : 'Noch kein Avatar ausgewählt.'}
           </p>
           {errors.avatar && <p className="error-message" id="player-avatar-error" role="alert">{errors.avatar}</p>}
         </fieldset>

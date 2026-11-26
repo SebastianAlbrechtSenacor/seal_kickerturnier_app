@@ -4,11 +4,9 @@ Status: Spezifikation für Stories 2.1 bis 2.12 am 25.11.2026 freigegeben.
 Paket 1: Stories 2.1 und 2.2 sind abgenommen. Lokaler Browser-
 Regressionstest und Produktions-Build sind bestanden; das Deployment
 steht aus. Baut auf [Epic 1](./epic-1-DONE.md) auf.
-Paket 2 läuft: Story 2.3 wurde am 26.11.2026 nach erfolgreicher
-Praxisprüfung einschließlich der Design-Ergänzung abgenommen.
-Stories 2.4 und 2.5 wurden ebenfalls am 26.11.2026 nach erfolgreichen
-Praxistests abgenommen. Story 2.6 wurde ebenfalls am 26.11.2026
-abgenommen. Als Nächstes folgt Story 2.7.
+Paket 2: Alle fünf Stories (2.3–2.7) wurden am 26.11.2026
+abgenommen, einschließlich der Layout-Ergänzungen. Die gemeinsame
+Browser-Regression und das Deployment stehen noch aus.
 
 ## Ziel
 
@@ -81,7 +79,7 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 4. [Partievorbereitung als Standardansicht](./story-2_4-DONE.md)
 5. [Vorrundentabellen verdichten](./story-2_5-DONE.md)
 6. [Kickertisch stabil darstellen und Stangen ergänzen](./story-2_6-DONE.md)
-7. [Emoji-Avatare vielfältiger gestalten](./story-2_7.md)
+7. [Emoji-Avatare vielfältiger gestalten](./story-2_7-DONE.md)
 8. [Ergebnisse direkt speichern und jüngste Vorrundenspiele korrigieren](./story-2_8.md)
 9. [Farbschema mit Turnierphase wechseln](./story-2_9.md)
 10. [Anwendung durch Design-Fachperson prüfen und verfeinern](./story-2_10.md)

@@ -139,13 +139,15 @@ Der Turnierstart erfolgt ausschliesslich manuell mit Bestaetigung.
 2. **Person hinzufuegen** waehlen, Spitznamen eingeben und einen freien
    Emoji-Avatar anklicken oder per Tastatur auswaehlen. **Person speichern**
    legt die Person mit eigener, stabiler ID an.
-3. Die Palette enthaelt 64 Avatare; damit sind maximal 64 Personen je
-   Turnier moeglich. Belegte Avatare sind gesperrt. Sind alle belegt,
-   erscheint eine Begruendung und weitere Anmeldungen sind gesperrt.
+3. Die Palette mischt 64 Emojis aus Personen, Tieren, Essen und Getraenken,
+   Sport und weiteren Motiven. Belegte Avatare sind gesperrt; bei 64
+   Spielenden sind keine weiteren Anmeldungen moeglich.
 4. **Bearbeiten** aendert Spitznamen und Avatar, aber nicht die ID.
-   Der eigene Avatar bleibt dabei verfuegbar.
-   **Entfernen** fordert eine Bestaetigung; **Abbrechen** laesst die
-   Person unveraendert. Nach bestaetigtem Entfernen ist der Avatar wieder frei.
+   Ein frueher vergebener Avatar ausserhalb der aktuellen Palette bleibt
+   erhalten, bis ein anderer gespeichert wird. Auch alte JSON-Sicherungen
+   behalten diese Zuordnungen. **Entfernen** fordert eine Bestaetigung;
+   **Abbrechen** laesst die Person unveraendert. Ein Avatar aus der
+   aktuellen Palette wird nach dem Entfernen wieder frei.
 5. **Zur Turnieruebersicht** fuehrt zu Einstellungen und JSON-Sicherung zurueck.
    Aendern der Turniereinstellungen behaelt die Spielendenliste bei.
 

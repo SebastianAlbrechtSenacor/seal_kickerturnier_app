@@ -36,6 +36,15 @@ describe('Spielendendaten', () => {
     expect(validatePlayerDraft({ nickname: 'Neue Person', avatar: full[0].avatar }, full.slice(1)).errors).toBeUndefined()
   })
 
+  it('akzeptiert alte Avatare im Bestand, aber nur den eigenen zum Beibehalten', () => {
+    const legacy = { id: 'legacy', nickname: 'Biber', avatar: '🦫' }
+    expect(isPlayerList([alex, legacy])).toBe(true)
+    expect(isPlayerList([legacy, { ...alex, avatar: legacy.avatar }])).toBe(false)
+    expect(validatePlayerDraft(legacy, [], legacy.id).errors?.avatar).toContain('Palette')
+    expect(validatePlayerDraft({ ...alex, avatar: legacy.avatar }, [alex, legacy], alex.id).errors?.avatar).toContain('Palette')
+    expect(validatePlayerDraft(legacy, [alex, legacy], legacy.id).errors).toBeUndefined()
+  })
+
   it.each([
     null,
     {},
