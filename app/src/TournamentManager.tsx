@@ -259,7 +259,8 @@ export default function TournamentManager() {
     view.tournament.settings.name
 
   return (
-    <section className={`entry-card${expanded ? ' tournament-workspace' : ''}${view.kind === 'match' || view.kind === 'live' || view.kind === 'knockout' ? ' match-workspace' : ''}`} aria-labelledby="entry-title">
+    <section className={`entry-card${expanded ? ' tournament-workspace' : ''}${view.kind === 'match' || view.kind === 'live' || view.kind === 'knockout' ? ' match-workspace' : ''}`}
+      data-phase={'tournament' in view ? view.tournament.phase : undefined} aria-labelledby="entry-title">
       <div className="card-stripe" aria-hidden="true" />
       <div className="card-content">
         <p className="card-eyebrow">{completed ? 'TURNIERABSCHLUSS' : view.kind === 'details' ?

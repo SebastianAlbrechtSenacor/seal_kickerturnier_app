@@ -296,6 +296,15 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
 
 ### K.-o.-Phase spielen
 
+Die Turnierauswahl, Vorbereitung und Vorrunde verwenden ein helles
+blau-tuerkis-gruenes Farbschema mit gelb-orangen Akzenten. Erst der
+erfolgreich gespeicherte K.-o.-Start wechselt die gesamte Anwendung zu
+Dunkelblau mit einem kraeftigen diagonalen Verlauf sowie gruenen und
+tief-orangen Lichtakzenten. Das dunkle Schema bleibt beim erneuten
+Oeffnen eines K.-o.-Turniers, in seiner Uebersicht und auf der Siegerehrung
+aktiv. Die Rueckkehr zur Turnierauswahl stellt das helle Schema wieder her.
+Die Master-Zugangsmaske bleibt neutral.
+
 1. Ueber dem Tisch **K.O. Runde starten** waehlen. Erforderlich
    sind mindestens acht angemeldete Personen und keine offene Partie.
    Eine Mindestspielzahl gibt es nicht; bei mehr als acht Personen

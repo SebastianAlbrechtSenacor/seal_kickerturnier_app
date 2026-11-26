@@ -1,6 +1,7 @@
 # Story 2.9: Farbschema mit Turnierphase wechseln
 
-Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Status: Abgenommen am 26.11.2026 einschließlich des kräftigeren
+K.-o.-Hintergrunds. Epic: [Epic 2](./epic-2.md).
 Lieferpaket 4 – Phasenfarben: eigener Browser-Durchlauf über beide
 Farbschemata und separates Deployment.
 Bediengrundlage: [Story 2.4](./story-2_4-DONE.md).
@@ -23,6 +24,15 @@ an der Gestaltung der ganzen Anwendung erkennen.
   Wechsel ändern das Farbschema nicht. Beim Wiederöffnen eines
   K.-o.-Turniers und auf seiner Siegerehrung gilt das dunkle Schema
   ebenfalls; **Turnier verlassen** stellt das helle Schema wieder her.
+- **Übersicht eines K.-o.-Turniers:** Gegeben ist ein geöffnetes
+  K.-o.-Turnier. Wenn ich **Zur Turnierübersicht** wähle, bleibt die
+  App dunkel. Erst **Zur Turnierauswahl** stellt das helle Schema wieder her.
+- **Kräftigerer K.-o.-Hintergrund:** Gegeben ist ein geöffnetes
+  K.-o.-Turnier. Wenn ich den Bereich um die Arbeitskarte betrachte,
+  sehe ich einen deutlichen diagonalen Verlauf von fast schwarzem
+  Nachtblau zu sattem Blau, mit grünen und tief-orangen Lichtakzenten.
+  Arbeitsflächen und Navigation bleiben gut lesbar, auch auf der
+  Siegerehrung. Die helle Vorrunde bleibt unverändert.
 - **Lesbarkeit:** Gegeben sind beide Schemata. Wenn ich Tabellen,
   Eingaben, Fehlermeldungen, Fokus und deaktivierte Bedienelemente prüfe,
   sind Texte und aktive Bedienzustände gut unterscheidbar; relevante

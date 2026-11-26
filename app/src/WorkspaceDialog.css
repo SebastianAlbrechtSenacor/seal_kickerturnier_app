@@ -4,22 +4,22 @@ html:has(.workspace-dialog[open]) { overflow: hidden; }
   padding: 2px 6px;
   border: 0;
   background: transparent;
-  color: #00575d;
+  color: var(--teal);
   font-size: 13px;
   font-weight: 700;
   text-decoration: underline;
 }
-.dialog-info-link:hover { background: #e3eeea; }
+.dialog-info-link:not(:disabled):hover { background: var(--surface); }
 .workspace-dialog {
   box-sizing: border-box;
   width: min(940px, calc(100% - 32px));
   max-height: calc(100dvh - 32px);
   margin: auto;
   padding: 0;
-  border: 1px solid #80b4b4;
+  border: 1px solid var(--control-line);
   border-radius: 6px;
-  background: #f7f6ef;
-  color: #122f34;
+  background: var(--panel);
+  color: var(--ink);
   color-scheme: light;
   overflow: hidden;
 }
@@ -33,9 +33,9 @@ html:has(.workspace-dialog[open]) { overflow: hidden; }
   justify-content: space-between;
   gap: 12px;
   padding: 10px 16px;
-  border-bottom: 1px solid #c9d8d1;
+  border-bottom: 1px solid var(--line);
 }
-.workspace-dialog-footer { border-block: 1px solid #c9d8d1 transparent; }
+.workspace-dialog-footer { border-block: 1px solid var(--line) transparent; }
 .workspace-dialog-header .secondary-button { width: auto; }
 .workspace-dialog-header h3 { overflow-wrap: anywhere; }
 .workspace-dialog-content { min-height: 0; padding: 12px 16px; overflow: auto; overscroll-behavior: contain; }

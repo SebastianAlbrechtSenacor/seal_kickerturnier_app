@@ -11,6 +11,9 @@ am selben Tag vom Entwickler durchgeführt und bestätigt.
 Paket 3: Story 2.8 wurde am 26.11.2026 abgenommen. Die Regression für
 Ergebnisverwaltung, der lokale Browsercheck und der Praxischeck im
 Firefox am Turnierlaptop sind bestanden. Das separate Deployment steht aus.
+Paket 4: Story 2.9 wurde am 26.11.2026 einschließlich des kräftigeren
+K.-o.-Hintergrunds abgenommen. Der lokale Browser-Durchlauf über beide
+Farbschemata ist bestanden. Das separate Deployment steht aus.
 
 ## Ziel
 
@@ -85,7 +88,7 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 6. [Kickertisch stabil darstellen und Stangen ergänzen](./story-2_6-DONE.md)
 7. [Emoji-Avatare vielfältiger gestalten](./story-2_7-DONE.md)
 8. [Ergebnisse direkt speichern und jüngste Vorrundenspiele korrigieren](./story-2_8-DONE.md)
-9. [Farbschema mit Turnierphase wechseln](./story-2_9.md)
+9. [Farbschema mit Turnierphase wechseln](./story-2_9-DONE.md)
 10. [Anwendung durch Design-Fachperson prüfen und verfeinern](./story-2_10.md)
 11. [Neuen An- und Abpfiff abspielen](./story-2_11.md)
 12. [Konfetti-Kanonen für die Siegerehrung](./story-2_12.md)
