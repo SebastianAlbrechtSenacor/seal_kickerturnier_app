@@ -1,6 +1,9 @@
 .arena:has(.tournament-workspace.match-workspace) { max-width: 1500px; padding-inline: 32px; }
 .match-layout { display: grid; grid-template-columns: minmax(220px, .7fr) minmax(340px, 1.3fr); gap: 28px; align-items: start; margin-top: 24px; }
 .match-layout > * { min-width: 0; }
+.preparation-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.preparation-tools > button { width: auto; min-height: 36px; padding: 5px 9px; font-size: 13px; }
+.preparation-layout .lineup-panel > .form-note { margin: 4px 0 0; }
 .match-layout .standings { margin-top: 0; }
 .match-layout .standings-scroll { max-height: 520px; overflow-y: auto; }
 .match-layout .standings-table thead th { position: sticky; top: 0; z-index: 2; background: #f7f6ef; }

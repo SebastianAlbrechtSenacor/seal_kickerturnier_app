@@ -1,6 +1,7 @@
 # Story 2.4: Partievorbereitung als Standardansicht
 
-Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
+Status: Am 26.11.2026 nach erfolgreichem Praxistest ausdrücklich abgenommen.
+Epic: [Epic 2](./epic-2.md).
 Lieferpaket 2 – Turnieransicht und Aufstellung (2.3–2.7): gemeinsame
 Browser-Regression und gemeinsames Deployment; eigene Abnahme.
 Layoutgrundlage: [Story 2.3](./story-2_3-DONE.md).
@@ -34,3 +35,19 @@ Aufstellung gelangen und Tabelle, Navigation und Phasenwechsel dort finden.
   Standardansicht ohne separaten Aufruf als Zwischenstation. Wenn ich
   Turnierinfos, vollständigen Ergebnisverlauf oder Export brauche, sind
   sie weiterhin erreichbar, ohne die laufende Aufstellung zu verwerfen.
+
+## Prüfergebnisse
+
+- 57 gezielte UI-Tests, Lint und Produktions-Build bestanden. Abgedeckt:
+  direkte Aufstellung nach dem Start, Wiederöffnen einer offenen Partie,
+  unveränderte Speicherung beim Verlassen, K.-o.-Sperre und Bestätigung
+  sowie Rückkehr zur Aufstellung nach Abbruch und Speicherfehler.
+- Im integrierten Browser wurden Tabelle, Verlauf und Turnierinfos bei
+  1280 × 720, 1485 × 871, 1920 × 1080 und 320 × 680 geprüft. Escape
+  schließt die Tabelle, der Fokus kehrt zurück und die Aufstellung bleibt
+  erhalten. Mit 48 Spielenden scrollt das Overlay intern; die Hauptseite
+  bleibt bei den geprüften Querformatgrößen ohne Seitenscrollen.
+- Im Browser mit acht Spielenden wurden der direkte Vorrundenstart, der
+  abgebrochene und der bestätigte K.-o.-Wechsel sowie das Auslösen des
+  JSON-Downloads geprüft. Der Entwickler hat den Praxistest am
+  26.11.2026 als erfolgreich bestätigt und die Story abgenommen.

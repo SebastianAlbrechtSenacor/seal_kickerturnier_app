@@ -4,6 +4,12 @@ import { afterEach, beforeEach } from 'vitest'
 
 afterEach(cleanup)
 
+// JSDOM does not implement modal dialog methods or the browser's Escape event.
+if (typeof HTMLDialogElement.prototype.showModal !== 'function') {
+  HTMLDialogElement.prototype.showModal = function () { this.open = true }
+  HTMLDialogElement.prototype.close = function () { this.open = false }
+}
+
 beforeEach(() => {
   const queues = new Map<string, Promise<unknown>>()
   Object.defineProperty(navigator, 'locks', {

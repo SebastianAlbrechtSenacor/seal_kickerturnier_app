@@ -5,7 +5,7 @@ import PlayerManager from './PlayerManager'
 import StandingsTable from './StandingsTable'
 import MatchPreparation from './MatchPreparation'
 import RunningMatch from './RunningMatch'
-import KnockoutBoard, { KnockoutConfirmation } from './KnockoutBoard'
+import KnockoutBoard from './KnockoutBoard'
 import TournamentCompletion from './TournamentCompletion'
 import { finishKnockoutMatch, knockoutStartError, startKnockout, startKnockoutMatch } from './knockout'
 import MatchHistory from './MatchHistory'
@@ -32,7 +32,6 @@ type View =
   | { kind: 'start'; tournament: Tournament }
   | { kind: 'match'; tournament: Tournament }
   | { kind: 'live'; tournament: ActiveTournament }
-  | { kind: 'knockout-start'; tournament: Tournament }
   | { kind: 'knockout'; tournament: Tournament; celebrate?: boolean }
 
 function readList(): { tournaments: Tournament[]; error: string } {
@@ -58,7 +57,6 @@ export default function TournamentManager() {
   const [audioBusy, setAudioBusy] = useState(false)
   const audioPending = useRef(false)
   const mounted = useRef(false)
-  const phaseStartPending = useRef(false)
   const headingTarget = (view.kind === 'live' || view.kind === 'knockout') && view.tournament.activeMatch ?
     view.tournament.activeMatch.id : view
 
@@ -87,7 +85,7 @@ export default function TournamentManager() {
       const tournament = readTournament(id)
       setView(tournament.phase === 'knockout' ? { kind: 'knockout', tournament } : tournament.activeMatch ?
         { kind: 'live', tournament: { ...tournament, activeMatch: tournament.activeMatch } } :
-        { kind: 'details', tournament })
+        { kind: tournament.phase === 'preliminary' ? 'match' : 'details', tournament })
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Das Turnier konnte nicht geöffnet werden.')
     }
@@ -126,7 +124,7 @@ export default function TournamentManager() {
     try {
       const tournament = startPreliminary(view.tournament)
       await saveTournament(tournament, view.tournament.revision)
-      setView({ kind: 'details', tournament })
+      setView({ kind: 'match', tournament })
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Das Turnier konnte nicht gestartet werden. Bitte erneut versuchen.')
     } finally {
@@ -201,31 +199,22 @@ export default function TournamentManager() {
       { kind: 'match', tournament })
   }
 
-  function showKnockout(tournament: Tournament, confirm = false) {
+  function showKnockout(tournament: Tournament) {
     setError('')
     try {
       assertCurrentTournament(tournament)
-      if (confirm) {
-        const error = knockoutStartError(tournament)
-        if (error) throw new Error(error)
-      } else if (tournament.phase !== 'knockout') throw new Error('Die K.-o.-Phase wurde noch nicht gestartet.')
-      setView({ kind: confirm ? 'knockout-start' : 'knockout', tournament })
+      if (tournament.phase !== 'knockout') throw new Error('Die K.-o.-Phase wurde noch nicht gestartet.')
+      setView({ kind: 'knockout', tournament })
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Die K.-o.-Phase konnte nicht geöffnet werden.')
     }
   }
 
   async function confirmKnockout() {
-    if (view.kind !== 'knockout-start' || phaseStartPending.current) return
-    phaseStartPending.current = true
-    setStarting(true)
+    if (view.kind !== 'match') throw new Error('Bitte das Turnier erneut öffnen.')
     setError('')
-    try {
-      const tournament = await updateTournament(view.tournament, startKnockout)
-      setView({ kind: 'knockout', tournament })
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Die K.-o.-Phase konnte nicht gespeichert werden.')
-    } finally { phaseStartPending.current = false; setStarting(false) }
+    const tournament = await updateTournament(view.tournament, startKnockout)
+    setView({ kind: 'knockout', tournament })
   }
 
   async function beginKnockoutMatch() {
@@ -258,9 +247,7 @@ export default function TournamentManager() {
     view.kind === 'edit' ? 'Turnier bearbeiten' :
     view.kind === 'players' ? 'Spielende verwalten' :
     view.kind === 'start' ? 'Vorrunde starten?' :
-    view.kind === 'knockout-start' ? 'K.-o.-Phase starten?' :
     view.kind === 'knockout' ? completed ? 'Turnier abgeschlossen' : 'K.-o.-Phase' :
-    view.kind === 'match' ? 'Partie vorbereiten' :
     view.kind === 'live' ? 'Vorrundenpartie' :
     view.tournament.settings.name
 
@@ -272,7 +259,7 @@ export default function TournamentManager() {
           view.tournament.phase === 'knockout' ? 'K.-O.-PHASE' :
             view.tournament.phase === 'preliminary' ? 'VORRUNDE' : 'VORBEREITUNG' : 'EUER NÄCHSTES MATCH'}</p>
         <h2 id="entry-title" ref={heading} tabIndex={-1}>{title}</h2>
-        {(view.kind === 'live' || view.kind === 'knockout') && error && <p className="error-message" role="alert">{error}</p>}
+        {(view.kind === 'match' || view.kind === 'live' || view.kind === 'knockout') && error && <p className="error-message" role="alert">{error}</p>}
         {(view.kind === 'match' || view.kind === 'live' || view.kind === 'knockout') && audioError && <p className="error-message" role="alert">{audioError}</p>}
         {view.kind === 'list' && (
           <>
@@ -333,7 +320,8 @@ export default function TournamentManager() {
         {view.kind === 'match' && (
           <MatchPreparation tournament={view.tournament}
             onStart={beginMatch}
-            onBack={() => setView({ kind: 'details', tournament: view.tournament })} />
+            onBack={backToList} onExport={() => exportBackup(view.tournament)} onKnockout={confirmKnockout}
+            tournamentInfo={<TournamentInformation tournament={view.tournament} />} />
         )}
         {(view.kind === 'live' || view.kind === 'knockout') && view.tournament.activeMatch &&
           <RunningMatch key={view.tournament.activeMatch.id} tournament={{ ...view.tournament, activeMatch: view.tournament.activeMatch }}
@@ -348,18 +336,6 @@ export default function TournamentManager() {
         {view.kind === 'knockout' && !completed && !view.tournament.activeMatch && <KnockoutBoard tournament={view.tournament}
           onStart={beginKnockoutMatch} onExport={() => exportBackup(view.tournament)}
           onBack={() => { setError(''); setView({ kind: 'details', tournament: view.tournament }) }} />}
-        {view.kind === 'knockout-start' && (
-          <div className="start-confirmation">
-            <KnockoutConfirmation tournament={view.tournament} />
-            {error && <p className="error-message" role="alert">{error}</p>}
-            <div className="form-actions">
-              <button className="action-button" type="button" disabled={starting} onClick={() => void confirmKnockout()}>
-                {starting ? 'Wird gestartet ...' : 'K.-o.-Phase verbindlich starten'}</button>
-              <button className="secondary-button" type="button" disabled={starting}
-                onClick={() => { setError(''); setView({ kind: 'details', tournament: view.tournament }) }}>Abbrechen</button>
-            </div>
-          </div>
-        )}
         {view.kind === 'start' && (
           <div className="start-confirmation">
             <p className="card-description">{view.tournament.settings.name} · {view.tournament.players?.length ?? 0} Spielende</p>
@@ -397,11 +373,11 @@ export default function TournamentManager() {
                 <button className="action-button" type="button"
                   onClick={() => view.tournament.phase === 'knockout' ? showKnockout(view.tournament) : prepareMatch(view.tournament)}>
                   {completed ? 'Turnierabschluss anzeigen' : view.tournament.phase === 'knockout' ? 'K.-o.-Phase anzeigen' :
-                    view.tournament.activeMatch ? 'Offene Partie anzeigen' : 'Partie vorbereiten'}
+                    'Offene Partie anzeigen'}
                 </button>
                 {view.tournament.phase === 'preliminary' &&
-                  <button className="secondary-button" type="button" disabled={Boolean(knockoutStartError(view.tournament))}
-                    aria-describedby="knockout-requirement" onClick={() => showKnockout(view.tournament, true)}>K.-o.-Phase starten</button>}
+                  <button className="secondary-button" type="button" disabled
+                    aria-describedby="knockout-requirement">K.O. Runde starten</button>}
               </div>
               {view.tournament.phase === 'preliminary' && <>
                 <p className="form-note" id="knockout-requirement">{knockoutStartError(view.tournament) ??

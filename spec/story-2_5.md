@@ -3,7 +3,7 @@
 Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
 Lieferpaket 2 – Turnieransicht und Aufstellung (2.3–2.7): gemeinsame
 Browser-Regression und gemeinsames Deployment; eigene Abnahme.
-Abhängigkeit: [Story 2.4](./story-2_4.md).
+Abhängigkeit: [Story 2.4](./story-2_4-DONE.md).
 
 Als teilnehmende Person möchte ich die Vorrundenplätze von zwölf
 Spielenden auf einen Blick sehen, ohne Abstriche bei der Lesbarkeit.

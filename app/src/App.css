@@ -264,6 +264,8 @@ form input[aria-invalid='true'] { border-color: #a42b20; }
   .app-shell .avatar-palette { max-height: 230px; overflow: auto; padding: 6px; }
   .app-shell .match-layout .standings-scroll { max-height: max(175px, calc(100svh - 490px)); }
   .app-shell .match-layout .result-list { max-height: max(120px, calc(100svh - 585px)); }
+  .app-shell .preparation-summary-panel > .standings .standings-scroll { max-height: max(120px, calc(100svh - 575px)); }
+  .app-shell .preparation-summary-panel > .match-history .result-list { max-height: max(108px, calc(100svh - 650px)); }
   .app-shell .standings-scroll { margin-block: 6px; }
   .app-shell .knockout-plan .match-history-list { max-height: 225px; }
   .app-shell .match-layout { gap: 16px; }

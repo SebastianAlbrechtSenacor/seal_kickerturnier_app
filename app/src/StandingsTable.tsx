@@ -8,6 +8,7 @@ interface Props {
   tournament: Tournament
   renderPlayer?: (player: Player) => ReactNode
   compact?: boolean
+  showHeading?: boolean
 }
 
 const statistics = [
@@ -15,14 +16,14 @@ const statistics = [
   ['GT', 'Gegentore'], ['TD', 'Tordifferenz'], ['Pkt.', 'Punkte'],
 ] as const
 
-export default function StandingsTable({ tournament, renderPlayer, compact = false }: Props) {
+export default function StandingsTable({ tournament, renderPlayer, compact = false, showHeading = true }: Props) {
   const standings = tournament.knockout?.standings ?? calculateStandings(tournament.players ?? [], tournament.completedMatches ?? [], tournament.settings)
   const id = useId()
   const heading = `${id}-heading`
   const hint = `${id}-hint`
   return (
     <section className="standings" aria-labelledby={heading}>
-      <h3 id={heading}>{tournament.knockout ? 'Vorrunde (eingefroren)' : 'Vorrundentabelle'}</h3>
+      <h3 id={heading} className={showHeading ? undefined : 'sr-only'}>{tournament.knockout ? 'Vorrunde (eingefroren)' : 'Vorrundentabelle'}</h3>
       {tournament.knockout && <p className="form-note" id={hint}>Dieser Stand bleibt während der K.-o.-Phase unverändert.</p>}
       <div className="standings-scroll" role="region" aria-label="Vorrundentabelle scrollen"
         aria-describedby={tournament.knockout ? hint : undefined} tabIndex={0}>

@@ -177,8 +177,9 @@ Nach Turnierstart ist die Spielendenliste gesperrt.
    nach Start unveraenderbar. Die Felder bleiben lesbar, Bearbeitungsaktionen
    entfallen. Neuladen und erneutes Oeffnen behalten Phase und Rangfolge bei.
    Veraltete Tabs koennen die gesperrte Vorbereitung nicht ueberschreiben.
-6. **Partie vorbereiten** oeffnet die Positionsauswahl. Bei bereits offener
-   Partie fuehrt **Offene Partie anzeigen** stattdessen zur laufenden Partie.
+6. Nach dem Start und beim erneuten Oeffnen einer Vorrunde ohne offene
+   Partie erscheint direkt die Aufstellung mit dem Turniernamen als Titel.
+   Eine offene Partie oder ausstehende Ergebniseingabe hat Vorrang.
 
 Startzeit und geplante Phasenenden sind nur Planung. Weder der geplante
 Beginn noch 19 Uhr starten oder wechseln eine Phase automatisch.
@@ -187,11 +188,11 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
 
 ### Eine Partie besetzen
 
-1. In der gestarteten Vorrunde **Partie vorbereiten** waehlen.
-   Links steht die kompakte Tabelle mit **Rang**, **Spielende** und **Punkte**,
-   rechts der groessere Tisch. Die Turnieruebersicht behaelt ihre vollstaendige
-   Tabelle mit allen neun Spalten. Auf schmalen Bildschirmen stehen beide
-   Bereiche untereinander. Turnierinfos stehen kompakt unten.
+1. Links steht die kompakte Tabelle mit **Rang**, **Spielende** und **Punkte**,
+   rechts der groessere Tisch. **Vollständige Vorrundentabelle** oeffnet alle
+   neun Spalten im Overlay. **Schließen** oder Escape kehrt zum Ausloeser
+   zurueck; die Aufstellung bleibt erhalten. Auf schmalen Bildschirmen stehen
+   Tabelle und Tisch untereinander.
 2. Name oder Avatar mit Maus oder Finger aus der Tabelle auf Weiss Angriff,
    Weiss Verteidigung, Schwarz Angriff oder Schwarz Verteidigung ziehen.
    Am oberen/unteren Bildschirmrand scrollt die Seite beim Ziehen mit.
@@ -216,9 +217,9 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
    direkt die Partie. Erst nach erfolgreichem Speichern wird der Countdown
    angezeigt; die Aufstellung ist dann gesperrt. Doppelklick startet keine
    zweite Partie. Bei Speicherfehlern bleibt der Entwurf mit Fehlerhinweis bestehen.
-6. **Vorbereitung verlassen** oder Neuladen verwerfen
-   den Entwurf. Erneutes Vorbereiten beginnt leer; dieselben Personen duerfen
-   erneut gewaehlt werden. Der Entwurf ist auch nicht Teil einer JSON-Sicherung.
+6. **Turnier verlassen** fuehrt zur Turnierliste. Wie beim Neuladen
+   wird nur der Entwurf verworfen; gespeicherte Ergebnisse bleiben erhalten.
+   Die JSON-Sicherung im Header enthaelt keinen Aufstellungsentwurf.
    Veraltete Turnierstaende werden beim Oeffnen und vor dem Spielstart
    mit Konfliktmeldung abgewiesen.
 
@@ -269,14 +270,13 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
   Tabellen in Uebersicht, Vorbereitung und laufender Partie verwenden
   denselben berechneten Stand und dieselben Rangentscheidungen.
 - Unter der kompakten Tabelle links in der Partievorbereitung stehen
-  hoechstens die **letzten drei Ergebnisse**. In der Turnieruebersicht
-  stehen **alle Spielergebnisse** unter **Vollständiger Ergebnisverlauf**.
+  hoechstens die **letzten drei Ergebnisse**. **Vollständiger Ergebnisverlauf**
+  oeffnet alle Spielergebnisse im Overlay, ohne die Aufstellung zu verwerfen.
   Zuletzt gespeicherte Partien stehen zuerst, mit Endstand, Teams samt
   Namen/Avataren und Abschlusszeit in Eschborner Ortszeit.
 - Ohne Ergebnisse erscheint ein Leerhinweis. Offene oder abgebrochene
   Partien erscheinen nicht im Verlauf und bringen keine Punkte.
-- In der gestarteten Turnieruebersicht stehen die Turnierinformationen
-  kompakt unten. **Weitere Turnierinfos** klappt Beschreibung, geplante
+- **Weitere Turnierinfos** oeffnet Beschreibung, geplante
   Phasendauern und Zeitplanung auf. Vor Vorrundenstart bleibt die
   bisherige ausfuehrliche Vorbereitungsansicht erhalten.
 - Ergebnisse koennen weder einzeln korrigiert noch geloescht werden.
@@ -285,7 +285,7 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
 
 ### K.-o.-Phase spielen
 
-1. In der Turnieruebersicht **K.-o.-Phase starten** waehlen. Erforderlich
+1. In der Aufstellung **K.O. Runde starten** waehlen. Erforderlich
    sind mindestens acht angemeldete Personen und keine offene Partie.
    Eine Mindestspielzahl gibt es nicht; bei mehr als acht Personen
    qualifizieren sich genau die ersten acht der aktuellen Tabelle.

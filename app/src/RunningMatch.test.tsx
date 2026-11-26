@@ -221,13 +221,16 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     unmount()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
-    await user.click(screen.getByText('Vollständiger Ergebnisverlauf'))
+    await user.click(screen.getByRole('button', { name: 'Vollständiger Ergebnisverlauf' }))
     expect(await screen.findByRole('region', { name: 'Spielergebnisse' })).toHaveTextContent('Weiß 7 : 5 Schwarz')
-    const rows = within(screen.getByRole('table')).getAllByRole('row')
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Schließen' }))
+    await user.click(screen.getByRole('button', { name: 'Vollständige Vorrundentabelle' }))
+    const tableDialog = screen.getByRole('dialog')
+    const rows = within(tableDialog).getAllByRole('row')
     expect(within(rows[1]).getAllByRole('cell').map((cell) => cell.textContent)).toEqual(['1', '1', '1', '0', '7', '5', '2', '3'])
+    await user.click(within(tableDialog).getByRole('button', { name: 'Schließen' }))
     expect(readTournament(started.id)).toEqual(saved)
     expect(screen.queryByRole('button', { name: 'Ergebnis ändern' })).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Partie vorbereiten' }))
     for (const [position, player] of [['Weiß Angriff', 'Alex'], ['Weiß Verteidigung', 'Bea'], ['Schwarz Angriff', 'Chris'], ['Schwarz Verteidigung', 'Dana']]) {
       await user.click(screen.getByRole('button', { name: `${position}: frei` }))
       await user.click(screen.getByRole('button', { name: `${player} auswählen` }))
@@ -245,7 +248,9 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     await saveTournament(withResults(4), null)
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
-    await user.click(screen.getByText('Vollständiger Ergebnisverlauf'))
+    await user.click(screen.getByRole('button', { name: 'Weiß Angriff: frei' }))
+    await user.click(screen.getByRole('button', { name: 'Alex auswählen' }))
+    await user.click(screen.getByRole('button', { name: 'Vollständiger Ergebnisverlauf' }))
     const all = within(await screen.findByRole('region', { name: 'Spielergebnisse' })).getAllByRole('listitem')
     expect(all).toHaveLength(4)
     expect(all.map((item) => within(item).getByText(/Weiß 10 :/).textContent)).toEqual([
@@ -257,10 +262,12 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
     expect(finishedAt).not.toBeVisible()
     await user.click(within(all[0]).getByText('Weiß 10 : 3 Schwarz'))
     expect(finishedAt).toBeVisible()
-    expect(screen.getByRole('complementary', { name: 'Zeitplanung' })).not.toBeVisible()
-    await user.click(screen.getByText('Weitere Turnierinfos'))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Schließen' }))
+    expect(screen.queryByRole('complementary', { name: 'Zeitplanung' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Weitere Turnierinfos' }))
     expect(screen.getByRole('complementary', { name: 'Zeitplanung' })).toBeVisible()
-    await user.click(screen.getByRole('button', { name: 'Partie vorbereiten' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Schließen' }))
+    expect(screen.getByRole('button', { name: 'Weiß Angriff: Alex' })).toBeVisible()
     const recent = within(screen.getByRole('region', { name: 'Letzte 3 Ergebnisse' })).getAllByRole('listitem')
     expect(recent).toHaveLength(3)
     expect(recent[0]).toHaveTextContent('Weiß 10 : 3 Schwarz')
@@ -270,7 +277,8 @@ describe('Gespeicherte Ergebnisse in der Turnierverwaltung', () => {
   })
 
   it.each([0, 2])('zeigt bei %s Ergebnissen keine kuenstlichen Partien', (count) => {
-    render(<MatchPreparation tournament={withResults(count)} onStart={vi.fn()} onBack={vi.fn()} />)
+    render(<MatchPreparation tournament={withResults(count)} onStart={vi.fn()} onBack={vi.fn()}
+      onExport={vi.fn()} onKnockout={vi.fn()} tournamentInfo={null} />)
     const history = within(screen.getByRole('region', { name: 'Letzte 3 Ergebnisse' }))
     expect(history.queryAllByRole('listitem')).toHaveLength(count)
     if (count === 0) expect(history.getByText('Noch keine abgeschlossene Partie.')).toBeVisible()
@@ -310,7 +318,6 @@ describe('Spielstart in der Turnierverwaltung', () => {
     await saveTournament(tournament, null)
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Timercup öffnen' }))
-    await user.click(await screen.findByRole('button', { name: 'Partie vorbereiten' }))
     for (const [label, name] of [
       ['Weiß Angriff', 'Alex'], ['Weiß Verteidigung', 'Bea'], ['Schwarz Angriff', 'Chris'], ['Schwarz Verteidigung', 'Dana'],
     ]) {
@@ -335,7 +342,7 @@ describe('Spielstart in der Turnierverwaltung', () => {
     const started = readTournament(tournament.id)
     expect(started.activeMatch?.lineup).toEqual(lineup)
     await user.click(screen.getByRole('button', { name: 'Zur Turnierübersicht' }))
-    expect(screen.queryByRole('button', { name: 'Partie vorbereiten' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Partieaufstellung' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Offene Partie anzeigen' }))
     await user.click(screen.getByRole('button', { name: 'Partie abbrechen' }))
     await user.click(screen.getByRole('button', { name: 'Weiter spielen' }))

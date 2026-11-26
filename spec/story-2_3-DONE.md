@@ -59,7 +59,7 @@ wird zusätzlich mit seinen üblichen Einstellungen geprüft.
   sind als kurze Vorschau erreichbar, vollständiger Verlauf und
   Turnierinfos auf Abruf. Die Änderung der Standardansicht, der
   Tabellen-Overlay und die neuen Aktionen am Tisch folgen mit
-  [Story 2.4](./story-2_4.md); zwölf gleichzeitig sichtbare Tabellenzeilen
+  [Story 2.4](./story-2_4-DONE.md); zwölf gleichzeitig sichtbare Tabellenzeilen
   folgen mit [Story 2.5](./story-2_5.md).
 - **Laufende Partie und Ergebniseingabe:** Gegeben ist ein laufendes oder
   abgelaufenes Spiel. Wenn ich Ergebnis oder Bestätigung aufrufe,
@@ -153,7 +153,7 @@ drängen. Die Phasenfarben bleiben Gegenstand von [Story 2.9](./story-2_9.md).
   Konkrete Formular- und Spielaktionen bleiben am jeweiligen Inhalt.
   Bei Platzmangel dürfen Gruppen umbrechen, ohne abgeschnitten zu werden.
   Die abweichende Navigation mit **Turnier verlassen** folgt weiterhin
-  in [Story 2.4](./story-2_4.md).
+  in [Story 2.4](./story-2_4-DONE.md).
 
 ### Zusätzliche Abnahme
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { PointerEvent } from 'react'
+import type { PointerEvent, ReactNode } from 'react'
 import type { Player } from './players'
 import { assignPlayer, emptyLineup, isPosition, lineupError, positions } from './lineup'
 import type { Lineup, Position } from './lineup'
@@ -8,11 +8,17 @@ import MatchHistory from './MatchHistory'
 import type { Tournament } from './tournament'
 import { LineupPitch, MatchInfo } from './MatchPresentation'
 import { WorkspaceNavigation } from './WorkspaceNavigation'
+import WorkspaceDialog from './WorkspaceDialog'
+import { KnockoutConfirmation } from './KnockoutBoard'
+import { knockoutStartError } from './knockout'
 
 interface Props {
   tournament: Tournament
   onStart: (lineup: Lineup) => Promise<void>
   onBack: () => void
+  onExport: () => void
+  onKnockout: () => Promise<void>
+  tournamentInfo: ReactNode
 }
 
 interface Drag {
@@ -31,12 +37,15 @@ function positionAt(x: number, y: number): Position | null {
   return isPosition(target?.dataset.lineupPosition) ? target.dataset.lineupPosition : null
 }
 
-export default function MatchPreparation({ tournament, onStart, onBack }: Props) {
+export default function MatchPreparation({ tournament, onStart, onBack, onExport, onKnockout, tournamentInfo }: Props) {
   const players = tournament.players ?? []
   const [lineup, setLineup] = useState(emptyLineup)
   const [selected, setSelected] = useState<Position | null>(null)
   const [starting, setStarting] = useState(false)
   const startPending = useRef(false)
+  const [switchingPhase, setSwitchingPhase] = useState(false)
+  const phasePending = useRef(false)
+  const [phaseError, setPhaseError] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('Noch keine Position belegt.')
   const [drag, setDrag] = useState<Drag | null>(null)
@@ -44,6 +53,7 @@ export default function MatchPreparation({ tournament, onStart, onBack }: Props)
   const scrollFrame = useRef<number | null>(null)
   const suppressClick = useRef(false)
   const missing = positions.filter((position) => !lineup[position.id]).length
+  const knockoutProblem = knockoutStartError(tournament)
 
   useEffect(() => () => {
     if (scrollFrame.current !== null) cancelAnimationFrame(scrollFrame.current)
@@ -146,14 +156,40 @@ export default function MatchPreparation({ tournament, onStart, onBack }: Props)
     }
   }
 
+  async function beginKnockout() {
+    if (phasePending.current || startPending.current || knockoutProblem) return
+    phasePending.current = true
+    setSwitchingPhase(true)
+    setPhaseError('')
+    try {
+      await onKnockout()
+    } catch (error) {
+      setPhaseError(error instanceof Error ? error.message : 'Die K.-o.-Phase konnte nicht gespeichert werden.')
+    } finally {
+      phasePending.current = false
+      setSwitchingPhase(false)
+    }
+  }
+
   return (
     <>
       <p className="card-description" id="lineup-instructions">
         Ziehe Name oder Avatar aus der Tabelle auf eine Position.
         Alternativ: Position anklicken oder antippen, dann eine freie Person auswählen.
       </p>
-      <div className="match-layout">
-        <div>
+      <div className="match-layout preparation-layout">
+        <div className="preparation-summary-panel">
+        <div className="preparation-tools">
+          <WorkspaceDialog label="Vollständige Vorrundentabelle" title="Vorrundentabelle">
+            <StandingsTable tournament={tournament} showHeading={false} />
+          </WorkspaceDialog>
+          <WorkspaceDialog label="Vollständiger Ergebnisverlauf" title="Ergebnisverlauf">
+            <MatchHistory tournament={tournament} />
+          </WorkspaceDialog>
+          <WorkspaceDialog label="Weitere Turnierinfos" title="Turnierinfos">
+            {tournamentInfo}
+          </WorkspaceDialog>
+        </div>
         <StandingsTable compact tournament={tournament} renderPlayer={(player) => {
           const used = positions.find((position) => lineup[position.id] === player.id)
           return (
@@ -199,7 +235,16 @@ export default function MatchPreparation({ tournament, onStart, onBack }: Props)
                   setError('')
                   setNotice('Aufstellung geleert. Alle vier Positionen bitte neu belegen.')
                 }}>Aufstellung leeren</button>
+                <WorkspaceDialog label="K.O. Runde starten" title="K.-o.-Phase starten?"
+                  disabled={starting || Boolean(knockoutProblem)} busy={switchingPhase}
+                  onOpen={() => setPhaseError('')}
+                  descriptionId={knockoutProblem ? 'knockout-requirement' : undefined}
+                  confirm={{ label: switchingPhase ? 'Wird gestartet ...' : 'K.-o.-Phase verbindlich starten', onClick: () => void beginKnockout() }}>
+                  <KnockoutConfirmation tournament={tournament} />
+                  {phaseError && <p className="error-message" role="alert">{phaseError}</p>}
+                </WorkspaceDialog>
               </div>
+              {knockoutProblem && <p className="form-note" id="knockout-requirement">{knockoutProblem}</p>}
         </section>
       </div>
       {drag && <div className="lineup-drag-preview" aria-hidden="true"
@@ -209,7 +254,8 @@ export default function MatchPreparation({ tournament, onStart, onBack }: Props)
       <MatchInfo tournament={tournament}>
         <p>Ungespeicherter Entwurf. Verlassen oder Neuladen verwirft die Aufstellung.</p>
         <WorkspaceNavigation>
-          <button className="secondary-button" type="button" disabled={starting} onClick={onBack}>Vorbereitung verlassen</button>
+          <button className="secondary-button" type="button" disabled={starting} onClick={onBack}>Turnier verlassen</button>
+          <button className="secondary-button" type="button" disabled={starting} onClick={onExport}>JSON-Sicherung herunterladen</button>
         </WorkspaceNavigation>
       </MatchInfo>
     </>

@@ -3,7 +3,7 @@
 Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
 Lieferpaket 3 – Ergebnisverwaltung: eigener Regressionstest für Wertung,
 Speicherfehler und veraltete Tabs; separates Deployment.
-Bediengrundlage: [Story 2.4](./story-2_4.md).
+Bediengrundlage: [Story 2.4](./story-2_4-DONE.md).
 
 Als teilnehmende Person möchte ich ein gültiges Ergebnis ohne zweite
 Bestätigung speichern und Tippfehler in den jüngsten Vorrundenspielen

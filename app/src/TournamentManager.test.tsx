@@ -1,5 +1,5 @@
 import { webcrypto } from 'node:crypto'
-import { act, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import TournamentManager from './TournamentManager'
@@ -400,7 +400,11 @@ describe('Turniere vorbereiten', () => {
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
     await user.click(await screen.findByRole('button', { name: 'Turnier starten' }))
     await user.click(screen.getByRole('button', { name: 'Vorrunde verbindlich starten' }))
-    const table = await screen.findByRole('table', { name: 'Individuelle Vorrundenwertung' })
+    expect(await screen.findByRole('heading', { name: 'Office Cup' })).toHaveFocus()
+    expect(within(screen.getByRole('table')).getAllByRole('columnheader')).toHaveLength(3)
+    await user.click(screen.getByRole('button', { name: 'Vollständige Vorrundentabelle' }))
+    const dialog = screen.getByRole('dialog', { name: 'Vorrundentabelle' })
+    const table = within(dialog).getByRole('table', { name: 'Individuelle Vorrundenwertung' })
     const columns = ['Rang', 'Spielende', 'Spiele', 'Siege', 'Niederlagen', 'Tore', 'Gegentore', 'Tordifferenz', 'Punkte']
     expect(columns.map((name) => within(table).getByRole('columnheader', { name })))
       .toEqual(within(table).getAllByRole('columnheader'))
@@ -417,7 +421,7 @@ describe('Turniere vorbereiten', () => {
         String(index + 1), '0', '0', '0', '0', '0', '0', '0',
       ])
     }
-    expect(screen.getByRole('button', { name: 'Partie vorbereiten' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Turnier verlassen' })).toBeEnabled()
     expect(screen.queryByRole('button', { name: 'Einstellungen bearbeiten' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Spielende verwalten' })).not.toBeInTheDocument()
     expect(readTournament(id)).toEqual({ ...before, phase: 'preliminary', revision: 3 })
@@ -425,7 +429,8 @@ describe('Turniere vorbereiten', () => {
     unmount()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    const restored = await screen.findByRole('table')
+    await user.click(await screen.findByRole('button', { name: 'Vollständige Vorrundentabelle' }))
+    const restored = within(screen.getByRole('dialog')).getByRole('table')
     expect(within(restored).getAllByRole('row').slice(1).map((row) => row.textContent)).toEqual(originalRows)
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Turnier starten' })).not.toBeInTheDocument()
@@ -486,15 +491,22 @@ describe('Turniere vorbereiten', () => {
     const raw = localStorage.getItem(`seal-kickerturnier:tournament:${id}`)
     const { unmount } = render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.click(await screen.findByRole('button', { name: 'Partie vorbereiten' }))
     await user.click(screen.getByRole('button', { name: 'Weiß Angriff: frei' }))
     const source = screen.getByRole('button', { name: 'Zoe auswählen' })
     source.focus()
     await user.keyboard('{Enter}')
     expect(screen.getByRole('button', { name: 'Weiß Angriff: Zoe' })).toBeVisible()
     expect(localStorage.getItem(`seal-kickerturnier:tournament:${id}`)).toBe(raw)
-    await user.click(screen.getByRole('button', { name: 'Vorbereitung verlassen' }))
-    await user.click(screen.getByRole('button', { name: 'Partie vorbereiten' }))
+    const overlayButton = screen.getByRole('button', { name: 'Vollständige Vorrundentabelle' })
+    await user.click(overlayButton)
+    const overlay = screen.getByRole('dialog', { name: 'Vorrundentabelle' })
+    fireEvent(overlay, new Event('cancel', { cancelable: true }))
+    expect(overlay).not.toBeVisible()
+    expect(overlayButton).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Weiß Angriff: Zoe' })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Turnier verlassen' }))
+    expect(screen.getByRole('heading', { name: 'Deine Turniere.' })).toHaveFocus()
+    await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
     expect(screen.getByRole('button', { name: 'Weiß Angriff: frei' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Zoe auswählen' })).toBeEnabled()
     await user.click(screen.getByRole('button', { name: 'Weiß Angriff: frei' }))
@@ -504,7 +516,6 @@ describe('Turniere vorbereiten', () => {
     unmount()
     render(<TournamentManager />)
     await user.click(screen.getByRole('button', { name: 'Office Cup öffnen' }))
-    await user.click(await screen.findByRole('button', { name: 'Partie vorbereiten' }))
     expect(screen.getByRole('button', { name: 'Spiel starten' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Schwarz Verteidigung: frei' })).toBeVisible()
     expect(localStorage.getItem(`seal-kickerturnier:tournament:${id}`)).toBe(raw)

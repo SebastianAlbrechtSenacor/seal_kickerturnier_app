@@ -33,7 +33,7 @@ beforeEach(() => {
 
 describe('Partieaufstellung', () => {
   it('zeigt nur Rang, Spielende und Punkte und ordnet die Positionen in Tisch-Lesereihenfolge an', () => {
-    render(<MatchPreparation tournament={fixture()} onStart={vi.fn()} onBack={vi.fn()} />)
+    render(<MatchPreparation tournament={fixture()} onStart={vi.fn()} onBack={vi.fn()} onExport={vi.fn()} onKnockout={vi.fn()} tournamentInfo={null} />)
     const table = screen.getByRole('table')
     expect(within(table).getAllByRole('columnheader').map((header) => header.textContent)).toEqual([
       'Rang', 'Spielende', 'Punkte',
@@ -52,7 +52,7 @@ describe('Partieaufstellung', () => {
     const tournament = fixture()
     const original = structuredClone(tournament)
     const check = vi.fn()
-    render(<MatchPreparation tournament={tournament} onStart={check} onBack={vi.fn()} />)
+    render(<MatchPreparation tournament={tournament} onStart={check} onBack={vi.fn()} onExport={vi.fn()} onKnockout={vi.fn()} tournamentInfo={null} />)
     expect(screen.getByRole('button', { name: 'Spiel starten' })).toBeDisabled()
     await user.click(screen.getByRole('button', { name: 'Alex auswählen' }))
     expect(screen.getByRole('alert')).toHaveTextContent('zuerst eine Position')
@@ -92,7 +92,7 @@ describe('Partieaufstellung', () => {
   })
 
   it.each(['mouse', 'touch'])('ordnet per Pointer-Drag mit %s zu und laesst ungueltiges Ablegen unveraendert', (pointerType) => {
-    render(<MatchPreparation tournament={fixture()} onStart={vi.fn()} onBack={vi.fn()} />)
+    render(<MatchPreparation tournament={fixture()} onStart={vi.fn()} onBack={vi.fn()} onExport={vi.fn()} onKnockout={vi.fn()} tournamentInfo={null} />)
     const source = screen.getByRole('button', { name: 'Alex auswählen' })
     const target = screen.getByRole('button', { name: 'Schwarz Verteidigung: frei' })
     const point = { pointerId: 1, pointerType, button: 0, isPrimary: true }
@@ -122,7 +122,8 @@ describe('Partieaufstellung', () => {
 
   it('ersetzt auch beim Ziehen nur die Zielposition und behaelt den Entwurf bei Startfehlern', async () => {
     const user = userEvent.setup()
-    render(<MatchPreparation tournament={fixture()} onStart={() => { throw new Error('Stand geändert. Bitte neu öffnen.') }} onBack={vi.fn()} />)
+    render(<MatchPreparation tournament={fixture()} onStart={() => { throw new Error('Stand geändert. Bitte neu öffnen.') }}
+      onBack={vi.fn()} onExport={vi.fn()} onKnockout={vi.fn()} tournamentInfo={null} />)
     for (const { label, nickname } of assignments) {
       await user.click(screen.getByRole('button', { name: `${label}: frei` }))
       await user.click(screen.getByRole('button', { name: `${nickname} auswählen` }))

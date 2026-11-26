@@ -6,7 +6,8 @@ Regressionstest und Produktions-Build sind bestanden; das Deployment
 steht aus. Baut auf [Epic 1](./epic-1-DONE.md) auf.
 Paket 2 läuft: Story 2.3 wurde am 26.11.2026 nach erfolgreicher
 Praxisprüfung einschließlich der Design-Ergänzung abgenommen.
-Als Nächstes folgt Story 2.4.
+Story 2.4 wurde ebenfalls am 26.11.2026 nach erfolgreichem Praxistest
+abgenommen. Als Nächstes folgt Story 2.5.
 
 ## Ziel
 
@@ -73,7 +74,7 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 1. [Master-Zugang für die Browsersitzung merken](./story-2_1-DONE.md)
 2. [Turnier-Code vollständig entfernen](./story-2_2-DONE.md)
 3. [Hauptansichten ohne Seitenscrollen im Querformat](./story-2_3-DONE.md)
-4. [Partievorbereitung als Standardansicht](./story-2_4.md)
+4. [Partievorbereitung als Standardansicht](./story-2_4-DONE.md)
 5. [Vorrundentabellen verdichten](./story-2_5.md)
 6. [Kickertisch stabil darstellen und Stangen ergänzen](./story-2_6.md)
 7. [Emoji-Avatare vielfältiger gestalten](./story-2_7.md)
