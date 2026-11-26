@@ -7,6 +7,7 @@ import StandingsTable from './StandingsTable'
 import MatchHistory from './MatchHistory'
 import type { Tournament } from './tournament'
 import { LineupPitch, MatchInfo } from './MatchPresentation'
+import { WorkspaceNavigation } from './WorkspaceNavigation'
 
 interface Props {
   tournament: Tournament
@@ -207,7 +208,9 @@ export default function MatchPreparation({ tournament, onStart, onBack }: Props)
       </div>}
       <MatchInfo tournament={tournament}>
         <p>Ungespeicherter Entwurf. Verlassen oder Neuladen verwirft die Aufstellung.</p>
-        <button className="secondary-button" type="button" disabled={starting} onClick={onBack}>Vorbereitung verlassen</button>
+        <WorkspaceNavigation>
+          <button className="secondary-button" type="button" disabled={starting} onClick={onBack}>Vorbereitung verlassen</button>
+        </WorkspaceNavigation>
       </MatchInfo>
     </>
   )

@@ -69,6 +69,24 @@ Stories abgeschlossen.
 
 ## Turniere vorbereiten
 
+Ab einem Querformat-Viewport von 1280 × 720 CSS-Pixeln bleiben
+Seitentitel und Hauptaktionen ohne Seitenscrollen erreichbar. Lange
+Listen, Tabellen und Archive scrollen in ihrem eigenen Bereich; diese
+Bereiche sind auch per Tastatur erreichbar. In kleineren Fenstern
+darf die Seite bei Bedarf vertikal scrollen.
+
+Im Querformat beginnt die helle Turnierarbeitsfläche direkt unter dem
+Header. Dort stehen die zur Ansicht passenden Zurück-Aktionen und,
+sofern verfügbar, **JSON-Sicherung herunterladen**. Die Vorrundentabelle
+verwendet kompakte Zahlenspalten; Langbezeichnungen erscheinen beim
+Darüberfahren, beim Tastaturfokus oder in der **Spaltenlegende**.
+Ergebnisse zeigen beide Teams und den Spielstand in einer Zeile;
+Datum und Uhrzeit stehen in den aufklappbaren Ergebnisdetails.
+
+Beim Anlegen und Bearbeiten stehen Beschreibung, Spielregeln und
+Zeitplanung unter **Weitere Einstellungen**. In der Turniervorbereitung
+sind ausfuehrliche Angaben unter **Turnierinfos** erreichbar.
+
 1. Anwendung mit dem Master-Zugangscode entsperren.
 2. **Turnier anlegen** waehlen. Name, Datum/Startzeit und Spielort eingeben.
    Die Beschreibung ist optional. Ein Turnier-Zugangscode ist nicht noetig.
@@ -252,7 +270,7 @@ ein nicht erfolgreich gespeicherter Start zeigt keine gestartete Vorrunde.
   denselben berechneten Stand und dieselben Rangentscheidungen.
 - Unter der kompakten Tabelle links in der Partievorbereitung stehen
   hoechstens die **letzten drei Ergebnisse**. In der Turnieruebersicht
-  folgen **alle Spielergebnisse** direkt unter der vollstaendigen Tabelle.
+  stehen **alle Spielergebnisse** unter **Vollständiger Ergebnisverlauf**.
   Zuletzt gespeicherte Partien stehen zuerst, mit Endstand, Teams samt
   Namen/Avataren und Abschlusszeit in Eschborner Ortszeit.
 - Ohne Ergebnisse erscheint ein Leerhinweis. Offene oder abgebrochene

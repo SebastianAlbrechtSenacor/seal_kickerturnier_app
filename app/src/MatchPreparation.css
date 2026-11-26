@@ -8,7 +8,11 @@
 .match-layout .standings-table tbody th { position: sticky; left: 0; z-index: 1; background: #f7f6ef; }
 .standings-table.standings-compact { min-width: 0; }
 .standings-table.standings-compact tbody th { min-width: 0; max-width: none; }
-.lineup-player { display: flex; flex-direction: column; gap: 4px; min-height: 48px; width: 100%; padding: 8px; border: 1px solid #007b80; border-radius: 4px; color: #123b40; background: #fff; text-align: left; font-weight: 700; white-space: break-spaces; overflow-wrap: anywhere; cursor: grab; touch-action: none; user-select: none; }
+.lineup-player { display: flex; flex-direction: column; gap: 2px; min-height: 34px; width: 100%; padding: 4px 8px; border: 1px solid #007b80; border-radius: 4px; color: #123b40; background: #fff; text-align: left; font-weight: 700; white-space: break-spaces; overflow-wrap: anywhere; cursor: grab; touch-action: none; user-select: none; }
+.standings-compact td, .standings-compact th { padding-block: 3px; }
+@media (any-pointer: coarse) {
+  .lineup-player { min-height: 44px; }
+}
 .lineup-player:disabled { cursor: not-allowed; opacity: .55; }
 .lineup-player small { font-size: 11px; font-weight: 400; }
 .lineup-panel > h3 { font-size: 23px; margin-bottom: 12px; }

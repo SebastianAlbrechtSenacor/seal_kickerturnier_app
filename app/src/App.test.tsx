@@ -1,7 +1,8 @@
 import { createHash, webcrypto } from 'node:crypto'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { saveTournament } from './tournament-storage'
 
 const fixtureCode = 'ui-test-code'
 const hash = createHash('sha256').update(fixtureCode).digest('hex')
@@ -25,6 +26,26 @@ beforeEach(() => {
 })
 
 describe('Masterzugang', () => {
+  it('zeigt Navigation und Sicherung nur in der passenden Turnieransicht im Header', async () => {
+    const user = userEvent.setup()
+    await saveTournament({
+      version: 2, id: 'header-cup', revision: 1, phase: 'preparation', players: [],
+      settings: {
+        name: 'Headercup', location: 'Office', description: '', startsAt: '2026-11-25T12:00:00.000Z',
+        matchMinutes: 10, preliminaryMinutes: 120, knockoutMinutes: 60, winPoints: 3, lossPoints: 1,
+      },
+    }, null)
+    await renderApp()
+    await user.type(screen.getByLabelText('Master-Zugangscode'), `${fixtureCode}{Enter}`)
+    await user.click(await screen.findByRole('button', { name: 'Headercup öffnen' }))
+    const header = within(screen.getByRole('banner'))
+    expect(header.getByRole('button', { name: 'JSON-Sicherung herunterladen' })).toBeVisible()
+    expect(within(screen.getByRole('main')).queryByRole('button', { name: 'Zur Turnierauswahl' })).toBeNull()
+    await user.click(header.getByRole('button', { name: 'Zur Turnierauswahl' }))
+    expect(screen.getByRole('heading', { name: 'Deine Turniere.' })).toHaveFocus()
+    expect(header.queryByRole('navigation')).toBeNull()
+  })
+
   it('zeigt nur die Zugangsmaske und meldet leere oder falsche Eingaben', async () => {
     const user = userEvent.setup()
     await renderApp()

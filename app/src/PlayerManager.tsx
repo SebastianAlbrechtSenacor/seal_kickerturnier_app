@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { avatars, validatePlayerDraft } from './players'
 import type { Player, PlayerErrors } from './players'
+import { WorkspaceNavigation } from './WorkspaceNavigation'
 
 interface Props {
   players: Player[]
@@ -64,7 +65,7 @@ export default function PlayerManager({ players, onSave, onBack }: Props) {
       <p className="card-description">{players.length} von {avatars.length} Plätzen belegt.
         Jede Person spielt mit eigenem Spitznamen und Emoji-Avatar.</p>
       {players.length ? (
-        <ul className="player-list">
+        <ul className="player-list" aria-label="Angemeldete Spielende" tabIndex={0}>
           {players.map((player) => (
             <li key={player.id}>
               <span className="player-identity"><span className="player-avatar" aria-hidden="true">{player.avatar}</span>
@@ -83,7 +84,9 @@ export default function PlayerManager({ players, onSave, onBack }: Props) {
       <div className="form-actions">
         <button className="action-button" type="button" disabled={full}
           onClick={() => setAction({ kind: 'add' })}>Person hinzufügen</button>
-        <button className="secondary-button" type="button" onClick={onBack}>Zur Turnierübersicht</button>
+        <WorkspaceNavigation>
+          <button className="secondary-button" type="button" onClick={onBack}>Zur Turnierübersicht</button>
+        </WorkspaceNavigation>
       </div>
     </div>
   )

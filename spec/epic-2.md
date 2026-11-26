@@ -4,6 +4,9 @@ Status: Spezifikation für Stories 2.1 bis 2.12 am 25.11.2026 freigegeben.
 Paket 1: Stories 2.1 und 2.2 sind abgenommen. Lokaler Browser-
 Regressionstest und Produktions-Build sind bestanden; das Deployment
 steht aus. Baut auf [Epic 1](./epic-1-DONE.md) auf.
+Paket 2 läuft: Story 2.3 wurde am 26.11.2026 nach erfolgreicher
+Praxisprüfung einschließlich der Design-Ergänzung abgenommen.
+Als Nächstes folgt Story 2.4.
 
 ## Ziel
 
@@ -19,9 +22,15 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 - Kein Turnier-Code mehr beim Anlegen, Öffnen und Importieren. Turniere
   bleiben wie bisher lokal über Browser-Neustarts erhalten; alte
   JSON-Sicherungen lassen sich ohne Turnier-Code importieren.
-- Kein Scrollen der Hauptanwendung ab der Referenzgröße von
-  **1920 × 1080 CSS-Pixeln im Browser-Viewport bei 100 % Zoom** im
-  Querformat. Umfangreiche Inhalte dürfen in eigenen Bereichen scrollen.
+- Überarbeitetes Layoutziel vom 26.11.2026: Kein Scrollen der
+  Hauptanwendung ab **1280 × 720 CSS-Pixeln im Browser-Viewport bei
+  100 % Zoom** im Querformat. Zusätzliche Praxisprüfung im normalen
+  Firefox-Fenster am Turnierlaptop, gemessen bei **1485 × 871 CSS-Pixeln**.
+  Kernaufgaben bleiben ohne Seitenscrollen bedienbar; Details sind auf
+  Abruf erreichbar und umfangreiche Inhalte scrollen nur intern.
+- Abgenommene Ergänzung in [Story 2.3](./story-2_3-DONE.md): mehr helle Arbeitsfläche,
+  kompaktere Tabellen und Ergebnislisten, kontextbezogene Navigation
+  und Export im Header sowie zusammengehörige Aktionen nebeneinander.
 - Partievorbereitung als Standardansicht der laufenden Vorrunde, mit
   Turniername, **Turnier verlassen**, vollständiger Tabelle im Overlay und
   **K.O. Runde starten**. Kompakte Zeilen in beiden Tabellenversionen.
@@ -63,7 +72,7 @@ und orientiert sich an den vorhandenen Werbeplakaten.
 
 1. [Master-Zugang für die Browsersitzung merken](./story-2_1-DONE.md)
 2. [Turnier-Code vollständig entfernen](./story-2_2-DONE.md)
-3. [Hauptansichten ohne Seitenscrollen im Querformat](./story-2_3.md)
+3. [Hauptansichten ohne Seitenscrollen im Querformat](./story-2_3-DONE.md)
 4. [Partievorbereitung als Standardansicht](./story-2_4.md)
 5. [Vorrundentabellen verdichten](./story-2_5.md)
 6. [Kickertisch stabil darstellen und Stangen ergänzen](./story-2_6.md)

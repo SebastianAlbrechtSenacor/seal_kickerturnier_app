@@ -14,3 +14,5 @@
 .score-inputs label { min-width: 0; font-size: 14px; font-weight: 700; }
 .score-inputs input { width: 100%; min-width: 0; font-size: 28px; margin-top: 8px; }
 .lineup-panel .match-abort { margin-top: 20px; }
+.running-status > h3 { font-size: 23px; margin-bottom: 12px; }
+.running-audio > .form-note { margin-bottom: 18px; }

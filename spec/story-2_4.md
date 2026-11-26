@@ -3,7 +3,7 @@
 Status: Spezifikation freigegeben. Epic: [Epic 2](./epic-2.md).
 Lieferpaket 2 – Turnieransicht und Aufstellung (2.3–2.7): gemeinsame
 Browser-Regression und gemeinsames Deployment; eigene Abnahme.
-Layoutgrundlage: [Story 2.3](./story-2_3.md).
+Layoutgrundlage: [Story 2.3](./story-2_3-DONE.md).
 
 Als teilnehmende Person möchte ich nach dem Turnierstart direkt zur
 Aufstellung gelangen und Tabelle, Navigation und Phasenwechsel dort finden.

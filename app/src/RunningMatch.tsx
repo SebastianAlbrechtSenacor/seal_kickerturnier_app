@@ -6,6 +6,7 @@ import { LineupPitch, MatchInfo } from './MatchPresentation'
 import StandingsTable from './StandingsTable'
 import { KnockoutArchive, KnockoutPlan } from './KnockoutBoard'
 import { nextKnockoutFixture } from './knockout'
+import { WorkspaceNavigation } from './WorkspaceNavigation'
 import './RunningMatch.css'
 
 interface Props {
@@ -114,21 +115,26 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
   return (
     <>
       <p className="card-description">Gespeicherte offene Partie. Die Aufstellung ist gesperrt; Verlassen oder Neuladen stoppt die Zeit nicht.</p>
-      <div className="match-layout">
+      <div className="match-layout running-layout">
         {tournament.knockout ? <KnockoutPlan tournament={tournament} /> :
           <StandingsTable compact tournament={tournament} />}
         <section className="lineup-panel" aria-label="Laufende Partie">
+          <div className="running-status">
           {fixture && <h3>{fixture.title}: {labels.white} gegen {labels.black}</h3>}
           <div className={`match-clock${expired ? ' is-expired' : ''}`}>
             <span>RESTZEIT</span>
             <div role="timer" aria-label="Restzeit" aria-live="off">{formatCountdown(seconds)}</div>
           </div>
           {expired && <p role="status" className="expiry-message">Zeit abgelaufen! Bei Gleichstand entscheidet das nächste Tor. Noch kein Ergebnis gespeichert.</p>}
-          <button className="secondary-button audio-test" type="button" disabled={audioBusy || busy}
-            onClick={onTestAudio}>{audioBusy ? 'Audio wird aktiviert ...' : 'Ton aktivieren / testen'}</button>
-          <p className="form-note">{whistle.ready() ? 'Audio aktiviert. Geräte-Lautstärke mit dem Testpfiff prüfen.' :
-            'Ton nicht aktiviert. Der sichtbare Ablaufhinweis bleibt immer verfügbar.'}</p>
+          <div className="running-audio">
+            <button className="secondary-button audio-test" type="button" disabled={audioBusy || busy}
+              onClick={onTestAudio}>{audioBusy ? 'Audio wird aktiviert ...' : 'Ton aktivieren / testen'}</button>
+            <p className="form-note">{whistle.ready() ? 'Audio aktiviert. Geräte-Lautstärke mit dem Testpfiff prüfen.' :
+              'Ton nicht aktiviert. Der sichtbare Ablaufhinweis bleibt immer verfügbar.'}</p>
+          </div>
+          </div>
           <LineupPitch players={tournament.players ?? []} lineup={match.lineup} teamLabels={fixture ? labels : undefined} />
+          <div className="running-actions">
           {confirmAbort ? (
             <section className="match-result" aria-label="Abbruch bestätigen">
               <h3 ref={abortHeading} tabIndex={-1}>Partie wirklich abbrechen?</h3>
@@ -148,9 +154,11 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
               <p>{labels.white}: {team('white')}</p><p>{labels.black}: {team('black')}</p>
               {fixture && <p>Keine Vorrundenpunkte. Dieses Ergebnis entscheidet den K.-o.-Spielplan.</p>}
               <p role="status">Noch nicht gespeichert. Nach der Bestätigung sind Ergebnis und Wertung unveränderlich.</p>
-              <button className="action-button" type="button" disabled={busy} onClick={() => void commit('save')}>
-                {pending === 'save' ? 'Wird gespeichert ...' : 'Ergebnis verbindlich speichern'}</button>
-              <button className="secondary-button" type="button" disabled={busy} onClick={() => setPreview(false)}>Ergebnis ändern</button>
+              <div className="form-actions">
+                <button className="action-button" type="button" disabled={busy} onClick={() => void commit('save')}>
+                  {pending === 'save' ? 'Wird gespeichert ...' : 'Ergebnis verbindlich speichern'}</button>
+                <button className="secondary-button" type="button" disabled={busy} onClick={() => setPreview(false)}>Ergebnis ändern</button>
+              </div>
             </section>
           ) : entry ? (
             <form className="match-result" aria-label="Ergebniseingabe" noValidate onSubmit={(event) => {
@@ -179,15 +187,16 @@ export default function RunningMatch({ tournament, whistle, audioBusy, onTestAud
           {error && <p className="error-message" role="alert">{error}</p>}
           {!confirmAbort && <button className="secondary-button match-abort" type="button" disabled={busy}
             onClick={() => { setConfirmAbort(true); setError('') }}>Partie abbrechen</button>}
+          </div>
         </section>
       </div>
       {tournament.knockout && <KnockoutArchive tournament={tournament} />}
       <MatchInfo tournament={tournament}>
         <p>Nur ausdrücklich gespeicherte Ergebnisse zählen. Ein bestätigter Abbruch beendet die Partie ohne Wertung.</p>
-        <div className="form-actions">
-          <button className="secondary-button" type="button" disabled={busy} onClick={onExport}>JSON-Sicherung herunterladen</button>
+        <WorkspaceNavigation>
           <button className="secondary-button" type="button" disabled={busy} onClick={onBack}>Zur Turnierübersicht</button>
-        </div>
+          <button className="secondary-button" type="button" disabled={busy} onClick={onExport}>JSON-Sicherung herunterladen</button>
+        </WorkspaceNavigation>
       </MatchInfo>
     </>
   )

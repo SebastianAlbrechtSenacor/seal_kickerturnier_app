@@ -5,6 +5,7 @@ import type { Tournament } from './tournament'
 import StandingsTable from './StandingsTable'
 import MatchHistory from './MatchHistory'
 import { LineupPitch, MatchInfo } from './MatchPresentation'
+import { WorkspaceNavigation } from './WorkspaceNavigation'
 import './KnockoutBoard.css'
 
 export function KnockoutPlan({ tournament }: { tournament: Tournament }) {
@@ -35,8 +36,10 @@ export function KnockoutArchive({ tournament }: { tournament: Tournament }) {
   return (
     <details className="knockout-archive">
       <summary>Vorrundenstand und Ergebnisse</summary>
+      <div className="archive-content" role="region" aria-label="Vorrundenarchiv" tabIndex={0}>
       <StandingsTable tournament={tournament} />
       <MatchHistory tournament={tournament} />
+      </div>
     </details>
   )
 }
@@ -103,10 +106,10 @@ export default function KnockoutBoard({ tournament, onStart, onBack, onExport }:
       </div>
       <KnockoutArchive tournament={tournament} />
       <MatchInfo tournament={tournament}>
-        <div className="form-actions">
-          <button className="secondary-button" type="button" disabled={starting} onClick={onExport}>JSON-Sicherung herunterladen</button>
+        <WorkspaceNavigation>
           <button className="secondary-button" type="button" disabled={starting} onClick={onBack}>Zur Turnierübersicht</button>
-        </div>
+          <button className="secondary-button" type="button" disabled={starting} onClick={onExport}>JSON-Sicherung herunterladen</button>
+        </WorkspaceNavigation>
       </MatchInfo>
     </>
   )

@@ -6,13 +6,16 @@ import type { Tournament } from './tournament'
 
 interface Props {
   tournament: Tournament
-  onPrepare?: () => void
   renderPlayer?: (player: Player) => ReactNode
   compact?: boolean
-  prepareLabel?: string
 }
 
-export default function StandingsTable({ tournament, onPrepare, renderPlayer, compact = false, prepareLabel = 'Partie vorbereiten' }: Props) {
+const statistics = [
+  ['Sp.', 'Spiele'], ['S', 'Siege'], ['N', 'Niederlagen'], ['Tore', 'Tore'],
+  ['GT', 'Gegentore'], ['TD', 'Tordifferenz'], ['Pkt.', 'Punkte'],
+] as const
+
+export default function StandingsTable({ tournament, renderPlayer, compact = false }: Props) {
   const standings = tournament.knockout?.standings ?? calculateStandings(tournament.players ?? [], tournament.completedMatches ?? [], tournament.settings)
   const id = useId()
   const heading = `${id}-heading`
@@ -20,20 +23,21 @@ export default function StandingsTable({ tournament, onPrepare, renderPlayer, co
   return (
     <section className="standings" aria-labelledby={heading}>
       <h3 id={heading}>{tournament.knockout ? 'Vorrunde (eingefroren)' : 'Vorrundentabelle'}</h3>
-      <p className="form-note" id={hint}>{tournament.knockout ? 'Dieser Stand bleibt während der K.-o.-Phase unverändert.' : 'Jede Person sammelt ihre eigenen Punkte.'}
-        {!compact && ' Auf schmalen Bildschirmen die Tabelle seitlich scrollen.'}</p>
-      <div className="standings-scroll" role="region" aria-label={compact ? 'Vorrundentabelle scrollen' : 'Vorrundentabelle horizontal scrollen'}
-        aria-describedby={hint} tabIndex={0}>
+      {tournament.knockout && <p className="form-note" id={hint}>Dieser Stand bleibt während der K.-o.-Phase unverändert.</p>}
+      <div className="standings-scroll" role="region" aria-label="Vorrundentabelle scrollen"
+        aria-describedby={tournament.knockout ? hint : undefined} tabIndex={0}>
         <table className={`standings-table${compact ? ' standings-compact' : ''}`}>
           <caption className="sr-only">Individuelle Vorrundenwertung</caption>
           <thead>
             <tr>
               <th scope="col">Rang</th><th scope="col">Spielende</th>
-              {!compact && <>
-                <th scope="col">Spiele</th><th scope="col">Siege</th><th scope="col">Niederlagen</th>
-                <th scope="col">Tore</th><th scope="col">Gegentore</th><th scope="col">Tordifferenz</th>
-              </>}
-              <th scope="col">Punkte</th>
+              {compact ? <th scope="col">Punkte</th> : statistics.map(([short, full]) => (
+                <th key={full} scope="col" aria-label={full}>
+                  {short === full ? full : <span className="column-abbreviation" tabIndex={0} aria-label={full}>
+                    <span aria-hidden="true">{short}</span><span className="column-hint" aria-hidden="true">{full}</span>
+                  </span>}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -52,8 +56,13 @@ export default function StandingsTable({ tournament, onPrepare, renderPlayer, co
           </tbody>
         </table>
       </div>
+      {!compact && <details className="standings-legend">
+        <summary>Spaltenlegende</summary>
+        <dl>{statistics.filter(([short, full]) => short !== full).map(([short, full]) => (
+          <div key={full}><dt>{short}</dt><dd>{full}</dd></div>
+        ))}</dl>
+      </details>}
       <p className="form-note">Reihenfolge: Punkte, Siege, Tordifferenz, erzielte Tore, dann deutscher Spielername.</p>
-      {onPrepare && <button className="action-button" type="button" onClick={onPrepare}>{prepareLabel}</button>}
     </section>
   )
 }

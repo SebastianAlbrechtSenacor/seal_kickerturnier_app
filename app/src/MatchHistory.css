@@ -5,6 +5,32 @@
 .history-score { font-size: 18px; color: #123b40; margin-bottom: 10px; }
 .history-team { font-size: 13px; line-height: 1.7; white-space: break-spaces; }
 .match-history time { display: block; font-size: 12px; color: #4a6467; margin-top: 10px; }
+.result-list > li { padding: 0; margin: 0; border-radius: 0; border-bottom: 1px solid #c9d8d1; background: transparent; }
+.history-result > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content minmax(0, 1fr);
+  gap: 4px 10px;
+  align-items: center;
+  min-height: 36px;
+  padding: 5px 8px;
+  cursor: pointer;
+  list-style: none;
+}
+.history-result > summary::-webkit-details-marker { display: none; }
+.history-result > summary:hover, .history-result[open] > summary { background: #e5eeea; }
+.history-result .history-score { font-size: 13px; margin: 0; grid-column: 2; grid-row: 1; text-align: center; }
+.history-result .history-score::after { content: ' ▾' / ''; }
+.history-result[open] .history-score::after { content: ' ▴' / ''; }
+.history-result .history-team { min-width: 0; overflow-wrap: anywhere; }
+.history-white { grid-column: 1; grid-row: 1; }
+.history-black { grid-column: 3; grid-row: 1; text-align: right; }
+.history-result time { margin: 0; padding: 4px 8px; }
+@media (max-width: 740px) {
+  .history-result > summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .history-result .history-score { grid-column: 1 / -1; }
+  .history-white { grid-column: 1; grid-row: 2; }
+  .history-black { grid-column: 2; grid-row: 2; }
+}
 .match-info details { margin-top: 12px; }
 .match-info summary { cursor: pointer; font-weight: 700; }
 .match-info .tournament-details { gap: 12px; margin: 16px 0; }

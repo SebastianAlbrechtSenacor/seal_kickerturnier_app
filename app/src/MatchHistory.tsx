@@ -9,21 +9,24 @@ export default function MatchHistory({ tournament, recent = false }: { tournamen
     <section className="match-history" aria-label={title}>
       <h3>{title}</h3>
       {matches.length === 0 ? <p className="form-note">Noch keine abgeschlossene Partie.</p> : (
-        <ol className="match-history-list">
+        <ol className="match-history-list result-list" aria-label={title} tabIndex={0}>
           {matches.map((match) => (
             <li key={match.id}>
-              <p className="history-score"><strong>Weiß {match.whiteGoals} : {match.blackGoals} Schwarz</strong></p>
-              {(['white', 'black'] as const).map((color) => (
-                <p className="history-team" key={color}>
-                  <strong>{color === 'white' ? 'Weiß' : 'Schwarz'}: </strong>
-                  {(['Defence', 'Attack'] as const).map((position, index) => {
-                    const player = tournament.players?.find((person) => person.id === match.lineup[`${color}${position}`])
-                    if (!player) throw new Error('Ein gespeichertes Ergebnis enthält unbekannte Spielende.')
-                    return <span key={position}>{index > 0 && ' + '}<span aria-hidden="true">{player.avatar} </span>{player.nickname}</span>
-                  })}
-                </p>
-              ))}
-              <time dateTime={match.finishedAt}>{formatBerlinTime(match.finishedAt)}</time>
+              <details className="history-result">
+                <summary>
+                  <strong className="history-score">Weiß {match.whiteGoals} : {match.blackGoals} Schwarz</strong>
+                  {(['white', 'black'] as const).map((color) => (
+                    <span className={`history-team history-${color}`} key={color}>
+                      {(['Defence', 'Attack'] as const).map((position, index) => {
+                        const player = tournament.players?.find((person) => person.id === match.lineup[`${color}${position}`])
+                        if (!player) throw new Error('Ein gespeichertes Ergebnis enthält unbekannte Spielende.')
+                        return <span key={position}>{index > 0 && ' + '}<span aria-hidden="true">{player.avatar} </span>{player.nickname}</span>
+                      })}
+                    </span>
+                  ))}
+                </summary>
+                <time dateTime={match.finishedAt}>{formatBerlinTime(match.finishedAt)}</time>
+              </details>
             </li>
           ))}
         </ol>

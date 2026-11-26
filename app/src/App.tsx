@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { hasMasterCode, hasMasterSession, rememberMasterSession, verifyMasterCode } from './access'
 import TournamentManager from './TournamentManager'
+import { WorkspaceHeaderTarget } from './workspace-header'
 import './App.css'
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [checking, setChecking] = useState(false)
+  const [headerTarget, setHeaderTarget] = useState<HTMLDivElement | null>(null)
   const codeInput = useRef<HTMLInputElement>(null)
   const configured = hasMasterCode()
 
@@ -87,10 +89,11 @@ function App() {
   return (
     <div className="app-shell">
       <header className="site-header">
-        <a className="wordmark" href={import.meta.env.BASE_URL} aria-label="Kickerturnier Startseite">
+        <div className="wordmark">
           <span className="brand-icon" aria-hidden="true">K.</span>
           <span>OFFICE<span className="wordmark-accent">KICKER</span></span>
-        </a>
+        </div>
+        <div className="workspace-header-target" ref={setHeaderTarget} />
         <span className="location"><span aria-hidden="true" /> ESCHBORN EDITION</span>
       </header>
 
@@ -118,7 +121,9 @@ function App() {
           </ul>
         </section>
 
-        <TournamentManager />
+        <WorkspaceHeaderTarget.Provider value={headerTarget}>
+          <TournamentManager />
+        </WorkspaceHeaderTarget.Provider>
       </main>
 
       <footer className="site-footer">

@@ -24,6 +24,19 @@
   align-items: center;
   gap: 20px;
 }
+.workspace-header-target:empty { display: none; }
+.workspace-navigation { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.workspace-navigation .secondary-button { width: auto; }
+.site-header .workspace-navigation .secondary-button {
+  color: #eef9f7;
+  border-color: #80b4b4;
+  padding: 6px 12px;
+  min-height: 36px;
+  font-size: 13px;
+}
+.site-header .workspace-navigation .secondary-button:hover { background: #34707866; }
+.site-header .workspace-navigation .secondary-button:focus-visible { outline-color: #ffba26; }
+.site-header:has(.workspace-navigation) .location { display: none; }
 .wordmark { display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 15px; font-weight: 900; letter-spacing: -.5px; }
 .brand-icon { display: grid; place-items: center; width: 35px; height: 35px; background: #ffb31c; color: #082c32; font-size: 23px; transform: rotate(-6deg); }
 .wordmark-accent { color: #36c7c3; }
@@ -84,7 +97,7 @@ form input[aria-invalid='true'] { border-color: #a42b20; }
 }
 @media (max-width: 740px) {
   .arena { grid-template-columns: minmax(0, 1fr); gap: 35px; padding: 28px 24px 44px; max-width: 530px; }
-  .site-header { padding: 22px 24px; }
+  .site-header { padding: 22px 24px; flex-wrap: wrap; }
   .location { font-size: 9px; letter-spacing: 1px; }
   .intro h1 { font-size: clamp(68px, 17vw, 96px); }
   .intro-copy { font-size: 20px; margin-top: 22px; }
@@ -96,4 +109,217 @@ form input[aria-invalid='true'] { border-color: #a42b20; }
   .ball { top: 88px; }
   .game-facts { font-size: 10px; gap: 12px; }
   .site-footer { padding: 20px 24px; flex-wrap: wrap; font-size: 9px; gap: 10px; }
+}
+
+.settings-recap { margin-block: 12px; font-size: 13px; }
+.advanced-settings > button { width: auto; }
+.advanced-settings-content { margin-top: 12px; }
+.preparation-info > summary { cursor: pointer; font-weight: 700; }
+
+@media (min-width: 1280px) and (min-height: 720px) and (orientation: landscape) {
+  .app-shell { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100svh; overflow: clip; }
+  .site-header, .site-footer { width: 100%; padding-block: 14px; }
+  .app-shell .arena { width: 100%; min-height: 0; margin-block: 0; padding-block: 12px; }
+  .app-shell .arena:has(.tournament-workspace) {
+    max-width: none;
+    padding: 8px clamp(24px, 2.5vw, 48px) 12px;
+    align-items: stretch;
+  }
+  .app-shell:has(.tournament-workspace) .site-header {
+    max-width: none;
+    padding-inline: clamp(24px, 2.5vw, 48px);
+  }
+  .app-shell:has(.tournament-workspace) .site-footer { display: none; }
+  .app-shell .tournament-workspace {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    box-shadow: 0 8px 24px #041f254d;
+  }
+  .app-shell .tournament-workspace > .card-stripe { flex: none; }
+  .app-shell .card-content:has(.overview-results) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .app-shell .card-content:has(.overview-results) > :not(.overview-results),
+  .app-shell .overview-results :is(summary, h3, .form-note, .form-actions, .standings-legend) { flex-shrink: 0; }
+  .app-shell .card-content { padding-block: 18px; }
+  .app-shell .card-eyebrow { margin-bottom: 8px; }
+  .app-shell .card-description { margin-block: 10px; }
+  .app-shell .form-actions { margin-top: 12px; }
+  .app-shell .match-info { margin-top: 12px; padding-top: 10px; }
+  .app-shell .match-layout { margin-top: 12px; }
+  .app-shell .standings, .app-shell .match-history, .app-shell .knockout-archive,
+  .app-shell .completion-history { margin-top: 12px; }
+  .app-shell .match-layout .standings, .app-shell .match-layout > .match-history { margin-top: 0; }
+  .app-shell .standings-scroll { max-height: 175px; overflow: auto; }
+  .app-shell .overview-results {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .app-shell .overview-results,
+  .app-shell .overview-results > div,
+  .app-shell .overview-results :is(.standings, .overview-history) { min-height: 0; }
+  .app-shell .overview-results > div,
+  .app-shell .overview-results .standings {
+    display: flex;
+    flex-direction: column;
+  }
+  .app-shell .overview-history[open] { overflow: auto; overscroll-behavior: contain; }
+  .app-shell .overview-results :is(.standings-scroll, .result-list) {
+    min-height: 0;
+    max-height: none;
+  }
+  .app-shell .overview-results .standings-scroll { margin-block: 4px; }
+  .app-shell .match-layout .standings-scroll { max-height: 340px; }
+  .app-shell :is(.tournament-list, .player-list, .match-history-list, .description, .archive-content, .turnierinfo-content) {
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding-inline: 5px;
+  }
+  .app-shell :is(.tournament-list, .player-list) { max-height: 460px; }
+  .app-shell .player-list { max-height: calc(100svh - 265px); }
+  .app-shell .match-history-list { max-height: 145px; }
+  .app-shell .knockout-plan .match-history-list { max-height: 490px; }
+  .app-shell :is(.archive-content, .turnierinfo-content) { max-height: 105px; }
+  .app-shell .description { max-height: 100px; }
+  .app-shell .avatar-palette { max-width: 100%; }
+  .app-shell .running-layout { grid-template-columns: minmax(220px, .7fr) minmax(0, 2fr); }
+  .app-shell .running-layout > .lineup-panel {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(320px, .9fr);
+    gap: 12px 20px;
+    align-items: start;
+  }
+  .app-shell .running-status {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, .6fr);
+    gap: 8px 16px;
+    align-items: center;
+  }
+  .app-shell .running-status :is(h3, .expiry-message) { grid-column: 1 / -1; margin: 0; }
+  .app-shell .running-status .match-clock { padding-block: 10px; margin: 0; }
+  .app-shell .running-status .match-clock [role="timer"] { font-size: 80px; }
+  .app-shell .running-actions .match-result { margin-top: 0; }
+  .app-shell .score-inputs { overflow-wrap: anywhere; }
+  .app-shell .completion-banner { margin-top: 12px; padding: 12px 20px; }
+  .app-shell .completion-heading { margin-top: 12px; }
+  .app-shell .completion-podium { margin-top: 10px; gap: 10px; }
+  .app-shell .podium-team { padding: 12px; }
+  .app-shell .podium-team.place-1 { min-height: 220px; }
+  .app-shell .podium-team.place-2 { min-height: 200px; }
+  .app-shell .podium-team.place-3 { min-height: 180px; }
+  .app-shell .podium-team h4 { margin-block: 6px; }
+  .app-shell .completion-archives {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .app-shell .completion-archives > details { margin-top: 8px; }
+  .app-shell .completion-podium .podium-team.place-4 { padding-block: 8px; }
+  .app-shell .tournament-completion .match-info { margin-top: 8px; }
+  .app-shell .tournament-completion .match-info .secondary-button { margin-top: 0; }
+}
+
+@media (min-width: 1280px) and (min-height: 720px) and (height < 1080px) and (orientation: landscape) {
+  .app-shell .site-header { padding-block: 8px; }
+  .app-shell .site-footer { display: none; }
+  .app-shell .arena { padding: 8px 24px; }
+  .app-shell .entry-card { overflow-wrap: anywhere; }
+  .app-shell .card-content { padding: 8px 22px; }
+  .app-shell .card-content > h2 { font-size: 34px; line-height: 1.1; }
+  .app-shell .intro h1 { font-size: 86px; }
+  .app-shell .intro-copy { font-size: 18px; }
+  .app-shell .table-art { margin-block: 16px; }
+  .app-shell .form-note, .app-shell .storage-note { margin-bottom: 8px; }
+  .app-shell .form-grid, .app-shell .tournament-details { gap: 10px 16px; }
+  .app-shell .basic-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .app-shell .advanced-settings-content:not([hidden]) {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 16px;
+    max-height: min(250px, 33svh);
+    overflow: auto;
+    padding: 6px;
+  }
+  .app-shell .advanced-settings-content .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .app-shell .advanced-settings-content .schedule-preview { margin-top: 0; align-self: start; }
+  .app-shell form input:not([type="checkbox"]) { min-height: 42px; padding-block: 7px; }
+  .app-shell form label { margin-bottom: 5px; }
+  .app-shell .tournament-form { margin-top: 12px; }
+  .app-shell .tournament-details { margin-block: 12px; }
+  .app-shell .preparation-info .turnierinfo-content { max-height: 225px; }
+  .app-shell .match-info .turnierinfo-content { max-height: 72px; }
+  .app-shell .overview-history { margin-top: 6px; min-width: 0; }
+  .app-shell .card-content:has(.overview-results) > .match-info { margin-top: 6px; padding-top: 6px; }
+  .app-shell .card-content:has(.overview-results) > .form-actions { margin-top: 6px; }
+  .app-shell .overview-results > div > .form-note { margin-bottom: 0; }
+  .app-shell .overview-results .standings { margin-top: 6px; }
+  .app-shell .overview-results .standings > .form-note { margin-bottom: 4px; }
+  .app-shell .tournament-list { max-height: 360px; }
+  .app-shell .avatar-palette { max-height: 230px; overflow: auto; padding: 6px; }
+  .app-shell .match-layout .standings-scroll { max-height: max(175px, calc(100svh - 490px)); }
+  .app-shell .match-layout .result-list { max-height: max(120px, calc(100svh - 585px)); }
+  .app-shell .standings-scroll { margin-block: 6px; }
+  .app-shell .knockout-plan .match-history-list { max-height: 225px; }
+  .app-shell .match-layout { gap: 16px; }
+  .app-shell .lineup-panel > h3 { margin-bottom: 6px; }
+  .app-shell .lineup-panel > p { margin-bottom: 6px; }
+  .app-shell .lineup-pitch { padding: 10px; gap: 12px; }
+  .app-shell .position-select { min-height: 94px; padding: 5px; gap: 4px; }
+  .app-shell .position-avatar { font-size: 44px; }
+  .app-shell .position-player { max-height: 3em; overflow: auto; }
+  .app-shell .position-remove { min-height: 36px; }
+  .app-shell .lineup-notice { min-height: 20px; margin-block: 6px; }
+  .app-shell .running-status .match-clock [role="timer"] { font-size: 54px; }
+  .app-shell .running-audio > p { margin-bottom: 0; }
+  .app-shell .running-actions .match-result { padding: 10px; }
+  .app-shell .running-actions .match-result > :is(h3, p) { margin-bottom: 6px; }
+  .app-shell .running-actions .error-message { margin-top: 6px; }
+  .app-shell .running-layout .match-clock { padding-block: 8px; }
+  .app-shell .running-actions .score-inputs { margin-top: 6px; }
+  .app-shell .running-actions .score-inputs input { margin-top: 4px; }
+  .app-shell .running-actions .match-abort { margin-top: 8px; }
+  .app-shell .match-info .secondary-button { margin-top: 0; }
+  .app-shell .match-info > p { line-height: 1.35; }
+  .app-shell .match-info .form-actions { margin-top: 6px; }
+  .app-shell .match-workspace .card-content > .match-info { margin-top: 6px; padding-top: 6px; }
+  .app-shell .match-workspace .card-content > .form-actions { margin-top: 8px; }
+  .app-shell .running-layout + .knockout-archive,
+  .app-shell .match-layout + .knockout-archive { margin-top: 6px; }
+  .app-shell .completion-banner h3 { font-size: 24px; }
+  .app-shell .completion-banner { padding-block: 8px; }
+  .app-shell .completion-podium .podium-team { min-height: 0; }
+  .app-shell .completion-podium .place-1 { padding-block: 18px; }
+  .app-shell .completion-avatar, .app-shell .podium-medal { font-size: 28px; }
+  .app-shell .podium-members { gap: 6px; }
+  .app-shell .archive-content { max-height: 78px; }
+  .app-shell .tournament-completion {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 8px 18px;
+    align-items: start;
+  }
+  .app-shell .completion-banner,
+  .app-shell .tournament-completion > .match-info { grid-column: 1 / -1; }
+  .app-shell .completion-heading { grid-column: 1; margin-top: 0; }
+  .app-shell .completion-podium { grid-column: 1; margin-top: 0; }
+  .app-shell .completion-archives { grid-column: 2; grid-row: 2 / span 2; grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .app-shell .completion-podium .podium-team { padding: 8px; }
+  .app-shell .completion-podium .podium-members p { gap: 4px; font-size: 13px; }
+  .app-shell .completion-podium .podium-team h4 { font-size: 15px; }
+  .app-shell .match-workspace .card-content:has(.match-layout + .knockout-archive) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, .8fr);
+    column-gap: 16px;
+    align-items: start;
+  }
+  .app-shell .match-workspace .card-content:has(.match-layout + .knockout-archive) > :not(.knockout-archive, .match-info) {
+    grid-column: 1 / -1;
+  }
+  .app-shell .match-layout + .knockout-archive .archive-content { max-height: 100px; }
 }

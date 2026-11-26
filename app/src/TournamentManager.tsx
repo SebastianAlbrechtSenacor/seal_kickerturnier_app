@@ -10,6 +10,7 @@ import TournamentCompletion from './TournamentCompletion'
 import { finishKnockoutMatch, knockoutStartError, startKnockout, startKnockoutMatch } from './knockout'
 import MatchHistory from './MatchHistory'
 import { MatchInfo } from './MatchPresentation'
+import { WorkspaceNavigation } from './WorkspaceNavigation'
 import { abortMatch, finishMatch, startMatch } from './matches'
 import type { ActiveTournament } from './matches'
 import type { Lineup } from './lineup'
@@ -286,7 +287,7 @@ export default function TournamentManager() {
                 <button className="secondary-button" type="button" onClick={() => setList(readList())}>Erneut laden</button>
               </div>
             ) : list.tournaments.length ? (
-              <ul className="tournament-list">
+              <ul className="tournament-list" aria-label="Gespeicherte Turniere" tabIndex={0}>
                 {list.tournaments.map((tournament) => (
                   <li key={tournament.id}>
                     <span><strong>{tournament.settings.name}</strong>
@@ -377,6 +378,11 @@ export default function TournamentManager() {
         )}
         {view.kind === 'details' && (
           <>
+            <WorkspaceNavigation>
+              <button className="secondary-button" type="button" onClick={backToList}>Zur Turnierauswahl</button>
+              <button className="secondary-button" type="button"
+                onClick={() => exportBackup(view.tournament)}>JSON-Sicherung herunterladen</button>
+            </WorkspaceNavigation>
             <p className="card-description">{view.tournament.phase === 'preparation' ?
               'Einstellungen und Spielende können vor dem Turnierstart geändert werden.' :
               completed ? 'Das Turnier ist abgeschlossen. Beide Wertungen und alle Ergebnisse bleiben unverändert.' :
@@ -384,44 +390,63 @@ export default function TournamentManager() {
               'Die Vorrunde läuft. Einstellungen und Spielende sind gesperrt.'}</p>
             <p>{view.tournament.players?.length ?? 0} Spielende angemeldet.</p>
             {view.tournament.phase !== 'preparation' ? <>
-              <StandingsTable tournament={view.tournament}
-                onPrepare={() => view.tournament.phase === 'knockout' ? showKnockout(view.tournament) : prepareMatch(view.tournament)}
-                prepareLabel={completed ? 'Turnierabschluss anzeigen' : view.tournament.phase === 'knockout' ? 'K.-o.-Phase anzeigen' :
-                  view.tournament.activeMatch ? 'Offene Partie anzeigen' : 'Partie vorbereiten'} />
+              <div className="overview-results">
+                <div>
+              <StandingsTable tournament={view.tournament} />
+              <div className="form-actions">
+                <button className="action-button" type="button"
+                  onClick={() => view.tournament.phase === 'knockout' ? showKnockout(view.tournament) : prepareMatch(view.tournament)}>
+                  {completed ? 'Turnierabschluss anzeigen' : view.tournament.phase === 'knockout' ? 'K.-o.-Phase anzeigen' :
+                    view.tournament.activeMatch ? 'Offene Partie anzeigen' : 'Partie vorbereiten'}
+                </button>
+                {view.tournament.phase === 'preliminary' &&
+                  <button className="secondary-button" type="button" disabled={Boolean(knockoutStartError(view.tournament))}
+                    aria-describedby="knockout-requirement" onClick={() => showKnockout(view.tournament, true)}>K.-o.-Phase starten</button>}
+              </div>
               {view.tournament.phase === 'preliminary' && <>
-                <button className="secondary-button" type="button" disabled={Boolean(knockoutStartError(view.tournament))}
-                  aria-describedby="knockout-requirement" onClick={() => showKnockout(view.tournament, true)}>K.-o.-Phase starten</button>
                 <p className="form-note" id="knockout-requirement">{knockoutStartError(view.tournament) ??
                   'Die besten acht bilden vier feste Teams. Der Wechsel ist unumkehrbar.'}</p>
               </>}
-              <MatchHistory tournament={view.tournament} />
+                </div>
+                <details className="overview-history">
+                  <summary>Vollständiger Ergebnisverlauf</summary>
+                  <MatchHistory tournament={view.tournament} />
+                </details>
+              </div>
               <MatchInfo tournament={view.tournament}>
                 <details>
                   <summary>Weitere Turnierinfos</summary>
-                  <TournamentInformation tournament={view.tournament} />
+                  <div className="turnierinfo-content" role="region" aria-label="Turnierdetails" tabIndex={0}>
+                    <TournamentInformation tournament={view.tournament} />
+                  </div>
                 </details>
               </MatchInfo>
-            </> : <TournamentInformation tournament={view.tournament} />}
+            </> : <>
+              <dl className="tournament-details preparation-summary">
+                <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(view.tournament.settings.startsAt)}</dd></div>
+                <div><dt>Spielort</dt><dd>{view.tournament.settings.location}</dd></div>
+              </dl>
+              <details className="preparation-info">
+                <summary>Turnierinfos</summary>
+                <div className="turnierinfo-content" role="region" aria-label="Turnierdetails" tabIndex={0}>
+                  <TournamentInformation tournament={view.tournament} omitBasics />
+                </div>
+              </details>
+            </>}
             {error && <p className="error-message" role="alert">{error}</p>}
             {view.tournament.phase === 'preparation' && (view.tournament.players?.length ?? 0) < 4 && (
               <p className="form-note" id="start-requirement">Für den Turnierstart sind mindestens vier Spielende erforderlich.</p>
             )}
+            {view.tournament.phase === 'preparation' && (
             <div className="form-actions">
-              {view.tournament.phase === 'preparation' && (
-                <>
-              <button className="action-button" type="button"
+              <button className="secondary-button" type="button"
                 onClick={() => setView({ kind: 'players', tournament: view.tournament })}>Spielende verwalten</button>
-              <button className="action-button" type="button"
+              <button className="secondary-button" type="button"
                 onClick={() => setView({ kind: 'edit', tournament: view.tournament })}>Einstellungen bearbeiten</button>
                   <button className="action-button" type="button" disabled={(view.tournament.players?.length ?? 0) < 4}
                     aria-describedby={(view.tournament.players?.length ?? 0) < 4 ? 'start-requirement' : undefined}
                     onClick={() => { setError(''); setView({ kind: 'start', tournament: view.tournament }) }}>Turnier starten</button>
-                </>
-              )}
-              <button className="secondary-button" type="button"
-                onClick={() => exportBackup(view.tournament)}>JSON-Sicherung herunterladen</button>
-              <button className="secondary-button" type="button" onClick={backToList}>Zur Turnierauswahl</button>
-            </div>
+            </div>)}
           </>
         )}
       </div>
@@ -429,13 +454,15 @@ export default function TournamentManager() {
   )
 }
 
-function TournamentInformation({ tournament }: { tournament: Tournament }) {
+function TournamentInformation({ tournament, omitBasics = false }: { tournament: Tournament; omitBasics?: boolean }) {
   return (
     <>
       <dl className="tournament-details">
-        <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(tournament.settings.startsAt)}</dd></div>
-        <div><dt>Spielort</dt><dd>{tournament.settings.location}</dd></div>
-        <div className="full-width"><dt>Beschreibung</dt><dd className="description">{tournament.settings.description || 'Keine Beschreibung angegeben.'}</dd></div>
+        {!omitBasics && <>
+          <div><dt>Start (Europe/Berlin)</dt><dd>{formatBerlinTime(tournament.settings.startsAt)}</dd></div>
+          <div><dt>Spielort</dt><dd>{tournament.settings.location}</dd></div>
+        </>}
+        <div className="full-width"><dt>Beschreibung</dt><dd className="description" tabIndex={0}>{tournament.settings.description || 'Keine Beschreibung angegeben.'}</dd></div>
         <div><dt>Dauer je Partie</dt><dd>{tournament.settings.matchMinutes} Minuten</dd></div>
         <div><dt>Punkte</dt><dd>Sieg: {tournament.settings.winPoints} · Niederlage: {tournament.settings.lossPoints}</dd></div>
         <div><dt>Geplante Vorrunde</dt><dd>{tournament.settings.preliminaryMinutes} Minuten</dd></div>

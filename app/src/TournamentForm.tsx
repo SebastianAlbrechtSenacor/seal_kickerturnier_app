@@ -27,6 +27,7 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
   const [errors, setErrors] = useState<Partial<Record<keyof TournamentDraft, string>>>({})
   const [saveError, setSaveError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [advanced, setAdvanced] = useState(false)
   const startsAt = parseBerlinLocal(draft.startsAtLocal)
   const preliminary = Number(draft.preliminaryMinutes)
   const knockout = Number(draft.knockoutMinutes)
@@ -46,6 +47,7 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
     if (result.errors) {
       setErrors(result.errors)
       setSaveError('')
+      if (fields.slice(3).some(({ name }) => result.errors?.[name])) setAdvanced(true)
       return
     }
     setSaving(true)
@@ -64,8 +66,8 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
       <p className="form-note">Pflichtfelder bitte ausfüllen. Beschreibung ist optional.</p>
       <fieldset disabled={saving}>
         <legend className="sr-only">Turniereinstellungen</legend>
-        <div className="form-grid">
-          {fields.map((field) => (
+        {([fields.slice(0, 3), fields.slice(3)]).map((group, index) => {
+          const inputs = group.map((field) => (
             <div className="form-field" key={field.name}>
               <label htmlFor={`tournament-${field.name}`}>{field.label}</label>
               <input
@@ -83,7 +85,14 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
               />
               {errors[field.name] && <p className="error-message" id={`error-${field.name}`} role="alert">{errors[field.name]}</p>}
             </div>
-          ))}
+          ))
+          if (index === 0) return <div key="basic" className="form-grid basic-fields">{inputs}</div>
+          return <div key="advanced" className="advanced-settings">
+            <p className="settings-recap">Partie: {draft.matchMinutes} Min. · Vorrunde: {draft.preliminaryMinutes} Min. · K.-o.: {draft.knockoutMinutes} Min. · Punkte: {draft.winPoints}/{draft.lossPoints}</p>
+            <button type="button" className="secondary-button" aria-expanded={advanced}
+              aria-controls="advanced-tournament-settings" onClick={() => setAdvanced(!advanced)}>Weitere Einstellungen</button>
+            <div id="advanced-tournament-settings" className="advanced-settings-content" hidden={!advanced}>
+              <div className="form-grid">{inputs}
           <div className="form-field full-width">
             <label htmlFor="tournament-description">Beschreibung (optional)</label>
             <textarea id="tournament-description" rows={3} value={draft.description}
@@ -100,6 +109,9 @@ export default function TournamentForm({ tournament, onSave, onCancel }: Props) 
           ) : <p>Datum und positive Phasendauern eingeben, um die Planung zu sehen.</p>}
           <p>Nur zur Planung: Start und Phasenwechsel bleiben manuell. Die Partiedauer ist unabhängig davon.</p>
         </aside>
+            </div>
+          </div>
+        })}
         {saveError && <p className="error-message" role="alert">{saveError}</p>}
         <div className="form-actions">
           <button className="action-button" type="submit">{saving ? 'Wird gespeichert ...' : 'Turnier speichern'}</button>

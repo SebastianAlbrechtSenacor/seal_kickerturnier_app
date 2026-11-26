@@ -2,6 +2,7 @@ import { knockoutPlacements } from './knockout'
 import type { Tournament } from './tournament'
 import { KnockoutArchive, KnockoutPlan } from './KnockoutBoard'
 import { MatchInfo } from './MatchPresentation'
+import { WorkspaceNavigation } from './WorkspaceNavigation'
 import './TournamentCompletion.css'
 
 interface Props {
@@ -44,17 +45,21 @@ export default function TournamentCompletion({ tournament, celebrate, onBack, on
           </div>
         </li>)}
       </ol>
-      <KnockoutArchive tournament={tournament} />
-      <details className="completion-history">
-        <summary>K.-o.-Spielplan und Ergebnisse</summary>
-        <KnockoutPlan tournament={tournament} />
-      </details>
+      <div className="completion-archives">
+        <KnockoutArchive tournament={tournament} />
+        <details className="completion-history">
+          <summary>K.-o.-Spielplan und Ergebnisse</summary>
+          <div className="archive-content" role="region" aria-label="K.-o.-Archiv" tabIndex={0}>
+            <KnockoutPlan tournament={tournament} />
+          </div>
+        </details>
+      </div>
       <MatchInfo tournament={tournament}>
         <p>Die K.-o.-Teamplätze und die individuelle Vorrundenwertung bleiben getrennt. Das Turnier ist abgeschlossen.</p>
-        <div className="form-actions">
-          <button className="secondary-button" type="button" onClick={onExport}>JSON-Sicherung herunterladen</button>
+        <WorkspaceNavigation>
           <button className="secondary-button" type="button" onClick={onBack}>Zur Turnierübersicht</button>
-        </div>
+          <button className="secondary-button" type="button" onClick={onExport}>JSON-Sicherung herunterladen</button>
+        </WorkspaceNavigation>
       </MatchInfo>
     </section>
   )
